@@ -1,11 +1,22 @@
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
+      package_name:
+        description: 'Name of package, e.g. "alphadia"'
+        required: true
+        type: string
+      build_ui:
+        description: 'Whether or not an UI needs to be built'
+        required: true
+        default: false
+        type: boolean
       commit_to_release:
         description: 'Enter commit hash to release (example: ef4037cb571f99cb4919b520fde7174972aae473)'
+        type: string
         required: true
       tag_to_release:
         description: 'Enter tag to release (example: v1.5.5)'
+        type: string
         required: true
 
 
@@ -22,16 +33,17 @@ jobs:
         with:
           ref: ${{ inputs.commit_to_release }}
 
-      - name: Check release tag
-        id: check_release_tag
-        shell: bash -le {0}
-        run: |
-          CURRENT_VERSION=$(./misc/get_current_version.sh)
-          if [ "v${CURRENT_VERSION}" != "${{ inputs.tag_to_release }}" ]; then
-            echo Code version "v${CURRENT_VERSION}" does not match the tag to release ${{ inputs.tag_to_release }}
-            exit 1
-          fi
-          echo "new_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+      # TODO make this a custom action
+#      - name: Check release tag
+#        id: check_release_tag
+#        shell: bash -le {0}
+#        run: |
+#          CURRENT_VERSION=$(./misc/get_current_version.sh)
+#          if [ "v${CURRENT_VERSION}" != "${{ inputs.tag_to_release }}" ]; then
+#            echo Code version "v${CURRENT_VERSION}" does not match the tag to release ${{ inputs.tag_to_release }}
+#            exit 1
+#          fi
+#          echo "new_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
 
       - uses: mukunku/tag-exists-action@v1.6.0
         id: check-tag
@@ -98,13 +110,15 @@ jobs:
     - name: Test backend
       shell: bash -el {0}
       run: |
-        dist/alphadia/alphadia --version
+        dist/${{ inputs.package_name }}/${{ inputs.package_name }} --version
 
     # Build GUI
     - name: Setup Node.js
+      if: ${{ inputs.build_ui }}
       uses: actions/setup-node@v4
 
     - name: Build GUI
+      if: ${{ inputs.build_ui }}
       run: |
         release/macos/build_gui_macos.sh
 
@@ -125,8 +139,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
           upload_url: ${{ needs.Create_Draft_Release.outputs.upload_url }}
-          asset_path: dist/alphadia-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ env.ARCH }}.pkg
-          asset_name: alphadia-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ env.ARCH }}.pkg
+          asset_path: dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ env.ARCH }}.pkg
+          asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ env.ARCH }}.pkg
           asset_content_type: application/zip
 
   Create_Windows_Installer:
@@ -157,28 +171,31 @@ jobs:
     - name: Test Backend
       shell: powershell
       run: |
-        dist\alphadia\alphadia.exe --version
+        dist\${{ inputs.package_name }}\${{ inputs.package_name }}.exe --version
 
     # Build GUI
     - name: Setup Node.js
+      if: ${{ inputs.build_ui }}
       uses: actions/setup-node@v4
 
     - name: Build GUI
+      if: ${{ inputs.build_ui }}
       shell: powershell
       run: |
         release/windows/build_gui.ps1
 
     # combine backend and GUI
-    - name: Check if Innosetup is installed
-      shell: powershell
-      run: |
-        if (-not (Test-Path "C:\Program Files (x86)\Inno Setup 6\ISCC.exe")) {
-          Write-Host "Inno Setup is not installed"
-          exit 1
-        }
-        else {
-          Write-Host "Inno Setup is installed"
-        }
+#    - name: Check if Innosetup is installed
+    # TODO optional
+#      shell: powershell
+#      run: |
+#        if (-not (Test-Path "C:\Program Files (x86)\Inno Setup 6\ISCC.exe")) {
+#          Write-Host "Inno Setup is not installed"
+#          exit 1
+#        }
+#        else {
+#          Write-Host "Inno Setup is installed"
+#        }
 
     - name: Build Installer
       shell: powershell
@@ -195,6 +212,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
           upload_url: ${{ needs.Create_Draft_Release.outputs.upload_url }}
-          asset_path: dist/alphadia-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe
-          asset_name: alphadia-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe
+          asset_path: dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe
+          asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe
           asset_content_type: application/zip
