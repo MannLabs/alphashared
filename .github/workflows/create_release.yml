@@ -1,5 +1,5 @@
 on:
-  workflow_call:
+  workflow_dispatch:  # TODO change to workflow_call
     inputs:
       package_name:
         description: 'Name of package, e.g. "alphadia"'
