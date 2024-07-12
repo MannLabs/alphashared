@@ -29,7 +29,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - id: foo
-        uses: MannLabs/alphashared/actions/hello_world@v1
+        uses: MannLabs/alphashared/hello-world-action@v1
         with:
           who-to-greet: 'Mona the Octocat'
       - run: echo random-number "$RANDOM_NUMBER"
