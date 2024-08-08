@@ -39,4 +39,5 @@ runs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     shell: bash
     run: |
-      python code_review.py
+      echo '${{ steps.changed-files.outputs.all_changed_files }}'
+      python code_review.py '${{ steps.changed-files.outputs.all_changed_files }}'
