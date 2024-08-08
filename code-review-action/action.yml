@@ -33,6 +33,12 @@ runs:
       python -m pip install --upgrade pip
       pip install PyGithub # requests
 
+  - name: Set GitHub Path
+    run: echo "$GITHUB_ACTION_PATH" >> $GITHUB_PATH
+    shell: bash
+    env:
+      GITHUB_ACTION_PATH: ${{ github.action_path }}
+
   - name: Run Code Review
     env:
 #      REVIEW_API_URL: some_url #${{ secrets.REVIEW_API_URL }}
