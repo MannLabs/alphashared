@@ -39,31 +39,31 @@ jobs:
         import subprocess
         from github import Github
 
-        def get_file_content(file_path, ref):
+        def get_file_content(file_path, commit_sha):
             try:
-                return subprocess.check_output(['git', 'show', f'{ref}:{file_path}'], text=True)
-            except subprocess.CalledProcessError:
-                return ""  # Return empty string if file doesn't exist in that ref
+                return repo.get_contents(file_path, ref=commit_sha).decoded_content.decode()
+            except:
+                return ""  # Return empty string if file doesn't exist in that commit
 
-        def get_file_patch(file_path):
-            try:
-                return subprocess.check_output(['git', 'diff', 'HEAD^', 'HEAD', '--', file_path], text=True)
-            except subprocess.CalledProcessError:
-                return ""
-        
+        def get_file_patch(file):
+            return file.patch if file.patch else ""
+
         changed_files = '${{ steps.changed-files.outputs.all_changed_files }}'.split()
         
         file_data = []
-        for file in changed_files:
-            original_content = get_file_content(file, 'HEAD^')
-            changed_content = get_file_content(file, 'HEAD')
-            patch = get_file_patch(file)
-            file_data.append({
-                "filename": file,
-                "originalContent": original_content,
-                "changedContent": changed_content,
-                "patch": patch
-            })
+        for file in pr.get_files():
+            if file.filename in changed_files:
+                original_content = get_file_content(file.filename, pr.base.sha)
+                changed_content = get_file_content(file.filename, pr.head.sha)
+                patch = get_file_patch(file)
+                file_data.append({
+                    "filename": file.filename,
+                    "originalContent": original_content,
+                    "changedContent": changed_content,
+                    "patch": patch
+                })
+
+        changed_files = '${{ steps.changed-files.outputs.all_changed_files }}'.split()
         print("XXX", changed_files)
         
         try:
