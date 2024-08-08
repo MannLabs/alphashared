@@ -56,19 +56,21 @@ jobs:
                 "originalContent": original_content,
                 "changedContent": changed_content
             })
-
+        print(file_data)
+        
         try:
-            response = requests.post(
-                os.environ['REVIEW_API_URL'],
-                json={"files": file_data},
-                headers={
-                    'Authorization': f"Bearer {os.environ['REVIEW_API_KEY']}",
-                    'Content-Type': 'application/json'
-                }
-            )
-            response.raise_for_status()
-            review_comments = response.json()
+#            response = requests.post(
+#                os.environ['REVIEW_API_URL'],
+#                json={"files": file_data},
+#                headers={
+#                    'Authorization': f"Bearer {os.environ['REVIEW_API_KEY']}",
+#                    'Content-Type': 'application/json'
+#                }
+#            )
+#            response.raise_for_status()
+#            review_comments = response.json()
 
+            review_comments = { file:[(1,'cool')]  for file in changed_files }
             g = Github(os.environ['GITHUB_TOKEN'])
             repo = g.get_repo(os.environ['GITHUB_REPOSITORY'])
             pr = repo.get_pull(int(os.environ['PR_NUMBER']))
