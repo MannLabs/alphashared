@@ -39,6 +39,12 @@ runs:
     env:
       GITHUB_ACTION_PATH: ${{ github.action_path }}
 
+  - name: list files
+    shell: bash
+    run: |
+      ls
+      ls */*
+
   - name: Run Code Review
     env:
 #      REVIEW_API_URL: some_url #${{ secrets.REVIEW_API_URL }}
@@ -47,6 +53,7 @@ runs:
       GITHUB_TOKEN: ${{inputs.GITHUB_TOKEN}} #${{ secrets.GITHUB_TOKEN }}
     shell: bash
     run: |
+      echo ${{ github.action_path }}
       echo '${{ steps.changed-files.outputs.all_changed_files }}'
-      python code_review.py '${{ steps.changed-files.outputs.all_changed_files }}'
+      python ${{ github.action_path }}/code_review.py '${{ steps.changed-files.outputs.all_changed_files }}'
 
