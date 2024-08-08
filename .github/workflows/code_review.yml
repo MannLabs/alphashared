@@ -66,11 +66,14 @@ jobs:
 
             for filename, comments in review_comments.items():
                 for line, comment in comments:
+                    print(line, comment)
                     pr.create_review_comment(body=comment, commit=pr.head.sha, path=filename, line=int(line))
 
             print('Code review completed and comments posted.')
         except Exception as e:
             print(f'Error during code review: {str(e)}')
+            import traceback
+            traceback.print_exc()
             exit(1)
       shell: python
 #            response = requests.post(
