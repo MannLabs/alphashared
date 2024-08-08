@@ -70,6 +70,27 @@ jobs:
         changed_files = '${{ steps.changed-files.outputs.all_changed_files }}'.split()
         print("XXX", changed_files)
         
+        def format_code_review_data(data_list):
+          formatted_string = "Code Review Data:\n\n"
+          
+          for item in data_list:
+              formatted_string += f"File: {item['filename']}\n"
+              formatted_string += "Original Content:\n"
+              formatted_string += "```\n"
+              formatted_string += item['originalContent']
+              formatted_string += "\n```\n\n"
+              formatted_string += "Patch:\n"
+              formatted_string += "```\n"
+              formatted_string += item['patch']
+              formatted_string += "\n```\n\n"
+              formatted_string += "---\n\n"
+          
+          formatted_string += "End of Code Review Data"
+          
+          return formatted_string
+        
+        print(format_code_review_data(file_data))
+        
         try:
             review_comments = { file:[(1,'cool')]  for file in changed_files }
             g = Github(os.environ['GITHUB_TOKEN'])
