@@ -1,6 +1,7 @@
 import os
 import sys
 
+
 # import requests
 # import subprocess
 from github import Github
@@ -54,6 +55,7 @@ for file in pr.get_files():
             "changedContent": changed_content,
             "patch": patch
         })
+
 
 print("# ##############################################################################")
 print(format_code_review_data(file_data))
