@@ -7,7 +7,7 @@ on:
 jobs:
   code-review:
     runs-on: ubuntu-latest
-    #if: contains(github.event.pull_request.labels.*.name, 'review')
+    if: contains(github.event.pull_request.labels.*.name, 'code-review')
     steps:
     - uses: actions/checkout@v4
       with:
@@ -71,10 +71,11 @@ jobs:
         print("XXX", changed_files)
         
         def format_code_review_data(data_list):
-          formatted_string = "Code Review Data:\n\n"
+          formatted_string = "Beginning of Code Review Data:\n\n"
           
           for item in data_list:
-              formatted_string += f"File: {item['filename']}\n"
+              formatted_string += f"=============\n"
+              formatted_string += f"Beginning of data for file: {item['filename']}\n"
               formatted_string += "Original Content:\n"
               formatted_string += "```\n"
               formatted_string += item['originalContent']
@@ -83,13 +84,17 @@ jobs:
               formatted_string += "```\n"
               formatted_string += item['patch']
               formatted_string += "\n```\n\n"
-              formatted_string += "---\n\n"
+              formatted_string += "---\n"
+              formatted_string += f"End of data for file: {item['filename']}\n"
+              formatted_string += f"=============\n\n"
           
           formatted_string += "End of Code Review Data"
           
           return formatted_string
         
+        print("# ##############################################################################")
         print(format_code_review_data(file_data))
+        print("# ##############################################################################")
         
         try:
             review_comments = { file:[(1,'cool')]  for file in changed_files }
