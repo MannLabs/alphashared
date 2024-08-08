@@ -67,7 +67,7 @@ jobs:
             for filename, comments in review_comments.items():
                 for line, comment in comments:
                     print("XXX", line, comment)
-                    pr.create_review_comment(body=comment, commit=pr.head.sha, path=filename, line=int(line))
+                    pr.create_review_comment(body=comment, commit=${{github.event.head_commit}}, path=filename, line=int(line))
 
             print('Code review completed and comments posted.')
         except Exception as e:
