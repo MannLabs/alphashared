@@ -64,10 +64,12 @@ jobs:
             repo = g.get_repo(os.environ['GITHUB_REPOSITORY'])
             pr = repo.get_pull(int(os.environ['PR_NUMBER']))
 
+            last_commit = list(pr.get_commits())[-1]
+        
             for filename, comments in review_comments.items():
                 for line, comment in comments:
                     print("XXX", line, comment)
-                    pr.create_review_comment(body=comment, commit=${{github.event.head_commit}}, path=filename, line=int(line))
+                    pr.create_review_comment(body=comment, commit=last_commit, path=filename, line=int(line))
 
             print('Code review completed and comments posted.')
         except Exception as e:
