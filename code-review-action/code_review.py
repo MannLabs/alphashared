@@ -19,29 +19,29 @@ def get_file_content(file_path, commit_sha):
 def get_file_patch(file):
     return file.patch if file.patch else ""
 
-def format_code_review_data(data_list):
-    formatted_string = "Beginning of Code Review Data:\n\n"
+def format_code_review_data(data_list, include_content):
+    formatted_string = "START DATA:\n\n"
 
     for item in data_list:
         formatted_string += f"=============\n"
-        formatted_string += f"Beginning of data for file: {item['filename']}\n"
-        formatted_string += "Original Content:\n"
-        formatted_string += "```\n"
-        formatted_string += item['originalContent']
-        formatted_string += "\n```\n\n"
-        formatted_string += "Patch:\n"
-        formatted_string += "```\n"
+        formatted_string += f"START DATA FOR FILE: '{item['filename']}' >>>>>>>>>>>>>>>>\n"
+        if include_content:
+            formatted_string += "START ORIGINAL CONTENT>>>>>>>>\n"
+            formatted_string += item['originalContent']
+            formatted_string += "\n<<<<<<<< END ORIGINAL CONTENT\n\n"
+        formatted_string += "START PATCH>>>>>>>>\n"
         formatted_string += item['patch']
-        formatted_string += "\n```\n\n"
+        formatted_string += "\n<<<<<<<<END PATCH\n\n"
         formatted_string += "---\n"
-        formatted_string += f"End of data for file: {item['filename']}\n"
+        formatted_string += f"<<<<<<<<<<<<<<<<END DATA FOR FILE: '{item['filename']}'\n"
         formatted_string += f"=============\n\n"
 
-    formatted_string += "End of Code Review Data"
+    formatted_string += "END DATA"
 
     return formatted_string
 
 changed_files = sys.argv[1].split()
+include_content = sys.argv[2].lower() == 'true'
 
 file_data = []
 for file in pr.get_files():
@@ -58,7 +58,7 @@ for file in pr.get_files():
 
 
 print("# ##############################################################################")
-print(format_code_review_data(file_data))
+print(format_code_review_data(file_data, include_content))
 print("# ##############################################################################")
 
 # try:
