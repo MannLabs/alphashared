@@ -45,16 +45,24 @@ jobs:
             except subprocess.CalledProcessError:
                 return ""  # Return empty string if file doesn't exist in that ref
 
+        def get_file_patch(file_path):
+            try:
+                return subprocess.check_output(['git', 'diff', 'HEAD^', 'HEAD', '--', file_path], text=True)
+            except subprocess.CalledProcessError:
+                return ""
+        
         changed_files = '${{ steps.changed-files.outputs.all_changed_files }}'.split()
         
         file_data = []
         for file in changed_files:
             original_content = get_file_content(file, 'HEAD^')
             changed_content = get_file_content(file, 'HEAD')
+            patch = get_file_patch(file)
             file_data.append({
                 "filename": file,
                 "originalContent": original_content,
-                "changedContent": changed_content
+                "changedContent": changed_content,
+                "patch": patch
             })
         print("XXX", changed_files)
         
