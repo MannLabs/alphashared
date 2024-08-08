@@ -39,6 +39,10 @@ jobs:
         import subprocess
         from github import Github
 
+        g = Github(os.environ['GITHUB_TOKEN'])
+        repo = g.get_repo(os.environ['GITHUB_REPOSITORY'])
+        pr = repo.get_pull(int(os.environ['PR_NUMBER']))
+        
         def get_file_content(file_path, commit_sha):
             try:
                 return repo.get_contents(file_path, ref=commit_sha).decoded_content.decode()
