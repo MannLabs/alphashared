@@ -1,10 +1,12 @@
 name: 'Code Review'
 description: 'Generate prompt for code review'
-#inputs:
-#  who-to-greet:  # id of input
-#    description: 'Who to greet'
-#    required: true
-#    default: 'World'
+inputs:
+  PR_NUMBER:  # id of input
+    description: ""
+    required: true
+  GITHUB_TOKEN:
+    description: ""
+    required: true
 #outputs:
 #  random-number:
 #    description: "Random number"
@@ -35,8 +37,8 @@ runs:
     env:
 #      REVIEW_API_URL: some_url #${{ secrets.REVIEW_API_URL }}
 #      REVIEW_API_KEY: some_api_ket #${{ secrets.REVIEW_API_KEY }}
-      PR_NUMBER: ${{ github.event.number }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PR_NUMBER: ${{inputs.PR_NUMBER}} #${{ github.event.number }}
+      GITHUB_TOKEN: ${{inputs.GITHUB_TOKEN}} #${{ secrets.GITHUB_TOKEN }}
     shell: bash
     run: |
       echo '${{ steps.changed-files.outputs.all_changed_files }}'
