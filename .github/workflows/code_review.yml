@@ -56,7 +56,7 @@ jobs:
                 "originalContent": original_content,
                 "changedContent": changed_content
             })
-        print(file_data)
+        print(changed_files)
         
         try:
             review_comments = { file:[(1,'cool')]  for file in changed_files }
