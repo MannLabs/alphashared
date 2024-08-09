@@ -21,7 +21,7 @@ def process_json_data(json_string, pr, last_commit):
 
         # Send each json_item to the API
         try:
-            proposed_code = json_item['proposed_code'].replace('\\n', '\n')
+            proposed_code = json_item['proposed_code'].replace('__LB__', '\n').replace('__DQ__', '"')
             comment = f"{json_item['reason']}\n\n```python\n{proposed_code}\n```"
             file_name = json_item['file_name']
             line = int(json_item["start_line"])
