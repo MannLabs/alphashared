@@ -21,7 +21,8 @@ def process_json_data(json_string, pr, last_commit):
 
         # Send each json_item to the API
         try:
-            comment = f"{json_item['reason']}\n\n```python\n{json_item['proposed_code']}\n```"
+            proposed_code = json_item['proposed_code'].replace('\\n', '\n')
+            comment = f"{json_item['reason']}\n\n```python\n{proposed_code}\n```"
             file_name = json_item['file_name']
             line = int(json_item["start_line"])
             pr.create_review_comment(body=comment, commit=last_commit, path=file_name, line=line)
