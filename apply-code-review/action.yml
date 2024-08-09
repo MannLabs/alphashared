@@ -36,5 +36,8 @@ runs:
     env:
       PR_NUMBER: ${{inputs.PR_NUMBER}} #${{ github.event.number }}
       GITHUB_TOKEN: ${{inputs.GITHUB_TOKEN}} #${{ secrets.GITHUB_TOKEN }}
-    run: python ${{ github.action_path }}/apply_code_review.py '${{ inputs.REVIEW_DATA }}'
+    run: |
+      echo '${{ inputs.REVIEW_DATA }}' > ${{ github.action_path }}/input.txt
+      cat input.txt
+      python ${{ github.action_path }}/apply_code_review.py ${{ github.action_path }}/input.txt
 

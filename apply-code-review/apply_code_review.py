@@ -44,6 +44,10 @@ def main():
     try:
 
         last_commit = list(pr.get_commits())[-1]
+
+        with open(review_data) as f:
+            review_data = f.read()
+        print("GOT", review_data)
         process_json_data(review_data, pr, last_commit)
 
         print('Code review completed and comments posted.')
