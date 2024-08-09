@@ -48,7 +48,7 @@ runs:
     run: |
       echo ${{ github.action_path }}
       echo '${{ steps.changed-files.outputs.all_changed_files }}'
-      python ${{ github.action_path }}/code_review.py '${{ steps.changed-files.outputs.all_changed_files }}' ${{inputs.INCLUDE_CONTENT}} > ${{ github.workspace }}/patches.txt
+      python ${{ github.action_path }}/get_code_review_input.py '${{ steps.changed-files.outputs.all_changed_files }}' ${{inputs.INCLUDE_CONTENT}} > ${{ github.workspace }}/patches.txt
 
   - uses: actions/upload-artifact@v4
     with:
