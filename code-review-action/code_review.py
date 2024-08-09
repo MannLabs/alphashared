@@ -26,14 +26,14 @@ def format_code_review_data(data_list, include_content):
         formatted_string += f"=============\n"
         formatted_string += f"START DATA FOR FILE: '{item['filename']}' >>>>>>>>>>>>>>>>\n"
         if include_content:
-            formatted_string += "START ORIGINAL CONTENT>>>>>>>>\n"
-            formatted_string += item['originalContent']
+            formatted_string += "START ORIGINAL CONTENT >>>>>>>>\n"
+            formatted_string += item['original_content']
             formatted_string += "\n<<<<<<<< END ORIGINAL CONTENT\n\n"
-        formatted_string += "START PATCH>>>>>>>>\n"
+        formatted_string += "START PATCH >>>>>>>>\n"
         formatted_string += item['patch']
-        formatted_string += "\n<<<<<<<<END PATCH\n\n"
+        formatted_string += "\n<<<<<<<< END PATCH\n\n"
         formatted_string += "---\n"
-        formatted_string += f"<<<<<<<<<<<<<<<<END DATA FOR FILE: '{item['filename']}'\n"
+        formatted_string += f"<<<<<<<<<<<<<<<< END DATA FOR FILE: '{item['filename']}'\n"
         formatted_string += f"=============\n\n"
 
     formatted_string += "END DATA"
@@ -51,19 +51,12 @@ for file in pr.get_files():
         patch = get_file_patch(file)
         file_data.append({
             "filename": file.filename,
-            "originalContent": original_content,
-            "changedContent": changed_content,
+            "original_content": original_content,
+            "changed_content": changed_content,
             "patch": patch
         })
 
-
-print("# ############################################################################################################################################################")
-print("# ############################################################################################################################################################")
-print("# ############################################################################################################################################################")
 print(format_code_review_data(file_data, include_content))
-print("# ############################################################################################################################################################")
-print("# ############################################################################################################################################################")
-print("# ############################################################################################################################################################")
 
 # try:
 #     review_comments = {file: [(1, 'cool')] for file in changed_files}

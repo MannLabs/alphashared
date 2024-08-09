@@ -10,16 +10,12 @@ inputs:
   INCLUDE_CONTENT:
     description: ""
     required: true
-#outputs:
-#  random-number:
-#    description: "Random number"
-#    value: ${{ steps.random-number-generator.outputs.random-number }}
 runs:
   using: "composite"
   steps:
   - uses: actions/checkout@v4
-    with:
-      fetch-depth: 0
+#    with:
+#      fetch-depth: 0
 
   - name: Get changed files
     id: changed-files
@@ -42,13 +38,7 @@ runs:
     env:
       GITHUB_ACTION_PATH: ${{ github.action_path }}
 
-  - name: list files
-    shell: bash
-    run: |
-      ls
-      ls */*
-
-  - name: Run Code Review
+  - name: Get diff
     env:
 #      REVIEW_API_URL: some_url #${{ secrets.REVIEW_API_URL }}
 #      REVIEW_API_KEY: some_api_ket #${{ secrets.REVIEW_API_KEY }}
@@ -58,5 +48,27 @@ runs:
     run: |
       echo ${{ github.action_path }}
       echo '${{ steps.changed-files.outputs.all_changed_files }}'
-      python ${{ github.action_path }}/code_review.py '${{ steps.changed-files.outputs.all_changed_files }}' ${{inputs.INCLUDE_CONTENT}}
+      python ${{ github.action_path }}/code_review.py '${{ steps.changed-files.outputs.all_changed_files }}' ${{inputs.INCLUDE_CONTENT}} > ${{ github.workspace }}/patches.txt
+
+  - uses: actions/upload-artifact@v4
+    with:
+      name: patches
+      path: ${{ github.workspace }}/patches.txt
+      if-no-files-found: error
+
+
+  - uses: actions/checkout@v4
+    with:
+      ref:  ${{ github.event.pull_request.base.ref }}
+
+  - name: Get whole codebase
+    shell: bash
+    run: |
+      find ./ -name '*.py' | xargs tail -n +0 | sed 's/ / /g'  > ${{ github.workspace }}/target_branch.txt
+
+  - uses: actions/upload-artifact@v4
+    with:
+      name: target_branch
+      path: ${{ github.workspace }}/target_branch.txt
+      if-no-files-found: error
 
