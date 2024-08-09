@@ -22,7 +22,7 @@ def process_json_data(json_string, pr, last_commit):
         # Send each json_item to the API
         try:
             proposed_code = json_item['proposed_code'].replace('__LB__', '\n').replace('__DQ__', '"')
-            comment = f"{json_item['reason']}\n\n```python\n{proposed_code}\n```"
+            comment = f"===AUTOMATED===\n{json_item['reason']}\n\n```python\n{proposed_code}\n```"
             file_name = json_item['file_name']
             line = int(json_item["start_line"])
             pr.create_review_comment(body=comment, commit=last_commit, path=file_name, line=line)
@@ -31,6 +31,7 @@ def process_json_data(json_string, pr, last_commit):
         except Exception as e:
             print(f"Error processing change_id: {json_item['change_id']} - {str(e)}")
             traceback.print_exc()
+            # dump all that were not applicable to the comments
 
 
 
