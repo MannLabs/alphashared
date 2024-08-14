@@ -36,7 +36,7 @@ def _concatenate_files(file_paths: list[str]) -> str:
 
 
 if __name__ == "__main__":
-    file_paths = sys.argv[1].split()
+    file_paths = sys.argv[1].split(";") if ";" in sys.argv[1] else sys.argv[1].split()
     output_path = sys.argv[2]
 
     print(f"Concatenating files: {file_paths}")
