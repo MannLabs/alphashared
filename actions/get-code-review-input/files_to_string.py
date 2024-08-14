@@ -54,7 +54,7 @@ if __name__ == "__main__":
     output_path = sys.argv[2]
     excluded_extensions = sys.argv[3].split(";") if len(sys.argv) > 3 else []
 
-    print(f"Concatenating files: {file_paths}")
+    print(f"Concatenating {file_paths=} with {excluded_extensions=}")
     concatenated_string = _concatenate_files(file_paths, excluded_extensions)
 
     with open(output_path, "w") as outfile:
