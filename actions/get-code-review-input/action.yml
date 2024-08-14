@@ -58,7 +58,7 @@ runs:
   - name: Dump whole codebase
     shell: bash
     run: |
-      ALL_FILES=$(find ./ -name '*' | grep -v "\.git")
+      ALL_FILES=$(find ./ -name '*' -type f | grep -v "\.git")
       echo $ALL_FILES ALL_FILES
       python ${{ github.action_path }}/files_to_string.py $ALL_FILES > ${{ github.workspace }}/all_files.txt
 
