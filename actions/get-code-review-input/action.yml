@@ -7,9 +7,6 @@ inputs:
   GITHUB_TOKEN:
     description: ""
     required: true
-  INCLUDE_CONTENT:
-    description: ""
-    required: true
 runs:
   using: "composite"
   steps:
@@ -30,7 +27,7 @@ runs:
     shell: bash
     run: |
       python -m pip install --upgrade pip
-      pip install PyGithub # requests
+      pip install PyGithub
 
   - name: Set GitHub Path
     run: echo "$GITHUB_ACTION_PATH" >> $GITHUB_PATH
@@ -38,17 +35,14 @@ runs:
     env:
       GITHUB_ACTION_PATH: ${{ github.action_path }}
 
-  - name: Get diff
+  - name: Dump PR
     env:
-#      REVIEW_API_URL: some_url #${{ secrets.REVIEW_API_URL }}
-#      REVIEW_API_KEY: some_api_ket #${{ secrets.REVIEW_API_KEY }}
-      PR_NUMBER: ${{inputs.PR_NUMBER}} #${{ github.event.number }}
-      GITHUB_TOKEN: ${{inputs.GITHUB_TOKEN}} #${{ secrets.GITHUB_TOKEN }}
+      PR_NUMBER: ${{inputs.PR_NUMBER}}
+      GITHUB_TOKEN: ${{inputs.GITHUB_TOKEN}}
     shell: bash
     run: |
-      echo ${{ github.action_path }}
-      echo '${{ steps.changed-files.outputs.all_changed_files }}'
-      python ${{ github.action_path }}/get_code_review_input.py '${{ steps.changed-files.outputs.all_changed_files }}' ${{inputs.INCLUDE_CONTENT}} > ${{ github.workspace }}/patches.txt
+      echo changed files: ''${{ steps.changed-files.outputs.all_changed_files }}'
+      python ${{ github.action_path }}/pr_to_string.py '${{ steps.changed-files.outputs.all_changed_files }}' > ${{ github.workspace }}/patches.txt
 
   - uses: actions/upload-artifact@v4
     with:
@@ -61,14 +55,28 @@ runs:
     with:
       ref:  ${{ github.event.pull_request.base.ref }}
 
-  - name: Get whole codebase
+  - name: Dump whole codebase
     shell: bash
     run: |
-      find ./ -name '*.py' | xargs tail -n +0 | sed 's/ / /g'  > ${{ github.workspace }}/target_branch.txt
+      ALL_FILES=$(find ./ -name '*' | grep -v "\.git")
+      echo $ALL_FILES ALL_FILES
+      python ${{ github.action_path }}/files_to_string.py $ALL_FILES > ${{ github.workspace }}/all_files.txt
+
+  - name: Dump changed files
+    shell: bash
+    run: |
+      echo ${{ steps.changed-files.outputs.all_changed_files }}
+      python ${{ github.action_path }}/files_to_string.py ${{ steps.changed-files.outputs.all_changed_files }} > ${{ github.workspace }}/changed_files.txt
 
   - uses: actions/upload-artifact@v4
     with:
       name: target_branch
-      path: ${{ github.workspace }}/target_branch.txt
+      path: ${{ github.workspace }}/all_files.txt
+      if-no-files-found: error
+
+  - uses: actions/upload-artifact@v4
+    with:
+      name: target_branch
+      path: ${{ github.workspace }}/changed_files.txt
       if-no-files-found: error
 
