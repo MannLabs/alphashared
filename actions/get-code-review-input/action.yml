@@ -83,9 +83,9 @@ runs:
       ALL_FILES=$(find ./ -name "*" -type f | grep -v "\.git" | tr "\n" ";")
       echo ALL_FILES: $ALL_FILES
       python ${{ github.action_path }}/files_to_string.py $ALL_FILES ${{ github.workspace }}/all_files.txt  ${{ inputs.EXCLUDED_EXTENSIONS }}
-      ls ${{ github.workspace }}
-      head ${{ github.workspace }}/all_files.txt
-      tail ${{ github.workspace }}/all_files.txt
+#      ls ${{ github.workspace }}
+#      head ${{ github.workspace }}/all_files.txt
+#      tail ${{ github.workspace }}/all_files.txt
 
   - uses: actions/upload-artifact@v4
     with:
