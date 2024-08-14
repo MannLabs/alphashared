@@ -14,7 +14,7 @@ import sys
 
 def _concatenate_files(file_paths: list[str]) -> str:
     """Concatenate the content of multiple files into a single string."""
-    files_contents = []
+    file_contents = []
     for file_path in file_paths:
         print(f"Processing file: {file_path}")
         if not file_path.startswith("./"):
@@ -25,14 +25,20 @@ def _concatenate_files(file_paths: list[str]) -> str:
             continue
 
         if os.path.isfile(file_path):
-            files_contents.append(f"START FILE '{file_path}' >>>>>>>>>>>>>>>>\n")
-            with open(file_path, "r") as infile:
-                files_contents.append(infile.read())
-            files_contents.append(f"\n<<<<<<<<<<<<<<<< END FILE '{file_path}'")
-        else:
-            print(f"File '{file_path}' not a file.")
+            try:
+                with open(file_path, "r") as infile:
+                    file_content = infile.read()
+            except UnicodeDecodeError as e:
+                print(f"Error reading file '{file_path}': {e}")
+                continue
 
-    return "\n\n".join(files_contents)
+            file_contents.append(f"START FILE '{file_path}' >>>>>>>>>>>>>>>>\n")
+            file_contents.append(file_content)
+            file_contents.append(f"\n<<<<<<<<<<<<<<<< END FILE '{file_path}'")
+        else:
+            print(f"File '{file_path}' is not a file.")
+
+    return "\n\n".join(file_contents)
 
 
 if __name__ == "__main__":
