@@ -16,7 +16,6 @@ def _concatenate_files(file_paths: list[str], excluded_extensions: list[str]) ->
     """Concatenate the content of multiple files into a single string."""
     file_contents = []
     for file_path in file_paths:
-
         if not file_path.strip():
             continue
 
@@ -58,7 +57,8 @@ if __name__ == "__main__":
     concatenated_string = _concatenate_files(file_paths, excluded_extensions)
 
     with open(output_path, "w") as outfile:
-        print(f"Writing concatenated content of length {len(concatenated_string)} to '{output_path}' ..")
+        print(
+            f"Writing concatenated content of length {len(concatenated_string)} to '{output_path}' .."
+        )
         outfile.write(concatenated_string)
     print("Done.")
-    sys.exit(0)

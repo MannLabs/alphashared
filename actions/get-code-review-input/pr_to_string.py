@@ -15,7 +15,6 @@ Returns
 
 import os
 import sys
-from collections import defaultdict
 
 from github import Github, File
 
@@ -39,16 +38,19 @@ def _get_file_patch(file: File) -> str:
 
 def _format_pr(pr_data: list[dict[str, str]]) -> str:
     """Format the data of the pull request to a AI-readable format."""
-
     pr_contents = ["=============", "START ALL PATCHES:", ""]
 
     for item in pr_data:
         file_name = item["file_name"]
         prefix = "" if file_name.startswith("./") else "./"
 
-        pr_contents.append(f"START PATCH FOR FILE: '{prefix}{file_name}' >>>>>>>>>>>>>>>>")
+        pr_contents.append(
+            f"START PATCH FOR FILE: '{prefix}{file_name}' >>>>>>>>>>>>>>>>"
+        )
         pr_contents.append(item["patch"])
-        pr_contents.append(f"<<<<<<<<<<<<<<<< END PATCH FOR FILE: '{prefix}{file_name}'")
+        pr_contents.append(
+            f"<<<<<<<<<<<<<<<< END PATCH FOR FILE: '{prefix}{file_name}'"
+        )
         pr_contents.append("")
 
     pr_contents.append("END ALL PATCHES")
