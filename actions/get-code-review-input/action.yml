@@ -60,14 +60,15 @@ runs:
     shell: bash
     run: |
       ALL_FILES=$(find ./ -name '*' -type f | grep -v "\.git")
-      echo dumping files: $ALL_FILES
+      echo ALL_FILES: $ALL_FILES
       python ${{ github.action_path }}/files_to_string.py $ALL_FILES > ${{ github.workspace }}/all_files.txt
 
   - name: Dump changed files
     shell: bash
     run: |
-      echo dumping files: ${{ steps.changed-files.outputs.all_changed_files }}
-      python ${{ github.action_path }}/files_to_string.py ${{ steps.changed-files.outputs.all_changed_files }} > ${{ github.workspace }}/changed_files.txt
+      CHANGED_FILES=${{ steps.changed-files.outputs.all_changed_files }}
+      echo CHANGED_FILES: $CHANGED_FILES
+      python ${{ github.action_path }}/files_to_string.py $CHANGED_FILES > ${{ github.workspace }}/changed_files.txt
 
   # upload artifacts
   - uses: actions/upload-artifact@v4
