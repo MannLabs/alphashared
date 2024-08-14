@@ -58,5 +58,6 @@ if __name__ == "__main__":
     concatenated_string = _concatenate_files(file_paths, excluded_extensions)
 
     with open(output_path, "w") as outfile:
-        print(f"Writing concatenated content to '{output_path}' ..")
+        print(f"Writing concatenated content of length {len(concatenated_string)} to '{output_path}' ..")
         outfile.write(concatenated_string)
+    print("Done.")

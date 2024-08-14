@@ -47,14 +47,14 @@ runs:
     shell: bash
     run: |
       echo changed files: '${{ steps.changed-files.outputs.all_changed_files }}'
-      python ${{ github.action_path }}/pr_to_string.py '${{ steps.changed-files.outputs.all_changed_files }}' ${{ github.workspace }}/patches.txt
-      head ${{ github.workspace }}/patches.txt
-      tail ${{ github.workspace }}/patches.txt
+      python ${{ github.action_path }}/pr_to_string.py '${{ steps.changed-files.outputs.all_changed_files }}' ${{ github.action_path }}/patches.txt
+      head ${{ github.action_path }}/patches.txt
+      tail ${{ github.action_path }}/patches.txt
 
   - uses: actions/upload-artifact@v4
     with:
       name: patches
-      path: ${{ github.workspace }}/patches.txt
+      path: ${{ github.action_path }}/patches.txt
       if-no-files-found: error
 
   # Dump repository contents
@@ -62,33 +62,33 @@ runs:
     with:
       ref: ${{ github.event.pull_request.base.ref }}
 
+  - name: Dump changed files
+    shell: bash
+    run: |
+      echo CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+      python ${{ github.action_path }}/files_to_string.py '${{ steps.changed-files.outputs.all_changed_files }}' ${{ github.action_path }}/changed_files.txt
+      head ${{ github.action_path }}/changed_files.txt
+      tail ${{ github.action_path }}/changed_files.txt
+
+  - uses: actions/upload-artifact@v4
+    with:
+      name: changed_files
+      path: ${{ github.action_path }}/changed_files.txt
+      if-no-files-found: error
+
+  # upload artifacts
   - name: Dump whole codebase
     shell: bash
     run: |
       ALL_FILES=$(find ./ -name "*" -type f | grep -v "\.git" | tr "\n" ";")
       echo ALL_FILES: $ALL_FILES
-      python ${{ github.action_path }}/files_to_string.py $ALL_FILES ${{ github.workspace }}/all_files.txt  ${{ inputs.EXCLUDED_EXTENSIONS }}
-      head ${{ github.workspace }}/all_files.txt
-      tail ${{ github.workspace }}/all_files.txt
+      python ${{ github.action_path }}/files_to_string.py $ALL_FILES ${{ github.action_path }}/all_files.txt  ${{ inputs.EXCLUDED_EXTENSIONS }}
+      head ${{ github.action_path }}/all_files.txt
+      tail ${{ github.action_path }}/all_files.txt
 
-  - name: Dump changed files
-    shell: bash
-    run: |
-      echo CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
-      python ${{ github.action_path }}/files_to_string.py '${{ steps.changed-files.outputs.all_changed_files }}' ${{ github.workspace }}/changed_files.txt
-      head ${{ github.workspace }}/changed_files.txt
-      tail ${{ github.workspace }}/changed_files.txt
-
-  # upload artifacts
   - uses: actions/upload-artifact@v4
     with:
       name: all_files
-      path: ${{ github.workspace }}/all_files.txt
-      if-no-files-found: error
-
-  - uses: actions/upload-artifact@v4
-    with:
-      name: changed_files
-      path: ${{ github.workspace }}/changed_files.txt
+      path: ${{ github.action_path }}/all_files.txt
       if-no-files-found: error
 
