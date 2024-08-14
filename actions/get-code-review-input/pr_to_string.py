@@ -44,10 +44,11 @@ def _format_pr(pr_data: list[dict[str, str]]) -> str:
 
     for item in pr_data:
         file_name = item["file_name"]
+        prefix = "" if file_name.startswith("./") else "./"
 
-        pr_contents.append(f"START PATCH FOR FILE: '{file_name}' >>>>>>>>>>>>>>>>")
+        pr_contents.append(f"START PATCH FOR FILE: '{prefix}{file_name}' >>>>>>>>>>>>>>>>")
         pr_contents.append(item["patch"])
-        pr_contents.append(f"<<<<<<<<<<<<<<<< END PATCH FOR FILE: '{file_name}'")
+        pr_contents.append(f"<<<<<<<<<<<<<<<< END PATCH FOR FILE: '{prefix}{file_name}'")
         pr_contents.append("")
 
     pr_contents.append("END ALL PATCHES")
