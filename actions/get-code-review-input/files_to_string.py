@@ -61,3 +61,4 @@ if __name__ == "__main__":
         print(f"Writing concatenated content of length {len(concatenated_string)} to '{output_path}' ..")
         outfile.write(concatenated_string)
     print("Done.")
+    sys.exit(0)
