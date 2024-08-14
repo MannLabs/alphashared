@@ -43,7 +43,9 @@ runs:
     shell: bash
     run: |
       echo changed files: '${{ steps.changed-files.outputs.all_changed_files }}'
-      python ${{ github.action_path }}/pr_to_string.py '${{ steps.changed-files.outputs.all_changed_files }}' > ${{ github.workspace }}/patches.txt
+      python ${{ github.action_path }}/pr_to_string.py '${{ steps.changed-files.outputs.all_changed_files }}' ${{ github.workspace }}/patches.txt
+      head ${{ github.workspace }}/patches.txt
+      tail ${{ github.workspace }}/patches.txt
 
   - uses: actions/upload-artifact@v4
     with:
@@ -61,14 +63,18 @@ runs:
     run: |
       ALL_FILES=$(find ./ -name '*' -type f | grep -v "\.git")
       echo ALL_FILES: $ALL_FILES
-      python ${{ github.action_path }}/files_to_string.py $ALL_FILES > ${{ github.workspace }}/all_files.txt
+      python ${{ github.action_path }}/files_to_string.py '$ALL_FILES' ${{ github.workspace }}/all_files.txt
+      head ${{ github.workspace }}/all_files.txt
+      tail ${{ github.workspace }}/all_files.txt
 
   - name: Dump changed files
     shell: bash
     run: |
       CHANGED_FILES=${{ steps.changed-files.outputs.all_changed_files }}
       echo CHANGED_FILES: $CHANGED_FILES
-      python ${{ github.action_path }}/files_to_string.py $CHANGED_FILES > ${{ github.workspace }}/changed_files.txt
+      python ${{ github.action_path }}/files_to_string.py '$CHANGED_FILES' ${{ github.workspace }}/changed_files.txt
+      head ${{ github.workspace }}/changed_files.txt
+      tail ${{ github.workspace }}/changed_files.txt
 
   # upload artifacts
   - uses: actions/upload-artifact@v4

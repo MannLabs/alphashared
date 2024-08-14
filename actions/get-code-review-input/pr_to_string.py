@@ -61,6 +61,7 @@ def _format_pr(pr_data: list[dict[str, str]]) -> str:
 
 if __name__ == "__main__":
     changed_files = sys.argv[1].split()
+    output_path = sys.argv[2]
 
     pr_data: list[dict[str, str]] = []
     for file in pr.get_files():
@@ -78,7 +79,10 @@ if __name__ == "__main__":
                 }
             )
 
-    print(_format_pr(pr_data))
+    formatted_pr = _format_pr(pr_data)
+
+    with open(output_path, "w") as outfile:
+        outfile.write(formatted_pr)
 
 # try:
 #     review_comments = {file: [(1, 'cool')] for file in changed_files}
