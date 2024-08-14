@@ -19,9 +19,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: MannLabs/alphashared/actions/get-code-review-input@v1
+        continue-on-error: true
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.number }}
+          EXCLUDED_EXTENSIONS: "ipynb;js"  # optional
 ```
 Alternatively, just add the `get-code-review-input` step to an existing workflow.
 

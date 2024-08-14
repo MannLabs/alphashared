@@ -45,6 +45,7 @@ def _concatenate_files(file_paths: list[str], excluded_extensions: list[str]) ->
             file_contents.append(file_content)
             file_contents.append(f"\n<<<<<<<<<<<<<<<< END FILE '{file_path}'")
 
+    print(f"Got {len(file_contents)} lines..")
     return "\n\n".join(file_contents)
 
 
@@ -57,4 +58,5 @@ if __name__ == "__main__":
     concatenated_string = _concatenate_files(file_paths, excluded_extensions)
 
     with open(output_path, "w") as outfile:
+        print(f"Writing concatenated content to '{output_path}' ..")
         outfile.write(concatenated_string)
