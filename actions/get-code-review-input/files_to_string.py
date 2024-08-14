@@ -16,7 +16,12 @@ def _concatenate_files(file_paths: list[str], excluded_extensions: list[str]) ->
     """Concatenate the content of multiple files into a single string."""
     file_contents = []
     for file_path in file_paths:
+
+        if not file_path.strip():
+            continue
+
         print(f"Processing file: {file_path}")
+
         if any(file_path.endswith(ext) for ext in excluded_extensions):
             print(f"Skipping file '{file_path}' because it has an excluded extension.")
             continue
