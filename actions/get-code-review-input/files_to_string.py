@@ -12,11 +12,15 @@ import os
 import sys
 
 
-def _concatenate_files(file_paths: list[str]) -> str:
+def _concatenate_files(file_paths: list[str], excluded_extensions: list[str]) -> str:
     """Concatenate the content of multiple files into a single string."""
     file_contents = []
     for file_path in file_paths:
         print(f"Processing file: {file_path}")
+        if any(file_path.endswith(ext) for ext in excluded_extensions):
+            print(f"Skipping file '{file_path}' because it has an excluded extension.")
+            continue
+
         if not file_path.startswith("./"):
             file_path = f"./{file_path}"
 
@@ -35,8 +39,6 @@ def _concatenate_files(file_paths: list[str]) -> str:
             file_contents.append(f"START FILE '{file_path}' >>>>>>>>>>>>>>>>\n")
             file_contents.append(file_content)
             file_contents.append(f"\n<<<<<<<<<<<<<<<< END FILE '{file_path}'")
-        else:
-            print(f"File '{file_path}' is not a file.")
 
     return "\n\n".join(file_contents)
 
@@ -44,9 +46,10 @@ def _concatenate_files(file_paths: list[str]) -> str:
 if __name__ == "__main__":
     file_paths = sys.argv[1].split(";") if ";" in sys.argv[1] else sys.argv[1].split()
     output_path = sys.argv[2]
+    excluded_extensions = sys.argv[3].split(";") if len(sys.argv) > 3 else []
 
     print(f"Concatenating files: {file_paths}")
-    concatenated_string = _concatenate_files(file_paths)
+    concatenated_string = _concatenate_files(file_paths, excluded_extensions)
 
     with open(output_path, "w") as outfile:
         outfile.write(concatenated_string)

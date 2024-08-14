@@ -2,11 +2,15 @@ name: 'Get Code Review Input'
 description: 'Generate AI readable input data for code review'
 inputs:
   PR_NUMBER:
-    description: ""
+    description: "Number of the pull request to analyze, pass value of 'github.event.number'"
     required: true
   GITHUB_TOKEN:
-    description: ""
+    description: "GitHub token, pass value of 'secrets.GITHUB_TOKEN'"
     required: true
+  EXCLUDED_EXTENSIONS:
+    description: "Semicolon separated list of file extensions to exclude from the 'all_files' artifact, e.g. 'ipynb;txt'"
+    required: false
+    default: ""
 runs:
   using: "composite"
   steps:
@@ -63,7 +67,7 @@ runs:
     run: |
       ALL_FILES=$(find ./ -name "*" -type f | grep -v "\.git" | tr "\n" ";")
       echo ALL_FILES: $ALL_FILES
-      python ${{ github.action_path }}/files_to_string.py $ALL_FILES ${{ github.workspace }}/all_files.txt
+      python ${{ github.action_path }}/files_to_string.py $ALL_FILES ${{ github.workspace }}/all_files.txt  ${{ inputs.EXCLUDED_EXTENSIONS }}
       head ${{ github.workspace }}/all_files.txt
       tail ${{ github.workspace }}/all_files.txt
 
