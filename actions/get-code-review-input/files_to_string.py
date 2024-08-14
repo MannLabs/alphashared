@@ -25,10 +25,10 @@ def _concatenate_files(file_paths: list[str]) -> str:
             continue
 
         if os.path.isfile(file_path):
-            files_contents.append(f"START FILE '{file_path}' >>>>>>>>\n")
+            files_contents.append(f"START FILE '{file_path}' >>>>>>>>>>>>>>>>\n")
             with open(file_path, "r") as infile:
                 files_contents.append(infile.read())
-            files_contents.append(f"\n<<<<<<<< END FILE '{file_path}'")
+            files_contents.append(f"\n<<<<<<<<<<<<<<<< END FILE '{file_path}'")
         else:
             print(f"File '{file_path}' not a file.")
 

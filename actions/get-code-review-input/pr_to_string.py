@@ -39,24 +39,21 @@ def _get_file_patch(file: File) -> str:
 
 def _format_pr(pr_data: list[dict[str, str]]) -> str:
     """Format the data of the pull request to a AI-readable format."""
-    formatted_pr = "=============\n"
-    formatted_pr += "START ALL PATCHES:\n"
 
-    patch_num = defaultdict(int)
+    pr_contents = ["=============", "START ALL PATCHES:", ""]
+
     for item in pr_data:
         file_name = item["file_name"]
-        patch_num[file_name] += 1
 
-        formatted_pr += f"START PATCHES FOR FILE: '{file_name}' >>>>>>>>>>>>>>>>\n"
-        formatted_pr += f"START PATCH {patch_num[file_name]} >>>>>>>>\n"
-        formatted_pr += item["patch"]
-        formatted_pr += f"\n<<<<<<<< END PATCH {patch_num[file_name]}\n\n"
-        formatted_pr += f"<<<<<<<<<<<<<<<< END PATCHES FOR FILE: '{file_name}'\n"
+        pr_contents.append(f"START PATCH FOR FILE: '{file_name}' >>>>>>>>>>>>>>>>")
+        pr_contents.append(item["patch"])
+        pr_contents.append(f"<<<<<<<<<<<<<<<< END PATCH FOR FILE: '{file_name}'")
+        pr_contents.append("")
 
-    formatted_pr += "END ALL PATCHES\n"
-    formatted_pr += "============="
+    pr_contents.append("END ALL PATCHES")
+    pr_contents.append("=============")
 
-    return formatted_pr
+    return "\n".join(pr_contents)
 
 
 if __name__ == "__main__":
