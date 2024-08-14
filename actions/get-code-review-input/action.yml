@@ -41,7 +41,7 @@ runs:
       GITHUB_TOKEN: ${{inputs.GITHUB_TOKEN}}
     shell: bash
     run: |
-      echo changed files: ''${{ steps.changed-files.outputs.all_changed_files }}'
+      echo changed files: '${{ steps.changed-files.outputs.all_changed_files }}'
       python ${{ github.action_path }}/pr_to_string.py '${{ steps.changed-files.outputs.all_changed_files }}' > ${{ github.workspace }}/patches.txt
 
   - uses: actions/upload-artifact@v4
