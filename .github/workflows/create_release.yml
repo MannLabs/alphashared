@@ -233,3 +233,36 @@ jobs:
           asset_path: dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe
           asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe
           asset_content_type: application/zip
+
+      - name: Build Backend
+        shell: bash -l {0}  # TODO 'CPU' parameter
+        run: |
+          release/linux/build_backend_linux.sh CPU
+
+      - name: Build Installer
+        shell: bash -l {0}
+        run: |
+          release/linux/build_installer_linux.sh
+
+      - name: Test installer for Linux
+        continue-on-error: true  # TODO remove
+        shell: bash -l {0}
+        run: |
+          sudo dpkg -i dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ env.ARCH }}.deb
+
+      - name: Upload Linux Installer
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.Create_Draft_Release.outputs.upload_url }}
+          asset_path: dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ env.ARCH }}.deb
+          asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ env.ARCH }}.deb
+          asset_content_type: application/zip
+
+#          upload_url: ${{ needs.Create_Draft_On_GitHub.outputs.upload_url }}
+#          asset_path: release/one_click_linux_gui/dist/peptdeep_gui_installer_linux.deb
+#          asset_name: peptdeep_gui_installer_linux.deb
+#          asset_content_type: application/octet-stream
+#
