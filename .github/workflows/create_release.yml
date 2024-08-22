@@ -21,6 +21,11 @@ on:
         description: 'Whether or not the backend should be tested'
         default: false
         type: boolean
+      python_version:
+        description: "Python version to be used"
+        default: "3.9"
+        type: string
+
 
 
 name: Create Draft Release
@@ -103,7 +108,7 @@ jobs:
         miniconda-version: "latest"
         auto-update-conda: true
         activate-environment: alphax_release
-        python-version: "3.11"
+        python-version: "${{ inputs.python_version }}"
 
     - name: Conda info
       shell: bash -el {0}
@@ -191,7 +196,7 @@ jobs:
         miniconda-version: "latest"
         auto-update-conda: true
         activate-environment: alpha
-        python-version: "3.11"
+        python-version: "${{ inputs.python_version }}"
 
     - name: Conda info
       shell: bash -el {0}
@@ -208,6 +213,8 @@ jobs:
       run: |
         release/windows/build_backend.ps1
         ls *
+        ls */dist
+        ls */dist/*
 
     - name: Test Backend
       if: ${{ inputs.test_backend }}
@@ -291,7 +298,7 @@ jobs:
           miniconda-version: "latest"
           auto-update-conda: true
           activate-environment: alpha
-          python-version: "3.11"
+          python-version: "${{ inputs.python_version }}"
 
       - name: Conda info
         shell: bash -el {0}
@@ -304,9 +311,9 @@ jobs:
           python -c "import platform; print(platform.machine())"
 
       - name: Build Backend
-        shell: bash -l {0}  # TODO 'CPU' parameter
+        shell: bash -l {0}
         run: |
-          release/linux/build_backend_linux.sh CPU
+          release/linux/build_backend_linux.sh
 
       - name: Build Installer
         shell: bash -l {0}
