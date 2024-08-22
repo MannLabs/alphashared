@@ -251,13 +251,22 @@ jobs:
         }
 
     - name: Build Installer
+      continue-on-error: true  # TODO remove
       shell: powershell
       run: |
         release/windows/build_installer.ps1
 
     - name: List output files
       run: |
-        ls dist
+        ls *
+
+    - name: List
+      run: |
+        ls D:\a\alphapeptdeep\alphapeptdeep\release\windows\dist
+
+    - name: Build Backend II # TODO remove
+      run: |
+        release/windows/create_installer_windows.sh
 
 #    - name: Test installer for Windows
 #      shell: bash -l {0}
