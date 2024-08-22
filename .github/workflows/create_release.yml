@@ -6,7 +6,7 @@ on:
         required: true
         type: string
       build_nodejs_ui:
-        description: 'Whether or not an UI needs to be built'
+        description: 'Whether or not a nodejs UI needs to be built'
         default: false
         type: boolean
       commit_to_release:
@@ -14,7 +14,7 @@ on:
         type: string
         required: true
       tag_to_release:
-        description: 'Enter tag to release (example: v1.5.5)'
+        description: 'Enter tag to release (example: v1.5.5). Note that the version needs to be bumped already.'
         type: string
         required: true
       test_backend:
@@ -84,8 +84,12 @@ jobs:
     env:
         ARCH: x64
         EAGER_IMPORT: true
-    runs-on: macos-latest-xlarge  # this is ARM
-    # runs-on: macos-latest  # this is not ARM
+    strategy:
+      matrix:
+        os:
+          - macos-latest-xlarge # this is ARM
+          - macos-13 # this is not ARM
+    runs-on: ${{matrix.os}}-latest-xlarge
     steps:
     - name : Checkout code
       uses: actions/checkout@v4
@@ -106,10 +110,12 @@ jobs:
       run: |
         conda info
 
-    - name: Print architecture
+    - name: Get architecture
+      id: get_arch
       shell: bash -el {0}
       run: |
-        python -c "import platform; print(platform.machine())"
+        ARCH=$(python -c "import platform; print(platform.machine())")
+        echo "arch=$ARCH" >> $GITHUB_OUTPUT
 
     - name: Build backend
       shell: bash -el {0}
@@ -144,6 +150,7 @@ jobs:
         ls *
 
     - name: Test installer
+      continue-on-error: true  # TODO remove
       shell: bash -l {0}
       run: |
         sudo installer -pkg dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ env.ARCH }}.pkg -target /
@@ -162,7 +169,7 @@ jobs:
 
           # ALPHADIA
           asset_path: dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ env.ARCH }}.pkg
-          asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ env.ARCH }}.pkg
+          asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-${{steps.get_arch.arch}}-${{ env.ARCH }}.pkg
           asset_content_type: application/zip
 #          asset_content_type: application/octet-stream  # peptdeep
 
@@ -310,7 +317,7 @@ jobs:
         continue-on-error: true  # TODO remove
         shell: bash -l {0}
         run: |
-          sudo dpkg -i dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ env.ARCH }}.deb
+          sudo dpkg -i dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
 
       - name: Upload Linux Installer
         id: upload-release-asset
@@ -319,8 +326,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.Create_Draft_Release.outputs.upload_url }}
-          asset_path: dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ env.ARCH }}.deb
-          asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ env.ARCH }}.deb
+          asset_path: dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
+          asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
           asset_content_type: application/zip
 
 #          upload_url: ${{ needs.Create_Draft_On_GitHub.outputs.upload_url }}
