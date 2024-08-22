@@ -110,6 +110,10 @@ jobs:
     - name: Test backend
       shell: bash -el {0}
       run: |
+        ls 
+        ls *
+        ls dist
+        ls dist/${{ inputs.package_name }}
         dist/${{ inputs.package_name }}/${{ inputs.package_name }} --version
 
     # Build GUI
