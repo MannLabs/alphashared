@@ -212,6 +212,10 @@ jobs:
       shell: powershell
       run: |
         release/windows/build_backend.ps1
+
+    - name: List output files
+      shell: bash -l {0}
+      run: |
         ls *
         ls */dist
         ls */dist/*
