@@ -98,7 +98,7 @@ jobs:
         miniconda-version: "latest"
         auto-update-conda: true
         activate-environment: alphax_release
-        python-version: "3.11"  # TODO
+#        python-version: "3.11"  # TODO
 
     - name: Print architecture
       shell: bash -el {0}
@@ -177,7 +177,7 @@ jobs:
         miniconda-version: "latest"
         auto-update-conda: true
         activate-environment: alpha
-        python-version: "3.11"
+#        python-version: "3.11"
 
     - name: Build Backend
       shell: powershell
@@ -233,6 +233,31 @@ jobs:
           asset_path: dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe
           asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe
           asset_content_type: application/zip
+#        upload_url: ${{ needs.Create_Draft_On_GitHub.outputs.upload_url }}
+#        asset_path: release/one_click_windows_gui/dist/peptdeep_gui_installer_windows.exe
+#        asset_name: peptdeep_gui_installer_windows.exe
+#        asset_content_type: application/octet-stream
+
+
+  Create_Linux_Installer:
+    needs: [ Create_Draft_Release, Get_New_Version ]
+    env:
+      ARCH: x64
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_to_release }}
+
+      # Build backend
+      - name: Install conda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniconda-version: "latest"
+          auto-update-conda: true
+          activate-environment: alpha
+#          python-version: "3.11"
 
       - name: Build Backend
         shell: bash -l {0}  # TODO 'CPU' parameter
