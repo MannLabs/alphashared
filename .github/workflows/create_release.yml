@@ -91,10 +91,10 @@ jobs:
         EAGER_IMPORT: true
     strategy:
       matrix:
-        os:
+        runner:
           - macos-latest-xlarge # this is ARM
           - macos-13 # this is not ARM
-    runs-on: ${{matrix.os}}-latest-xlarge
+    runs-on: ${{matrix.runner}}
     steps:
     - name : Checkout code
       uses: actions/checkout@v4
