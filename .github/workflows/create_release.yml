@@ -7,7 +7,6 @@ on:
         type: string
       build_nodejs_ui:
         description: 'Whether or not an UI needs to be built'
-        required: true
         default: false
         type: boolean
       commit_to_release:
@@ -20,7 +19,6 @@ on:
         required: true
       test_backend:
         description: 'Whether or not the backend should be tested'
-        required: true
         default: false
         type: boolean
 
