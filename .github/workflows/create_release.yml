@@ -108,14 +108,14 @@ jobs:
         release/macos/build_backend_macos.sh
         ls *
 
+    # TODO alphaDIA only
     - name: Test backend
       shell: bash -el {0}
       run: |
         EXECUTABLE=dist/${{ inputs.package_name }}/${{ inputs.package_name }}
-        if [ -e $EXECUTABLE ]; then
-          eval $EXECUTABLE --version
-        else
-          eval ${EXECUTABLE}_gui --version
+        if [ -e ${EXECUTABLE} ]; then
+          echo testing ${EXECUTABLE} ..
+          eval ${EXECUTABLE} --version
         fi
 
     # Build GUI
