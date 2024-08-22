@@ -111,10 +111,11 @@ jobs:
     - name: Test backend
       shell: bash -el {0}
       run: |
-        if [ -e dist/${{ inputs.package_name }}/${{ inputs.package_name }} ]; then
-          dist/${{ inputs.package_name }}/${{ inputs.package_name }} --version
+        EXECUTABLE=dist/${{ inputs.package_name }}/${{ inputs.package_name }}
+        if [ -e $EXECUTABLE ]; then
+          eval $EXECUTABLE --version
         else
-          dist/${{ inputs.package_name }}/${{ inputs.package_name }}_gui --version
+          eval ${EXECUTABLE}_gui --version
         fi
 
     # Build GUI
@@ -183,13 +184,13 @@ jobs:
         release/windows/build_backend.ps1
         ls *
 
+    # TODO alphaDIA only
     - name: Test Backend
       shell: powershell
       run: |
-        if (Test-Path dist\${{ inputs.package_name }}\${{ inputs.package_name }}.exe) {
-            dist\${{ inputs.package_name }}\${{ inputs.package_name }}.exe --version
-        } else {
-            dist\${{ inputs.package_name }}\${{ inputs.package_name }}_gui.exe  --version
+        $exePath = "dist\${{ inputs.package_name }}\${{ inputs.package_name }}.exe"
+        if (Test-Path $exePath) {
+            & $exePath --version
         }
 
     # Build GUI
