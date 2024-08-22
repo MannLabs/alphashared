@@ -84,7 +84,8 @@ jobs:
     env:
         ARCH: x64
         EAGER_IMPORT: true
-    runs-on: macos-latest-xlarge
+    runs-on: macos-latest-xlarge  # this is ARM
+    # runs-on: macos-latest  # this is not ARM
     steps:
     - name : Checkout code
       uses: actions/checkout@v4
@@ -99,6 +100,11 @@ jobs:
         auto-update-conda: true
         activate-environment: alphax_release
         python-version: "3.11"
+
+    - name: Conda info
+      shell: bash -el {0}
+      run: |
+        conda info
 
     - name: Print architecture
       shell: bash -el {0}
@@ -158,6 +164,7 @@ jobs:
           asset_path: dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ env.ARCH }}.pkg
           asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ env.ARCH }}.pkg
           asset_content_type: application/zip
+#          asset_content_type: application/octet-stream  # peptdeep
 
   Create_Windows_Installer:
     needs: [Create_Draft_Release, Get_New_Version]
@@ -178,6 +185,16 @@ jobs:
         auto-update-conda: true
         activate-environment: alpha
         python-version: "3.11"
+
+    - name: Conda info
+      shell: bash -el {0}
+      run: |
+        conda info
+
+    - name: Print architecture
+      shell: bash -el {0}
+      run: |
+        python -c "import platform; print(platform.machine())"
 
     - name: Build Backend
       shell: powershell
@@ -224,6 +241,16 @@ jobs:
       run: |
         ls dist
 
+#    - name: Test installer for Windows
+#      shell: bash -l {0}
+#      run: |
+#        cd release/one_click_windows_gui/dist/
+#        echo "TODO, this test seems to freeze the runner..."
+#        # ./peptdeep_gui_installer_windows.exe //verysilent //log=log.txt //noicons //tasks= //portable=1
+#        # cat log.txt
+
+
+
     - name: Upload a Release Asset
       uses: actions/upload-release-asset@v1
       env:
@@ -258,6 +285,16 @@ jobs:
           auto-update-conda: true
           activate-environment: alpha
           python-version: "3.11"
+
+      - name: Conda info
+        shell: bash -el {0}
+        run: |
+          conda info
+
+      - name: Print architecture
+        shell: bash -el {0}
+        run: |
+          python -c "import platform; print(platform.machine())"
 
       - name: Build Backend
         shell: bash -l {0}  # TODO 'CPU' parameter
