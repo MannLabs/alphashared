@@ -5,7 +5,7 @@ on:
         description: 'Name of package, e.g. "alphadia"'
         required: true
         type: string
-      build_ui:
+      build_nodejs_ui:
         description: 'Whether or not an UI needs to be built'
         required: true
         default: false
@@ -114,11 +114,11 @@ jobs:
 
     # Build GUI
     - name: Setup Node.js
-      if: ${{ inputs.build_ui }}
+      if: ${{ inputs.build_nodejs_ui }}
       uses: actions/setup-node@v4
 
     - name: Build GUI
-      if: ${{ inputs.build_ui }}
+      if: ${{ inputs.build_nodejs_ui }}
       run: |
         release/macos/build_gui_macos.sh
 
@@ -177,11 +177,11 @@ jobs:
 
     # Build GUI
     - name: Setup Node.js
-      if: ${{ inputs.build_ui }}
+      if: ${{ inputs.build_nodejs_ui }}
       uses: actions/setup-node@v4
 
     - name: Build GUI
-      if: ${{ inputs.build_ui }}
+      if: ${{ inputs.build_nodejs_ui }}
       shell: powershell
       run: |
         release/windows/build_gui.ps1
