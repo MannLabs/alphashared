@@ -98,7 +98,7 @@ jobs:
         miniconda-version: "latest"
         auto-update-conda: true
         activate-environment: alphax_release
-#        python-version: "3.11"  # TODO
+        python-version: "3.11"
 
     - name: Print architecture
       shell: bash -el {0}
@@ -177,7 +177,7 @@ jobs:
         miniconda-version: "latest"
         auto-update-conda: true
         activate-environment: alpha
-#        python-version: "3.11"
+        python-version: "3.11"
 
     - name: Build Backend
       shell: powershell
@@ -257,7 +257,7 @@ jobs:
           miniconda-version: "latest"
           auto-update-conda: true
           activate-environment: alpha
-#          python-version: "3.11"
+          python-version: "3.11"
 
       - name: Build Backend
         shell: bash -l {0}  # TODO 'CPU' parameter
