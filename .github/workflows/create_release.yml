@@ -106,15 +106,16 @@ jobs:
       shell: bash -el {0}
       run: |
         release/macos/build_backend_macos.sh
+        ls *
 
     - name: Test backend
       shell: bash -el {0}
       run: |
-        ls 
-        ls *
-        ls dist
-        ls dist/${{ inputs.package_name }}
-        dist/${{ inputs.package_name }}/${{ inputs.package_name }} --version
+        if [ -e dist/${{ inputs.package_name }}/${{ inputs.package_name }} ]; then
+          dist/${{ inputs.package_name }}/${{ inputs.package_name }} --version
+        else
+          dist/${{ inputs.package_name }}/${{ inputs.package_name }}_gui --version
+        fi
 
     # Build GUI
     - name: Setup Node.js
@@ -125,18 +126,19 @@ jobs:
       if: ${{ inputs.build_nodejs_ui }}
       run: |
         release/macos/build_gui_macos.sh
+        ls *
 
     # combine backend and GUI
     - name: Build package
       shell: bash -el {0}
       run: |
         release/macos/build_pkg_macos.sh
+        ls *
 
     - name: Test installer
       shell: bash -l {0}
       run: |
         sudo installer -pkg dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ env.ARCH }}.pkg -target /
-
 
     - name: List output files
       run: |
@@ -179,11 +181,16 @@ jobs:
       shell: powershell
       run: |
         release/windows/build_backend.ps1
+        ls *
 
     - name: Test Backend
       shell: powershell
       run: |
-        dist\${{ inputs.package_name }}\${{ inputs.package_name }}.exe --version
+        if (Test-Path dist\${{ inputs.package_name }}\${{ inputs.package_name }}.exe) {
+            dist\${{ inputs.package_name }}\${{ inputs.package_name }}.exe --version
+        } else {
+            dist\${{ inputs.package_name }}\${{ inputs.package_name }}_gui.exe  --version
+        }
 
     # Build GUI
     - name: Setup Node.js
@@ -197,17 +204,17 @@ jobs:
         release/windows/build_gui.ps1
 
     # combine backend and GUI
-#    - name: Check if Innosetup is installed
-    # TODO optional
-#      shell: powershell
-#      run: |
-#        if (-not (Test-Path "C:\Program Files (x86)\Inno Setup 6\ISCC.exe")) {
-#          Write-Host "Inno Setup is not installed"
-#          exit 1
-#        }
-#        else {
-#          Write-Host "Inno Setup is installed"
-#        }
+    - name: Check if Innosetup is installed
+      if: ${{ inputs.build_nodejs_ui }}
+      shell: powershell
+      run: |
+        if (-not (Test-Path "C:\Program Files (x86)\Inno Setup 6\ISCC.exe")) {
+          Write-Host "Inno Setup is not installed"
+          exit 1
+        }
+        else {
+          Write-Host "Inno Setup is installed"
+        }
 
     - name: Build Installer
       shell: powershell
