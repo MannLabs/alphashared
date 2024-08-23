@@ -257,15 +257,32 @@ jobs:
       run: |
         release/windows/build_installer.ps1
 
-    - name: List output files
+    - name: List output files I
       run: |
         ls *
+
+    - name: List output files II
+      continue-on-error: true
+      run: |
         ls release\windows\dist
+
+    - name: List output files III
+      continue-on-error: true
+      run: |
         ls release\windows\dist\peptdeep_gui
 
-    - name: List
+    - name: List output files IIII
+      continue-on-error: true
       run: |
-        ls D:\a\alphapeptdeep\alphapeptdeep\release\windows\dist
+        ls release\windows\dist\peptdeep
+
+    - name: List output files IIIII
+      continue-on-error: true
+      run: |
+        find ./ -name "peptdeep*"
+        
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
 
     - name: Build Backend II # TODO remove
       shell: bash -l {0}
