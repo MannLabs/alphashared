@@ -160,7 +160,7 @@ jobs:
         ls dist
 
     - name: Test installer
-      continue-on-error: true  # TODO remove
+#      continue-on-error: true
       shell: bash -l {0}
       run: |
         sudo installer -pkg dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ env.ARCH }}.pkg -target /
@@ -248,7 +248,6 @@ jobs:
         }
 
     - name: Build Installer
-      continue-on-error: true  # TODO remove
       shell: powershell
       run: |
         release/windows/build_installer.ps1
@@ -318,7 +317,7 @@ jobs:
           release/linux/build_installer_linux.sh
 
       - name: Test installer for Linux
-        continue-on-error: true  # TODO remove
+#        continue-on-error: true
         shell: bash -l {0}
         run: |
           sudo dpkg -i dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
