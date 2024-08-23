@@ -86,7 +86,6 @@ jobs:
           prerelease: false
 
   Create_MacOS_Installer:
-    if: ${{ always() && hashFiles('release/macos/*') }}
     needs: [Create_Draft_Release, Get_New_Version]
     env:
         ARCH: x64  # this can be overwritten during the course of the job
@@ -98,6 +97,11 @@ jobs:
           - macos-13 # this is not ARM
     runs-on: ${{matrix.runner}}
     steps:
+    - name: Check if this architecture is supported
+      if: ${{ always() && hashFiles('release/macos/*') == '' }}
+      run: |
+        exit 0
+
     - name : Checkout code
       uses: actions/checkout@v4
       with:
@@ -178,12 +182,15 @@ jobs:
           asset_content_type: application/zip
 
   Create_Linux_Installer:
-    if: ${{ always() && hashFiles('release/linux/*') }}
     needs: [ Create_Draft_Release, Get_New_Version ]
     env:
       ARCH: x64 # this can be overwritten during the course of the job
     runs-on: ubuntu-latest
     steps:
+      - name: Check if this architecture is supported
+        if: ${{ always() && hashFiles('release/linux/*') == '' }}
+        run: |
+          exit 0
       - name: Checkout code
         uses: actions/checkout@v4
         with:
@@ -236,12 +243,15 @@ jobs:
           asset_content_type: application/zip
 
   Create_Windows_Installer:
-    if: ${{ always() && hashFiles('release/windows/*') }}
     needs: [Create_Draft_Release, Get_New_Version]
     env:
         ARCH: x64 # this can be overwritten during the course of the job
     runs-on: windows-latest
     steps:
+    - name: Check if this architecture is supported
+      if: ${{ always() && hashFiles('release/windows/*') == '' }}
+      run: |
+        exit 0
     - name : Checkout code
       uses: actions/checkout@v4
       with:
