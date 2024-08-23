@@ -2,7 +2,7 @@ on:
   workflow_call:
     inputs:
       package_name:
-        description: 'Name of package, e.g. "alphadia"'
+        description: 'Name of package, e.g. "alphadia", "peptdeep", ..'
         required: true
         type: string
       commit_to_release:
@@ -86,6 +86,7 @@ jobs:
           prerelease: false
 
   Create_MacOS_Installer:
+    if: hashFiles('release/macos/*') != ''
     needs: [Create_Draft_Release, Get_New_Version]
     env:
         ARCH: x64  # this can be overwritten during the course of the job
@@ -177,6 +178,7 @@ jobs:
           asset_content_type: application/zip
 
   Create_Linux_Installer:
+    if: hashFiles('release/linux/*') != ''
     needs: [ Create_Draft_Release, Get_New_Version ]
     env:
       ARCH: x64 # this can be overwritten during the course of the job
@@ -234,6 +236,7 @@ jobs:
           asset_content_type: application/zip
 
   Create_Windows_Installer:
+    if: hashFiles('release/windows/*') != ''
     needs: [Create_Draft_Release, Get_New_Version]
     env:
         ARCH: x64 # this can be overwritten during the course of the job
