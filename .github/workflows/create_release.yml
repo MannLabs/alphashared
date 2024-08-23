@@ -259,6 +259,8 @@ jobs:
       run: |
         ls *
 
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
 
 #    - name: Test installer for Windows
 #      shell: bash -l {0}
