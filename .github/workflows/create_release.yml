@@ -202,6 +202,7 @@ jobs:
       shell: bash -el {0}
       run: |
         conda info
+        echo test
 
     - name: Print architecture
       shell: bash -el {0}
