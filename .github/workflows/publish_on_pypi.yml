@@ -1,14 +1,23 @@
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
-      tag_to_release:
-        description: 'Enter tag to release (example: v1.5.5)'
+      package_name:
+        description: 'Name of package, e.g. "alphadia", "peptdeep", ..'
         required: true
+        type: string
+      tag_to_release:
+        description: 'Enter tag to release (example: v1.5.5). A tag with the same name must exist in the repository.'
+        required: true
+        type: string
+      python_version:
+        description: "Python version to be used"
+        default: "3.11"
+        type: string
 
 name: Publish on PyPi
 
 env:
-  PYTHON_VERSION: "3.11"
+  PYTHON_VERSION: "${{ inputs.python_version }}"
 
 jobs:
   Create_PyPi_Release:
@@ -31,7 +40,7 @@ jobs:
         id: get_current_version
         shell: bash -l {0}
         run: |
-         CURRENT_VERSION=$(./misc/get_current_version.sh)
+         CURRENT_VERSION=$(grep "__version__" ${{ inputs.package_name }}/__init__.py | cut -f3 -d ' ' | sed 's/"//g')
          echo "new_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
       - uses: actions/cache@v4
         with:
@@ -40,16 +49,16 @@ jobs:
       - name: Prepare distribution
         shell: bash -le {0}
         run: |
-          conda create -n alphadia_build python=${{ env.PYTHON_VERSION }} -y
-          conda activate alphadia_build
+          conda create -n build_env python=${{ env.PYTHON_VERSION }} -y
+          conda activate build_env  # DO WE NEED THIS?
           python -m pip install --upgrade pip
           pip install build twine
           rm -rf dist
           rm -rf build
-          python -m build
+          python -m build  # IS THIS PYPROJECT SPECIFIC?
           twine check dist/*
           conda deactivate
-          conda env remove --name alphadia_build -y
+          conda env remove --name build_env -y
           conda clean --all -y
       - name: Publish distribution to Test-PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
@@ -62,8 +71,8 @@ jobs:
         run: |
           conda create -n pip_loose_test python=${{ env.PYTHON_VERSION }} -y
           conda activate pip_loose_test
-          pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple "alphadia==${{ steps.get_current_version.outputs.new_version }}"
-          alphadia -v
+          pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple "${{ inputs.package_name }}==${{ steps.get_current_version.outputs.new_version }}"
+          ${{ inputs.package_name }} -v
           conda deactivate
           conda env remove --name pip_stable_test -y
           conda clean --all -y
@@ -72,8 +81,8 @@ jobs:
         run: |
           conda create -n pip_stable_test python=${{ env.PYTHON_VERSION }} -y
           conda activate pip_stable_test
-          pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple "alphadia[stable]==${{ steps.get_current_version.outputs.new_version }}"
-          alphadia -v
+          pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple "${{ inputs.package_name }}[stable]==${{ steps.get_current_version.outputs.new_version }}"
+          ${{ inputs.package_name }} -v
           conda deactivate
           conda env remove --name pip_stable_test -y
           conda clean --all -y
@@ -108,8 +117,8 @@ jobs:
         run: |
           conda create -n pip_stable python=${{ env.PYTHON_VERSION }} -y
           conda activate pip_stable
-          pip install "alphadia[stable]==${{ needs.Create_PyPi_Release.outputs.new_version }}"
-          alphadia -v
+          pip install "${{ inputs.package_name }}[stable]==${{ needs.Create_PyPi_Release.outputs.new_version }}"
+          ${{ inputs.package_name }} -v
           conda deactivate
           conda env remove --name pip_stable -y
           conda clean --all -y
@@ -118,8 +127,8 @@ jobs:
         run: |
           conda create -n pip_loose python=${{ env.PYTHON_VERSION }} -y
           conda activate pip_loose
-          pip install alphadia==${{ needs.Create_PyPi_Release.outputs.new_version }}
-          alphadia -v
+          pip install ${{ inputs.package_name }}==${{ needs.Create_PyPi_Release.outputs.new_version }}
+          ${{ inputs.package_name }} -v
           conda deactivate
           conda env remove --name pip_loose -y
           conda clean --all -y
