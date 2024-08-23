@@ -24,7 +24,7 @@ on:
         type: boolean
       python_version:
         description: "Python version to be used"
-        default: "3.11"
+        default: "3.9"  # TODO change to 3.11
         type: string
 
 
@@ -176,6 +176,63 @@ jobs:
           asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-${{steps.get_arch.outputs.arch}}-${{ env.ARCH }}.pkg
           asset_content_type: application/zip
 
+  Create_Linux_Installer:
+    needs: [ Create_Draft_Release, Get_New_Version ]
+    env:
+      ARCH: x64 # this can be overwritten during the course of the job
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_to_release }}
+
+      # Build backend
+      - name: Install conda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniconda-version: "latest"
+          auto-update-conda: true
+          activate-environment: alpha
+          python-version: "${{ inputs.python_version }}"
+
+      - name: Conda info
+        shell: bash -el {0}
+        run: |
+          conda info
+
+      - name: Print architecture
+        shell: bash -el {0}
+        run: |
+          python -c "import platform; print(platform.machine())"
+
+      - name: Build Backend
+        shell: bash -l {0}
+        run: |
+          release/linux/build_backend_linux.sh
+
+      - name: Build Installer
+        shell: bash -l {0}
+        run: |
+          release/linux/build_installer_linux.sh
+
+      - name: Test installer for Linux
+#        continue-on-error: true
+        shell: bash -l {0}
+        run: |
+          sudo dpkg -i dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
+
+      - name: Upload Linux Installer
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.Create_Draft_Release.outputs.upload_url }}
+          asset_path: dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
+          asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
+          asset_content_type: application/zip
+
   Create_Windows_Installer:
     needs: [Create_Draft_Release, Get_New_Version]
     env:
@@ -273,62 +330,4 @@ jobs:
           upload_url: ${{ needs.Create_Draft_Release.outputs.upload_url }}
           asset_path: release/windows/dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe
           asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe
-          asset_content_type: application/zip
-
-
-  Create_Linux_Installer:
-    needs: [ Create_Draft_Release, Get_New_Version ]
-    env:
-      ARCH: x64 # this can be overwritten during the course of the job
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.commit_to_release }}
-
-      # Build backend
-      - name: Install conda
-        uses: conda-incubator/setup-miniconda@v3
-        with:
-          miniconda-version: "latest"
-          auto-update-conda: true
-          activate-environment: alpha
-          python-version: "${{ inputs.python_version }}"
-
-      - name: Conda info
-        shell: bash -el {0}
-        run: |
-          conda info
-
-      - name: Print architecture
-        shell: bash -el {0}
-        run: |
-          python -c "import platform; print(platform.machine())"
-
-      - name: Build Backend
-        shell: bash -l {0}
-        run: |
-          release/linux/build_backend_linux.sh
-
-      - name: Build Installer
-        shell: bash -l {0}
-        run: |
-          release/linux/build_installer_linux.sh
-
-      - name: Test installer for Linux
-#        continue-on-error: true
-        shell: bash -l {0}
-        run: |
-          sudo dpkg -i dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
-
-      - name: Upload Linux Installer
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.Create_Draft_Release.outputs.upload_url }}
-          asset_path: dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
-          asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
           asset_content_type: application/zip
