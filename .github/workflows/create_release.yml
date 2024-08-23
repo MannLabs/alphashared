@@ -218,8 +218,6 @@ jobs:
       shell: bash -l {0}
       run: |
         ls *
-        ls dist
-        ls dist/*
 
     - name: Test Backend
       if: ${{ inputs.test_backend }}
