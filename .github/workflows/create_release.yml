@@ -5,10 +5,6 @@ on:
         description: 'Name of package, e.g. "alphadia"'
         required: true
         type: string
-      build_nodejs_ui:
-        description: 'Whether or not a nodejs UI needs to be built'
-        default: false
-        type: boolean
       commit_to_release:
         description: 'Enter commit hash to release (example: ef4037cb571f99cb4919b520fde7174972aae473)'
         type: string
@@ -17,13 +13,18 @@ on:
         description: 'Enter tag to release (example: v1.5.5). Note that the version needs to be bumped already.'
         type: string
         required: true
+      # optional switches
+      build_nodejs_ui:
+        description: 'Whether or not a nodejs UI needs to be built'
+        default: false
+        type: boolean
       test_backend:
         description: 'Whether or not the backend should be tested'
         default: false
         type: boolean
       python_version:
         description: "Python version to be used"
-        default: "3.9"
+        default: "3.11"
         type: string
 
 
@@ -87,7 +88,7 @@ jobs:
   Create_MacOS_Installer:
     needs: [Create_Draft_Release, Get_New_Version]
     env:
-        ARCH: x64
+        ARCH: x64  # this can be overwritten during the course of the job
         EAGER_IMPORT: true
     strategy:
       matrix:
@@ -141,28 +142,28 @@ jobs:
       if: ${{ inputs.build_nodejs_ui }}
       uses: actions/setup-node@v4
 
-    - name: Build GUI
+    - name: Build Node.js GUI
       if: ${{ inputs.build_nodejs_ui }}
       run: |
         release/macos/build_gui_macos.sh
         ls *
 
     # combine backend and GUI
-    - name: Build package
+    - name: Build installer
       shell: bash -el {0}
       run: |
         release/macos/build_pkg_macos.sh
+
+    - name: List output files
+      run: |
         ls *
+        ls dist
 
     - name: Test installer
       continue-on-error: true  # TODO remove
       shell: bash -l {0}
       run: |
         sudo installer -pkg dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ env.ARCH }}.pkg -target /
-
-    - name: List output files
-      run: |
-        ls dist
 
     # Upload the package
     - name: Upload a Release Asset
@@ -171,17 +172,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
           upload_url: ${{ needs.Create_Draft_Release.outputs.upload_url }}
-
-          # ALPHADIA
           asset_path: dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ env.ARCH }}.pkg
-          asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-${{steps.get_arch.arch}}-${{ env.ARCH }}.pkg
+          asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-${{steps.get_arch.outputs.arch}}-${{ env.ARCH }}.pkg
           asset_content_type: application/zip
-#          asset_content_type: application/octet-stream  # peptdeep
 
   Create_Windows_Installer:
     needs: [Create_Draft_Release, Get_New_Version]
     env:
-        ARCH: x64
+        ARCH: x64 # this can be overwritten during the course of the job
     runs-on: windows-latest
     steps:
     - name : Checkout code
@@ -202,7 +200,6 @@ jobs:
       shell: bash -el {0}
       run: |
         conda info
-        echo test
 
     - name: Print architecture
       shell: bash -el {0}
@@ -218,6 +215,7 @@ jobs:
       shell: bash -l {0}
       run: |
         ls *
+        ls dist
 
     - name: Test Backend
       if: ${{ inputs.test_backend }}
@@ -230,7 +228,7 @@ jobs:
       if: ${{ inputs.build_nodejs_ui }}
       uses: actions/setup-node@v4
 
-    - name: Build GUI
+    - name: Build Node.js GUI
       if: ${{ inputs.build_nodejs_ui }}
       shell: powershell
       run: |
@@ -259,9 +257,6 @@ jobs:
       run: |
         ls *
 
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-
 #    - name: Test installer for Windows
 #      shell: bash -l {0}
 #      run: |
@@ -269,7 +264,6 @@ jobs:
 #        echo "TODO, this test seems to freeze the runner..."
 #        # ./peptdeep_gui_installer_windows.exe //verysilent //log=log.txt //noicons //tasks= //portable=1
 #        # cat log.txt
-
 
 
     - name: Upload a Release Asset
@@ -281,16 +275,12 @@ jobs:
           asset_path: release/windows/dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe
           asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe
           asset_content_type: application/zip
-#        upload_url: ${{ needs.Create_Draft_On_GitHub.outputs.upload_url }}
-#        asset_path: release/one_click_windows_gui/dist/peptdeep_gui_installer_windows.exe
-#        asset_name: peptdeep_gui_installer_windows.exe
-#        asset_content_type: application/octet-stream
 
 
   Create_Linux_Installer:
     needs: [ Create_Draft_Release, Get_New_Version ]
     env:
-      ARCH: x64
+      ARCH: x64 # this can be overwritten during the course of the job
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -343,9 +333,3 @@ jobs:
           asset_path: dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
           asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
           asset_content_type: application/zip
-
-#          upload_url: ${{ needs.Create_Draft_On_GitHub.outputs.upload_url }}
-#          asset_path: release/one_click_linux_gui/dist/peptdeep_gui_installer_linux.deb
-#          asset_name: peptdeep_gui_installer_linux.deb
-#          asset_content_type: application/octet-stream
-#
