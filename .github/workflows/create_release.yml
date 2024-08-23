@@ -86,7 +86,7 @@ jobs:
           prerelease: false
 
   Create_MacOS_Installer:
-    if: ${{ hashFiles('release/macos/*') != '' }}
+    if: ${{ always() && hashFiles('release/macos/*') }}
     needs: [Create_Draft_Release, Get_New_Version]
     env:
         ARCH: x64  # this can be overwritten during the course of the job
@@ -178,7 +178,7 @@ jobs:
           asset_content_type: application/zip
 
   Create_Linux_Installer:
-    if: ${{ hashFiles('release/linux/*') != '' }}
+    if: ${{ always() && hashFiles('release/linux/*') }}
     needs: [ Create_Draft_Release, Get_New_Version ]
     env:
       ARCH: x64 # this can be overwritten during the course of the job
@@ -236,7 +236,7 @@ jobs:
           asset_content_type: application/zip
 
   Create_Windows_Installer:
-    if: ${{ hashFiles('release/windows/*') != '' }}
+    if: ${{ always() && hashFiles('release/windows/*') }}
     needs: [Create_Draft_Release, Get_New_Version]
     env:
         ARCH: x64 # this can be overwritten during the course of the job
