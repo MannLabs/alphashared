@@ -259,6 +259,8 @@ jobs:
     - name: List output files
       run: |
         ls *
+        ls release\windows\dist
+        ls release\windows\dist\peptdeep_gui
 
     - name: List
       run: |
