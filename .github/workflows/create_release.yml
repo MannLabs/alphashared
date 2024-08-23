@@ -256,14 +256,14 @@ jobs:
       run: |
         ls *
 
-#    - name: Test installer for Windows
-#      shell: bash -l {0}
-#      run: |
-#        cd release/one_click_windows_gui/dist/
-#        echo "TODO, this test seems to freeze the runner..."
-#        # ./peptdeep_gui_installer_windows.exe //verysilent //log=log.txt //noicons //tasks= //portable=1
-#        # cat log.txt
-
+    #    echo "TODO, this test seems to freeze the runner..."
+    - name: Test installer for Windows
+      shell: bash -l {0}
+      run: |
+        cd release/windows/dist
+        ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe //noicons //tasks= //portable=1
+        ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe //verysilent //log=log.txt //noicons //tasks= //portable=1
+        cat log.txt
 
     - name: Upload a Release Asset
       uses: actions/upload-release-asset@v1
