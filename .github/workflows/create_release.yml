@@ -127,18 +127,12 @@ jobs:
         pip install pyinstaller==6.10.0
         pip freeze
 
-    - name: Get architecture
-      id: get_arch
-      shell: bash -el {0}
-      run: |
-        ARCHx=$(python -c "import platform; print(platform.machine())")
-        echo "arch=$ARCHx" >> $GITHUB_OUTPUT
-
     - name: Build backend
       shell: bash -el {0}
       run: |
         release/macos/build_backend_macos.sh
         ls *
+        ls dist/*
 
     - name: Test backend
       if: ${{ inputs.test_backend }}
@@ -164,13 +158,10 @@ jobs:
       shell: bash -el {0}
       run: |
         release/macos/build_pkg_macos.sh
-
-    - name: List output files
-      run: |
         ls *
-        ls dist
+        ls dist/*
 
-    - name: List pip freeze
+    - name: Print pip freeze
       run: |
         pip freeze
 
@@ -188,7 +179,7 @@ jobs:
       with:
           upload_url: ${{ needs.Create_Draft_Release.outputs.upload_url }}
           asset_path: dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ env.ARCH }}.pkg
-          asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-${{steps.get_arch.outputs.arch}}-${{ env.ARCH }}.pkg
+          asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ env.ARCH }}.pkg
           asset_content_type: application/zip
 
   Create_Linux_Installer:
@@ -197,60 +188,64 @@ jobs:
       ARCH: x64 # this can be overwritten during the course of the job
     runs-on: ubuntu-latest
     steps:
-      - name: Check if this architecture is supported
-        if: ${{ always() && hashFiles('release/linux/*') == '' }}
-        run: |
-          exit 0
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.commit_to_release }}
+    - name: Check if this architecture is supported
+      if: ${{ always() && hashFiles('release/linux/*') == '' }}
+      run: |
+        exit 0
 
-      # Build backend
-      - name: Install conda
-        uses: conda-incubator/setup-miniconda@v3
-        with:
-          miniconda-version: "latest"
-          auto-update-conda: true
-          activate-environment: alpha
-          python-version: "${{ inputs.python_version }}"
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.commit_to_release }}
 
-      - name: Conda info
-        shell: bash -el {0}
-        run: |
-          conda info
+    # Build backend
+    - name: Install conda
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        miniconda-version: "latest"
+        auto-update-conda: true
+        activate-environment: alphax_release
+        python-version: "${{ inputs.python_version }}"
 
-      - name: Print architecture
-        shell: bash -el {0}
-        run: |
-          python -c "import platform; print(platform.machine())"
+    - name: Conda info
+      shell: bash -el {0}
+      run: |
+        conda info
 
-      - name: Build Backend
-        shell: bash -l {0}
-        run: |
-          release/linux/build_backend_linux.sh
+    - name: Install pyinstaller 6.10.0
+      shell: bash -el {0}
+      run: |
+        pip install pyinstaller==6.10.0
 
-      - name: Build Installer
-        shell: bash -l {0}
-        run: |
-          release/linux/build_installer_linux.sh
+    - name: Build Backend
+      shell: bash -l {0}
+      run: |
+        release/linux/build_backend_linux.sh
+        ls *
+        ls dist/*
 
-      - name: Test installer for Linux
-#        continue-on-error: true
-        shell: bash -l {0}
-        run: |
-          sudo dpkg -i dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
+    - name: Build Installer
+      shell: bash -l {0}
+      run: |
+        release/linux/build_installer_linux.sh
+        ls *
+        ls dist/*
 
-      - name: Upload Linux Installer
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.Create_Draft_Release.outputs.upload_url }}
-          asset_path: dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
-          asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
-          asset_content_type: application/zip
+    - name: Test installer
+      shell: bash -l {0}
+      run: |
+        sudo dpkg -i dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
+
+    - name: Upload Linux Installer
+      id: upload-release-asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.Create_Draft_Release.outputs.upload_url }}
+        asset_path: dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
+        asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
+        asset_content_type: application/zip
 
   Create_Windows_Installer:
     needs: [Create_Draft_Release, Get_New_Version]
@@ -262,6 +257,7 @@ jobs:
       if: ${{ always() && hashFiles('release/windows/*') == '' }}
       run: |
         exit 0
+
     - name : Checkout code
       uses: actions/checkout@v4
       with:
@@ -273,7 +269,7 @@ jobs:
       with:
         miniconda-version: "latest"
         auto-update-conda: true
-        activate-environment: alpha
+        activate-environment: alphax_release
         python-version: "${{ inputs.python_version }}"
 
     - name: Conda info
@@ -281,21 +277,17 @@ jobs:
       run: |
         conda info
 
-    - name: Print architecture
+    - name: Install pyinstaller 6.10.0
       shell: bash -el {0}
       run: |
-        python -c "import platform; print(platform.machine())"
+        pip install pyinstaller==6.10.0
 
     - name: Build Backend
       shell: powershell
       run: |
         release/windows/build_backend.ps1
-
-    - name: List output files
-      shell: bash -l {0}
-      run: |
         ls *
-        ls dist
+        ls dist/*
 
     - name: Test Backend
       if: ${{ inputs.test_backend }}
@@ -323,18 +315,19 @@ jobs:
           Write-Host "Inno Setup is not installed"
           exit 1
         }
-        else {
-          Write-Host "Inno Setup is installed"
-        }
 
     - name: Build Installer
       shell: powershell
       run: |
         release/windows/build_installer.ps1
-
-    - name: List output files
-      run: |
         ls *
+        ls dist/*
+
+    - name: Test installer
+      shell: bash -l {0}
+      run: |
+        release/windows/dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe //verysilent //SUPPRESSMSGBOXES //log=log.txt //noicons //tasks= //portable=1
+        cat log.txt
 
     - name: Upload a Release Asset
       uses: actions/upload-release-asset@v1
@@ -345,10 +338,3 @@ jobs:
           asset_path: release/windows/dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe
           asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe
           asset_content_type: application/zip
-
-    #    echo "TODO, this test seems to freeze the runner..."
-    - name: Test installer for Windows
-      shell: bash -l {0}
-      run: |
-        release/windows/dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe //verysilent //SUPPRESSMSGBOXES //log=log.txt //noicons //tasks= //portable=1
-        cat log.txt
