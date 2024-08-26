@@ -125,8 +125,8 @@ jobs:
       id: get_arch
       shell: bash -el {0}
       run: |
-        ARCH=$(python -c "import platform; print(platform.machine())")
-        echo "arch=$ARCH" >> $GITHUB_OUTPUT
+        ARCHx=$(python -c "import platform; print(platform.machine())")
+        echo "arch=$ARCHx" >> $GITHUB_OUTPUT
 
     - name: Build backend
       shell: bash -el {0}
@@ -326,15 +326,6 @@ jobs:
       run: |
         ls *
 
-    #    echo "TODO, this test seems to freeze the runner..."
-    - name: Test installer for Windows
-      shell: bash -l {0}
-      run: |
-        cd release/windows/dist
-        ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe //noicons //tasks= //portable=1
-        ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe //verysilent //log=log.txt //noicons //tasks= //portable=1
-        cat log.txt
-
     - name: Upload a Release Asset
       uses: actions/upload-release-asset@v1
       env:
@@ -344,3 +335,11 @@ jobs:
           asset_path: release/windows/dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe
           asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe
           asset_content_type: application/zip
+
+    #    echo "TODO, this test seems to freeze the runner..."
+    - name: Test installer for Windows
+      shell: bash -l {0}
+      run: |
+        release/windows/dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe //noicons //tasks= //portable=1
+        release/windows/dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe //verysilent //log=log.txt //noicons //tasks= //portable=1
+        cat log.txt
