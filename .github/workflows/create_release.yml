@@ -340,6 +340,5 @@ jobs:
     - name: Test installer for Windows
       shell: bash -l {0}
       run: |
-        release/windows/dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe //noicons //tasks= //portable=1
-        release/windows/dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe //verysilent //log=log.txt //noicons //tasks= //portable=1
+        release/windows/dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe //verysilent //SUPPRESSMSGBOXES //log=log.txt //noicons //tasks= //portable=1
         cat log.txt
