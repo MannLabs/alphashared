@@ -88,10 +88,10 @@ jobs:
   Create_MacOS_Installer:
     needs: [Create_Draft_Release, Get_New_Version]
     env:
-        ARCH: x64  # this can be overwritten during the course of the job
-        EAGER_IMPORT: true
-        ARTIFACT_NAME: na  # will be set downstream
-        GH_TOKEN: ${{ github.token }}
+      ARCH: x64  # this can be overwritten during the course of the job
+      EAGER_IMPORT: true
+      ARTIFACT_NAME: na  # will be set downstream
+      GH_TOKEN: ${{ github.token }}
     strategy:
       matrix:
         runner:
@@ -272,8 +272,8 @@ jobs:
   Create_Not_Supported_Installer:  # TODO remove again
     needs: [Create_Draft_Release, Get_New_Version]
     env:
-        ARCH: x64 # this can be overwritten during the course of the job
-        GH_TOKEN: ${{ github.token }}
+      ARCH: x64 # this can be overwritten during the course of the job
+      GH_TOKEN: ${{ github.token }}
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
@@ -295,8 +295,8 @@ jobs:
   Create_Windows_Installer:
     needs: [Create_Draft_Release, Get_New_Version]
     env:
-        ARCH: x64 # this can be overwritten during the course of the job
-                GH_TOKEN: ${{ github.token }}
+      ARCH: x64 # this can be overwritten during the course of the job
+      GH_TOKEN: ${{ github.token }}
     runs-on: windows-latest
     steps:
     - name: Checkout code
