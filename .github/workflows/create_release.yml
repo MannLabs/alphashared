@@ -65,6 +65,23 @@ jobs:
           exit 1
         if: steps.check-tag.outputs.exists == 'true'
 
+      - name: Check supported OS
+        run: |
+          if [[ -d 'release/macos' ]]; then
+            echo "run_macos=true" >> $GITHUB_OUTPUT
+          else
+            echo "run_macos=false" >> $GITHUB_OUTPUT
+          fi
+          if [[ -d 'release/linux' ]]; then
+            echo "run_linux=true" >> $GITHUB_OUTPUT
+          else
+            echo "run_linux=false" >> $GITHUB_OUTPUT
+          fi
+          if [[ -d 'release/windows' ]]; then
+            echo "run_windows=true" >> $GITHUB_OUTPUT
+          else
+            echo "run_windows=false" >> $GITHUB_OUTPUT
+          fi
 
   Create_Draft_Release:
     runs-on: ubuntu-latest
@@ -87,6 +104,7 @@ jobs:
 
   Create_MacOS_Installer:
     needs: [Create_Draft_Release, Get_New_Version]
+    if: needs.Create_Draft_Release.outputs.run_macos == 'true'
     env:
       ARCH: x64  # this can be overwritten during the course of the job
       EAGER_IMPORT: true
@@ -103,12 +121,6 @@ jobs:
       uses: actions/checkout@v4
       with:
         ref: ${{ inputs.commit_to_release }}
-
-    - name: Check if OS supported
-      if: ${{ always() && hashFiles('release/macos/*') == '' }}
-      run: |
-        gh run cancel ${{ github.run_id }}
-        gh run watch ${{ github.run_id }}
 
     - name: Install conda
       uses: conda-incubator/setup-miniconda@v3
@@ -193,21 +205,16 @@ jobs:
 
   Create_Linux_Installer:
     needs: [ Create_Draft_Release, Get_New_Version ]
+    if: needs.Create_Draft_Release.outputs.run_linux == 'true'
+    runs-on: ubuntu-latest
     env:
       ARCH: x64 # this can be overwritten during the course of the job
       GH_TOKEN: ${{ github.token }}
-    runs-on: ubuntu-latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         ref: ${{ inputs.commit_to_release }}
-
-    - name: Check if OS supported
-      if: ${{ always() && hashFiles('release/linux/*') == '' }}
-      run: |
-        gh run cancel ${{ github.run_id }}
-        gh run watch ${{ github.run_id }}
 
     - name: Install conda
       uses: conda-incubator/setup-miniconda@v3
@@ -271,6 +278,7 @@ jobs:
 
   Create_Not_Supported_Installer:  # TODO remove again
     needs: [Create_Draft_Release, Get_New_Version]
+    if: needs.Create_Draft_Release.outputs.run_meh == 'true'
     env:
       ARCH: x64 # this can be overwritten during the course of the job
       GH_TOKEN: ${{ github.token }}
