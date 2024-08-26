@@ -119,8 +119,7 @@ jobs:
     needs: [ Create_Draft_Release, Get_New_Version ]
     if: ${{ needs.Get_New_Version.outputs.run_linux == 'true' }}
     runs-on: ubuntu-latest
-    env:
-      ARCH: x64 # this can be overwritten during the course of the job
+#    env:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -140,6 +139,17 @@ jobs:
       run: |
         conda info
 
+    - name: Get architecture
+      id: get_arch
+      shell: bash -el {0}
+      run: |
+        ARCH=$(python -c "import platform; print(platform.machine())")
+        echo got ARCH=$ARCH
+        if [ "$ARCH" == "x86_64" ]; then
+          ARCH="x64"
+        fi
+        echo "ARCH=$ARCH" >> $GITHUB_OUTPUT
+        
     - name: Install pyinstaller 6.10.0
       shell: bash -el {0}
       run: |
@@ -172,7 +182,7 @@ jobs:
         release/linux/build_package_linux.sh
         ls *
         ls dist/*
-        ARTIFACT_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
+        ARTIFACT_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ steps.get_arch.ARCH }}.deb
         echo ARTIFACT_NAME=$ARTIFACT_NAME >> $GITHUB_OUTPUT
 
     - name: Test package
@@ -211,7 +221,6 @@ jobs:
           - macos-13 # this is not ARM
     runs-on: ${{matrix.runner}}
     env:
-      ARCH: x64  # this can be overwritten during the course of the job
       EAGER_IMPORT: true  # TODO move to alphadia?
     steps:
     - name: Checkout code
@@ -231,6 +240,17 @@ jobs:
       shell: bash -el {0}
       run: |
         conda info
+
+    - name: Get architecture
+      id: get_arch
+      shell: bash -el {0}
+      run: |
+        ARCH=$(python -c "import platform; print(platform.machine())")
+        echo got ARCH=$ARCH
+        if [ "$ARCH" == "x86_64" ]; then
+          ARCH="x64"
+        fi
+        echo "ARCH=$ARCH" >> $GITHUB_OUTPUT
 
     - name: Install pyinstaller 6.10.0
       shell: bash -el {0}
@@ -273,7 +293,7 @@ jobs:
         release/macos/build_package_macos.sh
         ls *
         ls dist/*
-        ARTIFACT_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ env.ARCH }}.pkg
+        ARTIFACT_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ steps.get_arch.ARCH }}.pkg
         echo ARTIFACT_NAME=$ARTIFACT_NAME >> $GITHUB_OUTPUT
         
     - name: Test package
@@ -306,8 +326,7 @@ jobs:
     needs: [Create_Draft_Release, Get_New_Version]
     if: ${{ needs.Get_New_Version.outputs.run_windows == 'true' }}
     runs-on: windows-latest
-    env:
-      ARCH: x64 # this can be overwritten during the course of the job
+#    env:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -326,6 +345,17 @@ jobs:
       shell: bash -el {0}
       run: |
         conda info
+    
+    - name: Get architecture
+      id: get_arch
+      shell: bash -el {0}
+      run: |
+        ARCH=$(python -c "import platform; print(platform.machine())")
+        echo got ARCH=$ARCH
+        if [ "$ARCH" == "x86_64" ]; then
+          ARCH="x64"
+        fi
+        echo "ARCH=$ARCH" >> $GITHUB_OUTPUT
 
     - name: Install pyinstaller 6.10.0
       shell: bash -el {0}
@@ -366,7 +396,7 @@ jobs:
         release/windows/build_package_windows.ps1
         ls *
         ls dist/*
-        ARTIFACT_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe
+        ARTIFACT_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ steps.get_arch.ARCH }}.exe
         echo ARTIFACT_NAME=$ARTIFACT_NAME >> $GITHUB_OUTPUT
         
     - name: Test package
