@@ -1,7 +1,7 @@
 on:
   workflow_call:
     inputs:
-      package_name:
+      package_name:  # TODO rename
         description: 'Name of package, e.g. "alphadia", "peptdeep", ..'
         required: true
         type: string
@@ -112,7 +112,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ARCH: x64 # this can be overwritten during the course of the job
-      GH_TOKEN: ${{ github.token }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -161,16 +160,20 @@ jobs:
     # TODO: building node.js GUI not supported yet for linux
 
     - name: Build package
+      id: build_package
       shell: bash -l {0}
       run: |
         release/linux/build_package_linux.sh
         ls *
         ls dist/*
+        PACKAGE_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
+        echo PACKAGE_NAME=$PACKAGE_NAME >> $GITHUB_OUTPUT
 
-    - name: Test installer
+    - name: Test package
+      id: test_package
       shell: bash -l {0}
       run: |
-        sudo dpkg -i dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
+        sudo dpkg -i dist/${{steps.build_package.outputs.PACKAGE_NAME}}
 
     - name: Upload installer
       id: upload-release-asset
@@ -179,9 +182,18 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.Create_Draft_Release.outputs.upload_url }}
-        asset_path: dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
-        asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
+        asset_path: dist/${{steps.build_package.outputs.PACKAGE_NAME}}
+        asset_name: ${{steps.build_package.outputs.PACKAGE_NAME}}
         asset_content_type: application/zip
+
+    # Fallback upload to be able to manually debug the artifact
+    - name: Upload installer as job asset
+      if: ${{ failure() && steps.test_package.conclusion == 'failure' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{steps.build_package.outputs.PACKAGE_NAME}}
+        path: dist/${{steps.build_package.outputs.PACKAGE_NAME}}
+        if-no-files-found: error
 
   Create_MacOS_Installer:
     needs: [Create_Draft_Release, Get_New_Version]
@@ -195,8 +207,7 @@ jobs:
     env:
       ARCH: x64  # this can be overwritten during the course of the job
       EAGER_IMPORT: true
-      ARTIFACT_NAME: na  # will be set downstream
-      GH_TOKEN: ${{ github.token }}
+      PACKAGE_NAME: na  # will be set downstream
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -253,21 +264,22 @@ jobs:
         release/macos/build_gui_macos.sh
         ls *
 
-    # combine backend and GUI
     - name: Build package
+      id: build_package
       shell: bash -el {0}
       run: |
         release/macos/build_package_macos.sh
         ls *
         ls dist/*
-        ARTIFACT_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ env.ARCH }}.pkg
-
+        PACKAGE_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ env.ARCH }}.pkg
+        echo PACKAGE_NAME=$PACKAGE_NAME >> $GITHUB_OUTPUT
+        
     - name: Test package
       id: test_package
       shell: bash -l {0}
       run: |
-        sudo installer -pkg dist/${{env.ARTIFACT_NAME}} -target /
-        exit 0
+        sudo installer -pkg dist/${{steps.build_package.outputs.PACKAGE_NAME}} -target /
+        exit 1
 
     - name: Upload installer
       uses: actions/upload-release-asset@v1
@@ -275,8 +287,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
           upload_url: ${{ needs.Create_Draft_Release.outputs.upload_url }}
-          asset_path: dist/${{env.ARTIFACT_NAME}}
-          asset_name: ${{env.ARTIFACT_NAME}}
+          asset_path: dist/${{steps.build_package.outputs.PACKAGE_NAME}}
+          asset_name: ${{steps.build_package.outputs.PACKAGE_NAME}}
           asset_content_type: application/zip
 
     # Fallback upload to be able to manually debug the artifact
@@ -284,8 +296,8 @@ jobs:
       if: ${{ failure() && steps.test_package.conclusion == 'failure' }}
       uses: actions/upload-artifact@v4
       with:
-        name: ${{env.ARTIFACT_NAME}}
-        path: dist/${{env.ARTIFACT_NAME}}
+        name: ${{steps.build_package.outputs.PACKAGE_NAME}}
+        path: dist/${{steps.build_package.outputs.PACKAGE_NAME}}
         if-no-files-found: error
 
   Create_Windows_Installer:
@@ -294,7 +306,7 @@ jobs:
     runs-on: windows-latest
     env:
       ARCH: x64 # this can be overwritten during the course of the job
-      GH_TOKEN: ${{ github.token }}
+      PACKAGE_NAME: na  # will be set downstream
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -349,26 +361,39 @@ jobs:
       run: |
         release/windows/build_gui_windows.ps1
 
-    # combine backend and GUI
     - name: Build package
+      id: build_package
       shell: powershell
       run: |
         release/windows/build_package_windows.ps1
         ls *
         ls dist/*
-
+        PACKAGE_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe
+        echo PACKAGE_NAME=$PACKAGE_NAME >> $GITHUB_OUTPUT
+        
     - name: Test package
+      id: test_package
       shell: bash -l {0}
       run: |
-        release/windows/dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe //verysilent //SUPPRESSMSGBOXES //log=log.txt //noicons //tasks= //portable=1
+        release/windows/dist/${{steps.build_package.outputs.PACKAGE_NAME}} //verysilent //SUPPRESSMSGBOXES //log=log.txt //noicons //tasks= //portable=1
         cat log.txt
 
     - name: Upload installer
       uses: actions/upload-release-asset@v1
       env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGE_NAME: na  # will be set downstream
       with:
           upload_url: ${{ needs.Create_Draft_Release.outputs.upload_url }}
-          asset_path: release/windows/dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe
-          asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe
+          asset_path: release/windows/dist/${{steps.build_package.outputs.PACKAGE_NAME}}
+          asset_name: ${{steps.build_package.outputs.PACKAGE_NAME}}
           asset_content_type: application/zip
+
+    # Fallback upload to be able to manually debug the artifact
+    - name: Upload installer as job asset
+      if: ${{ failure() && steps.test_package.conclusion == 'failure' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{steps.build_package.outputs.PACKAGE_NAME}}
+        path: dist/${{steps.build_package.outputs.PACKAGE_NAME}}
+        if-no-files-found: error
