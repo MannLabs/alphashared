@@ -147,16 +147,13 @@ jobs:
 
     - name: Test app
       if: ${{ inputs.test_app }}
-      continue-on-error: true  # TODO: remove
       shell: bash -el {0}
       run: |
         EXECUTABLE=dist/${{ inputs.package_name }}/${{ inputs.package_name }}
         echo testing ${EXECUTABLE} ..
         eval ${EXECUTABLE} --version
+#  dist/peptdeep --help
 
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-      
     # TODO: building node.js GUI not supported yet for linux
 
     - name: Build package
@@ -242,16 +239,13 @@ jobs:
 
     - name: Test app
       if: ${{ inputs.test_app }}
-      continue-on-error: true  # TODO: remove
       shell: bash -el {0}
       run: |
         EXECUTABLE=dist/${{ inputs.package_name }}/${{ inputs.package_name }}
         echo testing ${EXECUTABLE} ..
         eval ${EXECUTABLE} --version
+    # ./dist/peptdeep_gui/peptdeep_gui --help
 
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-      
     # Build GUI
     - name: Setup Node.js
       if: ${{ inputs.build_nodejs_ui }}
@@ -340,14 +334,11 @@ jobs:
 
     - name: Test app
       if: ${{ inputs.test_app }}
-      continue-on-error: true  # TODO: remove
       shell: powershell
       run: |
         dist\${{ inputs.package_name }}\${{ inputs.package_name }}.exe --version
+      #./release/windows/dist/peptdeep_gui/peptdeep_gui.exe
 
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-      
     # Build GUI
     - name: Setup Node.js
       if: ${{ inputs.build_nodejs_ui }}
