@@ -102,20 +102,93 @@ jobs:
           draft: true
           prerelease: false
 
+  Create_Linux_Installer:
+    needs: [ Create_Draft_Release, Get_New_Version ]
+    if: needs.Get_New_Version.outputs.run_linux == 'true'
+    runs-on: ubuntu-latest
+    env:
+      ARCH: x64 # this can be overwritten during the course of the job
+      GH_TOKEN: ${{ github.token }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.commit_to_release }}
+
+    - name: Install conda
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        miniconda-version: "latest"
+        auto-update-conda: true
+        activate-environment: alphax_release
+        python-version: "${{ inputs.python_version }}"
+
+    - name: Conda info
+      shell: bash -el {0}
+      run: |
+        conda info
+
+    - name: Install pyinstaller 6.10.0
+      shell: bash -el {0}
+      run: |
+        pip install pyinstaller==6.10.0
+        pip freeze
+
+    - name: Build backend
+      shell: bash -l {0}
+      run: |
+        release/linux/build_backend_linux.sh
+        pip freeze
+        ls *
+        ls dist/*
+
+    - name: Test backend
+      if: ${{ inputs.test_backend }}
+      shell: bash -el {0}
+      run: |
+        EXECUTABLE=dist/${{ inputs.package_name }}/${{ inputs.package_name }}
+        echo testing ${EXECUTABLE} ..
+        eval ${EXECUTABLE} --version
+
+    # TODO: building node.js GUI not supported yet for linux
+
+    - name: Build Installer
+      shell: bash -l {0}
+      run: |
+        release/linux/build_installer_linux.sh
+        ls *
+        ls dist/*
+
+    - name: Test installer
+      shell: bash -l {0}
+      run: |
+        sudo dpkg -i dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
+
+    - name: Upload installer
+      id: upload-release-asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.Create_Draft_Release.outputs.upload_url }}
+        asset_path: dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
+        asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
+        asset_content_type: application/zip
+
   Create_MacOS_Installer:
     needs: [Create_Draft_Release, Get_New_Version]
-    if: needs.Create_Draft_Release.outputs.run_macos == 'true'
-    env:
-      ARCH: x64  # this can be overwritten during the course of the job
-      EAGER_IMPORT: true
-      ARTIFACT_NAME: na  # will be set downstream
-      GH_TOKEN: ${{ github.token }}
+    if: needs.Get_New_Version.outputs.run_macos == 'true'
     strategy:
       matrix:
         runner:
           - macos-latest-xlarge # this is ARM
           - macos-13 # this is not ARM
     runs-on: ${{matrix.runner}}
+    env:
+      ARCH: x64  # this can be overwritten during the course of the job
+      EAGER_IMPORT: true
+      ARTIFACT_NAME: na  # will be set downstream
+      GH_TOKEN: ${{ github.token }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -203,120 +276,18 @@ jobs:
         path: dist/${{env.ARTIFACT_NAME}}
         if-no-files-found: error
 
-  Create_Linux_Installer:
-    needs: [ Create_Draft_Release, Get_New_Version ]
-    if: needs.Create_Draft_Release.outputs.run_linux == 'true'
-    runs-on: ubuntu-latest
-    env:
-      ARCH: x64 # this can be overwritten during the course of the job
-      GH_TOKEN: ${{ github.token }}
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ inputs.commit_to_release }}
-
-    - name: Install conda
-      uses: conda-incubator/setup-miniconda@v3
-      with:
-        miniconda-version: "latest"
-        auto-update-conda: true
-        activate-environment: alphax_release
-        python-version: "${{ inputs.python_version }}"
-
-    - name: Conda info
-      shell: bash -el {0}
-      run: |
-        conda info
-
-    - name: Install pyinstaller 6.10.0
-      shell: bash -el {0}
-      run: |
-        pip install pyinstaller==6.10.0
-        pip freeze
-
-    - name: Build backend
-      shell: bash -l {0}
-      run: |
-        release/linux/build_backend_linux.sh
-        pip freeze
-        ls *
-        ls dist/*
-
-    - name: Test backend
-      if: ${{ inputs.test_backend }}
-      shell: bash -el {0}
-      run: |
-        EXECUTABLE=dist/${{ inputs.package_name }}/${{ inputs.package_name }}
-        echo testing ${EXECUTABLE} ..
-        eval ${EXECUTABLE} --version
-
-    # TODO: building node.js GUI not supported yet for linux
-
-    - name: Build Installer
-      shell: bash -l {0}
-      run: |
-        release/linux/build_installer_linux.sh
-        ls *
-        ls dist/*
-
-    - name: Test installer
-      shell: bash -l {0}
-      run: |
-        sudo dpkg -i dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
-
-    - name: Upload installer
-      id: upload-release-asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ needs.Create_Draft_Release.outputs.upload_url }}
-        asset_path: dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
-        asset_name: ${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ env.ARCH }}.deb
-        asset_content_type: application/zip
-
-  Create_Not_Supported_Installer:  # TODO remove again
-    needs: [Create_Draft_Release, Get_New_Version]
-    if: needs.Create_Draft_Release.outputs.run_meh == 'true'
-    env:
-      ARCH: x64 # this can be overwritten during the course of the job
-      GH_TOKEN: ${{ github.token }}
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ inputs.commit_to_release }}
-
-    - name: Check if OS supported
-      if: ${{ always() && hashFiles('release/sdfdssf/*') == '' }}
-      run: |
-        gh run cancel ${{ github.run_id }}
-        gh run watch ${{ github.run_id }}
-
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ inputs.commit_to_release }}
-
   Create_Windows_Installer:
     needs: [Create_Draft_Release, Get_New_Version]
+    if: needs.Get_New_Version.outputs.run_windows == 'true'
+    runs-on: windows-latest
     env:
       ARCH: x64 # this can be overwritten during the course of the job
       GH_TOKEN: ${{ github.token }}
-    runs-on: windows-latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         ref: ${{ inputs.commit_to_release }}
-
-    - name: Check if OS supported
-      if: ${{ always() && hashFiles('release/windows/*') == '' }}
-      run: |
-        gh run cancel ${{ github.run_id }}
-        gh run watch ${{ github.run_id }}
 
     - name: Install conda
       uses: conda-incubator/setup-miniconda@v3
