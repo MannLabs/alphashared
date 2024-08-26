@@ -36,6 +36,9 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       new_version: ${{ steps.check_release_tag.outputs.new_version }}
+      run_linux: ${{ steps.check_os.outputs.run_linux }}
+      run_macos: ${{ steps.check_os.outputs.run_macos }}
+      run_windows: ${{ steps.check_os.outputs.run_windows }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -66,6 +69,7 @@ jobs:
         if: steps.check-tag.outputs.exists == 'true'
 
       - name: Check supported OS
+        id: check_os
         run: |
           if [[ -d 'release/macos' ]]; then
             echo "run_macos=true" >> $GITHUB_OUTPUT
@@ -82,7 +86,6 @@ jobs:
           else
             echo "run_windows=false" >> $GITHUB_OUTPUT
           fi
-          echo $GITHUB_OUTPUT
 
   Create_Draft_Release:
     runs-on: ubuntu-latest
