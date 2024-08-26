@@ -121,6 +121,12 @@ jobs:
       run: |
         conda info
 
+    - name: Install pyinstaller 6.10.0
+      shell: bash -el {0}
+      run: |
+        pip install pyinstaller==6.10.0
+        pip freeze
+
     - name: Get architecture
       id: get_arch
       shell: bash -el {0}
@@ -163,6 +169,10 @@ jobs:
       run: |
         ls *
         ls dist
+
+    - name: List pip freeze
+      run: |
+        pip freeze
 
     - name: Test installer
 #      continue-on-error: true
