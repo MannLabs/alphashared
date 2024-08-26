@@ -20,7 +20,7 @@ on:
         type: boolean
       test_app:
         description: 'Whether or not the app should be tested'
-        default: true
+        default: false
         type: boolean
       python_version:
         description: "Python version to be used"
@@ -110,9 +110,9 @@ jobs:
         id: draft_release
         uses: softprops/action-gh-release@v2
         with:
+          name: ${{ inputs.tag_to_release }}
           target_commitish: ${{ inputs.commit_to_release }}
           tag_name: ${{ inputs.tag_to_release }}
-          release_name: ${{ inputs.tag_to_release }}
           draft: True
 
   Create_Linux_Installer:
