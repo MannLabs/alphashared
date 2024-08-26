@@ -350,15 +350,6 @@ jobs:
         release/windows/build_gui_windows.ps1
 
     # combine backend and GUI
-    - name: Check if Innosetup is installed
-      if: ${{ inputs.build_nodejs_ui }}
-      shell: powershell
-      run: |
-        if (-not (Test-Path "C:\Program Files (x86)\Inno Setup 6\ISCC.exe")) {
-          Write-Host "Inno Setup is not installed"
-          exit 1
-        }
-
     - name: Build package
       shell: powershell
       run: |
