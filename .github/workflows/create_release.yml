@@ -91,6 +91,7 @@ jobs:
         ARCH: x64  # this can be overwritten during the course of the job
         EAGER_IMPORT: true
         ARTIFACT_NAME: na  # will be set downstream
+        GH_TOKEN: ${{ github.token }}
     strategy:
       matrix:
         runner:
@@ -98,16 +99,16 @@ jobs:
           - macos-13 # this is not ARM
     runs-on: ${{matrix.runner}}
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.commit_to_release }}
+
     - name: Check if OS supported
       if: ${{ always() && hashFiles('release/macos/*') == '' }}
       run: |
         gh run cancel ${{ github.run_id }}
         gh run watch ${{ github.run_id }}
-
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ inputs.commit_to_release }}
 
     - name: Install conda
       uses: conda-incubator/setup-miniconda@v3
@@ -194,18 +195,19 @@ jobs:
     needs: [ Create_Draft_Release, Get_New_Version ]
     env:
       ARCH: x64 # this can be overwritten during the course of the job
+      GH_TOKEN: ${{ github.token }}
     runs-on: ubuntu-latest
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.commit_to_release }}
+
     - name: Check if OS supported
       if: ${{ always() && hashFiles('release/linux/*') == '' }}
       run: |
         gh run cancel ${{ github.run_id }}
         gh run watch ${{ github.run_id }}
-
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ inputs.commit_to_release }}
 
     - name: Install conda
       uses: conda-incubator/setup-miniconda@v3
@@ -271,8 +273,14 @@ jobs:
     needs: [Create_Draft_Release, Get_New_Version]
     env:
         ARCH: x64 # this can be overwritten during the course of the job
+        GH_TOKEN: ${{ github.token }}
     runs-on: ubuntu-latest
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.commit_to_release }}
+
     - name: Check if OS supported
       if: ${{ always() && hashFiles('release/sdfdssf/*') == '' }}
       run: |
@@ -284,23 +292,23 @@ jobs:
       with:
         ref: ${{ inputs.commit_to_release }}
 
-
   Create_Windows_Installer:
     needs: [Create_Draft_Release, Get_New_Version]
     env:
         ARCH: x64 # this can be overwritten during the course of the job
+                GH_TOKEN: ${{ github.token }}
     runs-on: windows-latest
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.commit_to_release }}
+
     - name: Check if OS supported
       if: ${{ always() && hashFiles('release/windows/*') == '' }}
       run: |
         gh run cancel ${{ github.run_id }}
         gh run watch ${{ github.run_id }}
-
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ inputs.commit_to_release }}
 
     - name: Install conda
       uses: conda-incubator/setup-miniconda@v3
