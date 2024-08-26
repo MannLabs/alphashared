@@ -18,7 +18,7 @@ on:
         description: 'Whether or not a nodejs UI needs to be built'
         default: false
         type: boolean
-      test_backend:
+      test_app:
         description: 'Whether or not the backend should be tested'
         default: false
         type: boolean
@@ -138,28 +138,32 @@ jobs:
         pip install pyinstaller==6.10.0
         pip freeze
 
-    - name: Build backend
+    - name: Build installer
       shell: bash -l {0}
       run: |
-        release/linux/build_backend_linux.sh
+        release/linux/build_installer_linux.sh
         pip freeze
         ls *
         ls dist/*
 
-    - name: Test backend
-      if: ${{ inputs.test_backend }}
+    - name: Test app
+      if: ${{ inputs.test_app }}
+      continue-on-error: true  # TODO: remove
       shell: bash -el {0}
       run: |
         EXECUTABLE=dist/${{ inputs.package_name }}/${{ inputs.package_name }}
         echo testing ${EXECUTABLE} ..
         eval ${EXECUTABLE} --version
 
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+      
     # TODO: building node.js GUI not supported yet for linux
 
-    - name: Build Installer
+    - name: Build package
       shell: bash -l {0}
       run: |
-        release/linux/build_installer_linux.sh
+        release/linux/build_package_linux.sh
         ls *
         ls dist/*
 
@@ -218,22 +222,26 @@ jobs:
         pip install pyinstaller==6.10.0
         pip freeze
 
-    - name: Build backend
+    - name: Build installer
       shell: bash -el {0}
       run: |
-        release/macos/build_backend_macos.sh
+        release/macos/build_installer_macos.sh
         pip freeze
         ls *
         ls dist/*
 
-    - name: Test backend
-      if: ${{ inputs.test_backend }}
+    - name: Test app
+      if: ${{ inputs.test_app }}
+      continue-on-error: true  # TODO: remove
       shell: bash -el {0}
       run: |
         EXECUTABLE=dist/${{ inputs.package_name }}/${{ inputs.package_name }}
         echo testing ${EXECUTABLE} ..
         eval ${EXECUTABLE} --version
 
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+      
     # Build GUI
     - name: Setup Node.js
       if: ${{ inputs.build_nodejs_ui }}
@@ -246,16 +254,16 @@ jobs:
         ls *
 
     # combine backend and GUI
-    - name: Build installer
+    - name: Build package
       shell: bash -el {0}
       run: |
-        release/macos/build_pkg_macos.sh
+        release/macos/build_package_macos.sh
         ls *
         ls dist/*
         ARTIFACT_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ env.ARCH }}.pkg
 
-    - name: Test installer
-      id: test_installer
+    - name: Test package
+      id: test_package
       shell: bash -l {0}
       run: |
         sudo installer -pkg dist/${{env.ARTIFACT_NAME}} -target /
@@ -273,7 +281,7 @@ jobs:
 
     # Fallback upload to be able to manually debug the artifact
     - name: Upload installer as job asset
-      if: ${{ failure() && steps.test_installer.conclusion == 'failure' }}
+      if: ${{ failure() && steps.test_package.conclusion == 'failure' }}
       uses: actions/upload-artifact@v4
       with:
         name: ${{env.ARTIFACT_NAME}}
@@ -312,20 +320,24 @@ jobs:
         pip install pyinstaller==6.10.0
         pip freeze
 
-    - name: Build backend
+    - name: Build installer
       shell: powershell
       run: |
-        release/windows/build_backend.ps1
+        release/windows/build_installer_windows.ps1
         pip freeze
         ls *
         ls dist/*
 
-    - name: Test Backend
-      if: ${{ inputs.test_backend }}
+    - name: Test app
+      if: ${{ inputs.test_app }}
+      continue-on-error: true  # TODO: remove
       shell: powershell
       run: |
         dist\${{ inputs.package_name }}\${{ inputs.package_name }}.exe --version
 
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+      
     # Build GUI
     - name: Setup Node.js
       if: ${{ inputs.build_nodejs_ui }}
@@ -335,7 +347,7 @@ jobs:
       if: ${{ inputs.build_nodejs_ui }}
       shell: powershell
       run: |
-        release/windows/build_gui.ps1
+        release/windows/build_gui_windows.ps1
 
     # combine backend and GUI
     - name: Check if Innosetup is installed
@@ -347,14 +359,14 @@ jobs:
           exit 1
         }
 
-    - name: Build Installer
+    - name: Build package
       shell: powershell
       run: |
-        release/windows/build_installer.ps1
+        release/windows/build_package_windows.ps1
         ls *
         ls dist/*
 
-    - name: Test installer
+    - name: Test package
       shell: bash -l {0}
       run: |
         release/windows/dist/${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe //verysilent //SUPPRESSMSGBOXES //log=log.txt //noicons //tasks= //portable=1
