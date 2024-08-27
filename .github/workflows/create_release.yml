@@ -143,12 +143,19 @@ jobs:
       id: get_arch
       shell: bash -el {0}
       run: |
-        ARCH=$(python -c "import platform; print(platform.machine())")
+        ARCH=$(python -c "import platform; print(platform.machine().lower())")
         echo got ARCH=$ARCH
         if [ "$ARCH" == "x86_64" ]; then
           ARCH="x64"
         fi
-        echo "ARCH=$ARCH" >> $GITHUB_OUTPUT
+        KERNEL=$(python -c "import platform; print(platform.system().lower())")
+        echo got KERNEL=$KERNEL
+        
+        BUILD_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${KERNEL}-${ARCH}
+        echo "BUILD_NAME=$BUILD_NAME" >> $GITHUB_ENV
+        
+        ARTIFACT_NAME=${BUILD_NAME}.deb
+        echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
         
     - name: Install pyinstaller 6.10.0
       shell: bash -el {0}
@@ -189,7 +196,7 @@ jobs:
       id: test_package
       shell: bash -l {0}
       run: |
-        sudo dpkg -i dist/${{steps.build_package.outputs.ARTIFACT_NAME}}
+        sudo dpkg -i dist/${{steps.get_arch.outputs.ARTIFACT_NAME}}
 
     - name: Upload installer
       id: upload-release-asset
@@ -198,8 +205,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.Create_Draft_Release.outputs.upload_url }}
-        asset_path: dist/${{steps.build_package.outputs.ARTIFACT_NAME}}
-        asset_name: ${{steps.build_package.outputs.ARTIFACT_NAME}}
+        asset_path: dist/${{steps.get_arch.outputs.ARTIFACT_NAME}}
+        asset_name: ${{steps.get_arch.outputs.ARTIFACT_NAME}}
         asset_content_type: application/zip
 
     # Fallback upload to be able to manually debug the artifact
@@ -207,8 +214,8 @@ jobs:
       if: ${{ failure() && steps.test_package.conclusion == 'failure' }}
       uses: actions/upload-artifact@v4
       with:
-        name: ${{steps.build_package.outputs.ARTIFACT_NAME}}
-        path: dist/${{steps.build_package.outputs.ARTIFACT_NAME}}
+        name: ${{steps.get_arch.outputs.ARTIFACT_NAME}}
+        path: dist/${{steps.get_arch.outputs.ARTIFACT_NAME}}
         if-no-files-found: error
 
   Create_MacOS_Installer:
@@ -245,12 +252,19 @@ jobs:
       id: get_arch
       shell: bash -el {0}
       run: |
-        ARCH=$(python -c "import platform; print(platform.machine())")
+        ARCH=$(python -c "import platform; print(platform.machine().lower())")
         echo got ARCH=$ARCH
         if [ "$ARCH" == "x86_64" ]; then
           ARCH="x64"
         fi
-        echo "ARCH=$ARCH" >> $GITHUB_OUTPUT
+        KERNEL=$(python -c "import platform; print(platform.system().lower())")
+        echo got KERNEL=$KERNEL
+        
+        BUILD_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-macos-${KERNEL}-${ARCH}
+        echo "BUILD_NAME=$BUILD_NAME" >> $GITHUB_ENV
+        
+        ARTIFACT_NAME=${BUILD_NAME}.pkg
+        echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
 
     - name: Install pyinstaller 6.10.0
       shell: bash -el {0}
@@ -300,7 +314,7 @@ jobs:
       id: test_package
       shell: bash -l {0}
       run: |
-        sudo installer -pkg dist/${{steps.build_package.outputs.ARTIFACT_NAME}} -target /
+        sudo installer -pkg dist/${{steps.get_arch.outputs.ARTIFACT_NAME}} -target /
 
     - name: Upload installer
       uses: actions/upload-release-asset@v1
@@ -308,8 +322,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
           upload_url: ${{ needs.Create_Draft_Release.outputs.upload_url }}
-          asset_path: dist/${{steps.build_package.outputs.ARTIFACT_NAME}}
-          asset_name: ${{steps.build_package.outputs.ARTIFACT_NAME}}
+          asset_path: dist/${{steps.get_arch.outputs.ARTIFACT_NAME}}
+          asset_name: ${{steps.get_arch.outputs.ARTIFACT_NAME}}
           asset_content_type: application/zip
 
     # Fallback upload to be able to manually debug the artifact
@@ -317,8 +331,8 @@ jobs:
       if: ${{ failure() && steps.test_package.conclusion == 'failure' }}
       uses: actions/upload-artifact@v4
       with:
-        name: ${{steps.build_package.outputs.ARTIFACT_NAME}}
-        path: dist/${{steps.build_package.outputs.ARTIFACT_NAME}}
+        name: ${{steps.get_arch.outputs.ARTIFACT_NAME}}
+        path: dist/${{steps.get_arch.outputs.ARTIFACT_NAME}}
         if-no-files-found: error
 
   Create_Windows_Installer:
@@ -349,12 +363,19 @@ jobs:
       id: get_arch
       shell: bash -el {0}
       run: |
-        ARCH=$(python -c "import platform; print(platform.machine())")
+        ARCH=$(python -c "import platform; print(platform.machine().lower())")
         echo got ARCH=$ARCH
         if [ "$ARCH" == "x86_64" ]; then
           ARCH="x64"
         fi
-        echo "ARCH=$ARCH" >> $GITHUB_OUTPUT
+        KERNEL=$(python -c "import platform; print(platform.system().lower())")
+        echo got KERNEL=$KERNEL
+        
+        BUILD_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${KERNEL}-${ARCH}
+        echo "BUILD_NAME=$BUILD_NAME" >> $GITHUB_ENV
+        
+        ARTIFACT_NAME=${BUILD_NAME}.exe
+        echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
 
     - name: Install pyinstaller 6.10.0
       shell: bash -el {0}
@@ -395,14 +416,12 @@ jobs:
         release/windows/build_package_windows.ps1
         ls *
         ls dist/*
-        ARTIFACT_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ steps.get_arch.outputs.ARCH }}.exe
-        echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
         
     - name: Test package
       id: test_package
       shell: bash -l {0}
       run: |
-        release/windows/dist/${{steps.build_package.outputs.ARTIFACT_NAME}} //verysilent //SUPPRESSMSGBOXES //log=log.txt //noicons //tasks= //portable=1
+        release/windows/dist/${{steps.get_arch.outputs.ARTIFACT_NAME}} //verysilent //SUPPRESSMSGBOXES //log=log.txt //noicons //tasks= //portable=1
         cat log.txt
 
     - name: Upload installer
@@ -411,8 +430,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
           upload_url: ${{ needs.Create_Draft_Release.outputs.upload_url }}
-          asset_path: release/windows/dist/${{steps.build_package.outputs.ARTIFACT_NAME}}
-          asset_name: ${{steps.build_package.outputs.ARTIFACT_NAME}}
+          asset_path: release/windows/dist/${{steps.get_arch.outputs.ARTIFACT_NAME}}
+          asset_name: ${{steps.get_arch.outputs.ARTIFACT_NAME}}
           asset_content_type: application/zip
 
     # Fallback upload to be able to manually debug the artifact
@@ -420,6 +439,6 @@ jobs:
       if: ${{ failure() && steps.test_package.conclusion == 'failure' }}
       uses: actions/upload-artifact@v4
       with:
-        name: ${{steps.build_package.outputs.ARTIFACT_NAME}}
-        path: dist/${{steps.build_package.outputs.ARTIFACT_NAME}}
+        name: ${{steps.get_arch.outputs.ARTIFACT_NAME}}
+        path: dist/${{steps.get_arch.outputs.ARTIFACT_NAME}}
         if-no-files-found: error
