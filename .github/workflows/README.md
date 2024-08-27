@@ -47,9 +47,11 @@ or `.ps1` if platform is `windows`.
 
 
 ### Installation
-1. Create a new github action in `.github/workflows` like this:
+#### 'Create release' workflow
+1. Create a new github action `create_release.yml` in `.github/workflows` like this:
 ```yaml
 # Create a draft release and build and upload all installers to it.
+name: Create Draft Release
 
 on:
   workflow_dispatch:
@@ -65,17 +67,46 @@ on:
 
 jobs:
   create-release:
+    secrets: inherit
     uses: MannLabs/alphashared/.github/workflows/create_release.yml@v1
     with:
       # see the documentation of the action for more information on the parameters
-      package_name: peptdeep
+      package_name: <Name of package, e.g. "alphadia", "peptdeep", ..>
       commit_to_release: ${{ inputs.commit_to_release }}
       tag_to_release: ${{ inputs.tag_to_release }}
       # optional parameters
-      build_nodejs_ui: false
-      test_app: false
-      python_version: 3.11
-    secrets: inherit
+      build_nodejs_ui: true
+      test_app: true
+      python_version: 3.9
+
+```
+
+#### 'Publish on pypi' workflow
+1. Create a new github action `publish_on_pypi.yml` in `.github/workflows` like this:
+```yaml
+# Create a draft release and build and upload all installers to it.
+name: Publish on PyPi
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_to_release:
+        description: 'Enter tag to release (example: v1.5.5). A tag with the same name must exist in the repository.'
+        type: string
+        required: true
+
+jobs:
+  publish_on_pypi:
+    uses: MannLabs/alphashared/.github/workflows/publish_on_pypi.yml@v1
+    with:
+      # see the documentation of the action for more information on the parameters
+      package_name: <Name of package, e.g. "alphadia", "peptdeep", ..>
+      tag_to_release: ${{ inputs.tag_to_release }}
+      test_pypi_api_token: ${{ secrets.TEST_PYPI_API_TOKEN }}
+      pypi_api_token: ${{ secrets.PYPI_API_TOKEN }}
+      # optional parameters:
+      python_version: 3.9
+      use_pyproject_toml: false
 ```
 
 

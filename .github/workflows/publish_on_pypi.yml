@@ -1,20 +1,32 @@
+name: Publish on PyPi
+
 on:
   workflow_call:
     inputs:
       package_name:
         description: 'Name of package, e.g. "alphadia", "peptdeep", ..'
-        required: true
         type: string
+        required: true
       tag_to_release:
         description: 'Enter tag to release (example: v1.5.5). A tag with the same name must exist in the repository.'
-        required: true
         type: string
+        required: true
+      test_pypi_api_token:
+        description: 'PyPI token for the test API'
+        type: string
+        required: true
+      pypi_api_token:
+        description: 'PyPI token for the real API'
+        type: string
+        required: true
       python_version:
         description: "Python version to be used"
-        default: "3.11"
         type: string
-
-name: Publish on PyPi
+        default: "3.11"
+      use_pyproject_toml:
+        description: 'Whether the project uses pyproject.toml or the legacy setup.py-absed mechanism.'
+        type: boolean
+        default: true
 
 env:
   PYTHON_VERSION: "${{ inputs.python_version }}"
@@ -50,13 +62,18 @@ jobs:
         shell: bash -le {0}
         run: |
           conda create -n build_env python=${{ env.PYTHON_VERSION }} -y
-          conda activate build_env  # DO WE NEED THIS?
+          conda activate build_env
           python -m pip install --upgrade pip
           pip install build twine
-          rm -rf dist
-          rm -rf build
-          python -m build  # IS THIS PYPROJECT SPECIFIC?
-          twine check dist/*
+          
+          if [ ${{ inputs.use_pyproject_toml }} ]; then
+            echo "Building using pyproject.toml"
+            python -m build
+          else
+            echo "Building using setup.py"
+            python setup.py sdist bdist_wheel
+          fi
+         
           conda deactivate
           conda env remove --name build_env -y
           conda clean --all -y
@@ -65,7 +82,7 @@ jobs:
         with:
           repository-url: https://test.pypi.org/legacy/
           user: __token__
-          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          password: ${{ inputs.test_pypi_api_token }}
       - name: Test Test-PyPI loose installation
         shell: bash -le {0}
         run: |
@@ -86,19 +103,18 @@ jobs:
           conda deactivate
           conda env remove --name pip_stable_test -y
           conda clean --all -y
-          # TODO CREATE SCRIPTS FOR DOING THIS
       - name: Publish distribution to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
+          password: ${{ inputs.pypi_api_token }}
   Test_PyPi_Release:
     name: Test_PyPi_version_on_${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
     needs: Create_PyPi_Release
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: conda-incubator/setup-miniconda@v3

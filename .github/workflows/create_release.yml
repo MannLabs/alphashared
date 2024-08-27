@@ -3,8 +3,8 @@ on:
     inputs:
       package_name:
         description: 'Name of package, e.g. "alphadia", "peptdeep", ..'
-        required: true
         type: string
+        required: true
       commit_to_release:
         description: 'Enter commit hash to release (example: ef4037cb571f99cb4919b520fde7174972aae473)'
         type: string
@@ -16,16 +16,16 @@ on:
       # optional switches
       build_nodejs_ui:
         description: 'Whether or not a nodejs UI needs to be built'
-        default: false
         type: boolean
+        default: false
       test_app:
         description: 'Whether or not the app should be tested'
-        default: false
         type: boolean
+        default: false
       python_version:
         description: "Python version to be used"
-        default: "3.11"
         type: string
+        default: "3.11"
 
 
 
