@@ -5,5 +5,5 @@ Shared non-production code for AlphaX packages
 - `actions`: reusable github actions
 - `actions/get-code-review-input`: generates input for AI-assisted code review, see [README](actions/get-code-review-input/README.md)
 
-- `workflows`: reusable github workflows
-- `workflows/release`: reusable workflow for creating releases, see [README](workflows/release/README.md)
+- `.github/workflows`: reusable github workflows
+- `.github/workflows/release`: reusable workflow for creating releases, see [README](.github/workflows/release/README.md)
