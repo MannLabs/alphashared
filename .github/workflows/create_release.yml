@@ -143,20 +143,17 @@ jobs:
       id: get_arch
       shell: bash -el {0}
       run: |
-        ARCH=$(python -c "import platform; print(platform.machine().lower())")
-        echo got ARCH=$ARCH
-        if [ "$ARCH" == "x86_64" ]; then
-          ARCH="x64"
-        fi
+        ARCH=$(python -c "import platform; arch=platform.machine().lower(); print('x64' if arch == 'x86_64' else arch)")
         KERNEL=$(python -c "import platform; print(platform.system().lower())")
-        echo got KERNEL=$KERNEL
         
-        BUILD_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${KERNEL}-${ARCH}
+        BUILD_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-${KERNEL}-${ARCH}
         echo "BUILD_NAME=$BUILD_NAME" >> $GITHUB_ENV
         
         ARTIFACT_NAME=${BUILD_NAME}.deb
         echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
-        
+        echo got ARTIFACT_NAME=$ARTIFACT_NAME
+
+
     - name: Install pyinstaller 6.10.0
       shell: bash -el {0}
       run: |
@@ -252,19 +249,15 @@ jobs:
       id: get_arch
       shell: bash -el {0}
       run: |
-        ARCH=$(python -c "import platform; print(platform.machine().lower())")
-        echo got ARCH=$ARCH
-        if [ "$ARCH" == "x86_64" ]; then
-          ARCH="x64"
-        fi
+        ARCH=$(python -c "import platform; arch=platform.machine().lower(); print('x64' if arch == 'x86_64' else arch)")
         KERNEL=$(python -c "import platform; print(platform.system().lower())")
-        echo got KERNEL=$KERNEL
         
         BUILD_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-macos-${KERNEL}-${ARCH}
         echo "BUILD_NAME=$BUILD_NAME" >> $GITHUB_ENV
         
-        ARTIFACT_NAME=${BUILD_NAME}.pkg
+        ARTIFACT_NAME=${BUILD_NAME}.deb
         echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
+        echo got ARTIFACT_NAME=$ARTIFACT_NAME
 
     - name: Install pyinstaller 6.10.0
       shell: bash -el {0}
@@ -363,19 +356,15 @@ jobs:
       id: get_arch
       shell: bash -el {0}
       run: |
-        ARCH=$(python -c "import platform; print(platform.machine().lower())")
-        echo got ARCH=$ARCH
-        if [ "$ARCH" == "x86_64" ]; then
-          ARCH="x64"
-        fi
+        ARCH=$(python -c "import platform; arch=platform.machine().lower(); print('x64' if arch == 'x86_64' else arch)")
         KERNEL=$(python -c "import platform; print(platform.system().lower())")
-        echo got KERNEL=$KERNEL
         
-        BUILD_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${KERNEL}-${ARCH}
+        BUILD_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-${KERNEL}-${ARCH}
         echo "BUILD_NAME=$BUILD_NAME" >> $GITHUB_ENV
         
-        ARTIFACT_NAME=${BUILD_NAME}.exe
+        ARTIFACT_NAME=${BUILD_NAME}.deb
         echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
+        echo got ARTIFACT_NAME=$ARTIFACT_NAME
 
     - name: Install pyinstaller 6.10.0
       shell: bash -el {0}
