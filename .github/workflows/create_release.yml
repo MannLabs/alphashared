@@ -178,7 +178,7 @@ jobs:
     - name: Upload installer
       uses: softprops/action-gh-release@v2
       with:
-        name: ${{ inputs.tag_to_release }}
+        tag_name: ${{ inputs.tag_to_release }}
         files: dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 
     # Fallback upload to be able to manually debug the artifact
@@ -285,7 +285,7 @@ jobs:
     - name: Upload installer
       uses: softprops/action-gh-release@v2
       with:
-        name: ${{ inputs.tag_to_release }}
+        tag_name: ${{ inputs.tag_to_release }}
         files: dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 
     # Fallback upload to be able to manually debug the artifact
@@ -389,7 +389,7 @@ jobs:
     - name: Upload installer
       uses: softprops/action-gh-release@v2
       with:
-        name: ${{ inputs.tag_to_release }}
+        tag_name: ${{ inputs.tag_to_release }}
         files: dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 
     # Fallback upload to be able to manually debug the artifact
