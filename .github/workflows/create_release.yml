@@ -91,19 +91,6 @@ jobs:
     outputs:
       upload_url: ${{ steps.draft_release.outputs.upload_url }}
     steps:
-#      - name: Draft Release
-#        id: draft_release
-#        # TODO this action is deprecated, replace with https://github.com/ncipollo/release-action
-#        # cf. https://github.com/actions/create-release/issues/119#issuecomment-783010321
-#        uses: actions/create-release@v1
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        with:
-#          tag_name: ${{ inputs.tag_to_release }}
-#          release_name: ${{ inputs.tag_to_release }}
-#          draft: true
-#          prerelease: false
-
       - name: Draft Release
         id: draft_release
         uses: softprops/action-gh-release@v2
@@ -117,7 +104,6 @@ jobs:
     needs: [ Create_Draft_Release, Get_New_Version ]
     if: ${{ needs.Get_New_Version.outputs.run_linux == 'true' }}
     runs-on: ubuntu-latest
-#    env:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -152,10 +138,10 @@ jobs:
         echo got ARTIFACT_NAME=$ARTIFACT_NAME
 
 
-    - name: Install pyinstaller 6.10.0
+    - name: Install pyinstaller 6.10.0 and build 1.2.1
       shell: bash -el {0}
       run: |
-        pip install pyinstaller==6.10.0
+        pip install pyinstaller==6.10.0 build==1.2.1
         pip freeze
 
     - name: Build installer
@@ -173,7 +159,7 @@ jobs:
         EXECUTABLE=dist/${{ inputs.package_name }}/${{ inputs.package_name }}
         echo testing ${EXECUTABLE} ..
         eval ${EXECUTABLE} --version
-#  dist/peptdeep --help
+    # TODO: for peptdeep one needs to call `dist/peptdeep --help`
 
     # TODO: building node.js GUI not supported yet for linux
 
@@ -255,10 +241,10 @@ jobs:
         echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
         echo got ARTIFACT_NAME=$ARTIFACT_NAME
 
-    - name: Install pyinstaller 6.10.0
+    - name: Install pyinstaller 6.10.0 and build 1.2.1
       shell: bash -el {0}
       run: |
-        pip install pyinstaller==6.10.0
+        pip install pyinstaller==6.10.0 build==1.2.1
         pip freeze
 
     - name: Build installer
@@ -276,7 +262,7 @@ jobs:
         EXECUTABLE=dist/${{ inputs.package_name }}/${{ inputs.package_name }}
         echo testing ${EXECUTABLE} ..
         eval ${EXECUTABLE} --version
-    # ./dist/peptdeep_gui/peptdeep_gui --help
+    # TODO: for peptdeep one needs to call `./dist/peptdeep_gui/peptdeep_gui --help`
 
     # Build GUI
     - name: Setup Node.js
@@ -326,7 +312,6 @@ jobs:
     needs: [Create_Draft_Release, Get_New_Version]
     if: ${{ needs.Get_New_Version.outputs.run_windows == 'true' }}
     runs-on: windows-latest
-#    env:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -360,11 +345,11 @@ jobs:
         echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
         echo got ARTIFACT_NAME=$ARTIFACT_NAME
 
-    - name: Install pyinstaller 6.10.0
+    - name: Install pyinstaller 6.10.0 and build 1.2.1
       shell: bash -el {0}
       run: |
         pip install pefile==2023.2.7  # TODO: 2024.8.26 is super-slow on the 'binary vs. data reclassification' step, cf. https://github.com/erocarrera/pefile/issues/420
-        pip install pyinstaller==6.10.0
+        pip install pyinstaller==6.10.0 build==1.2.1
         pip freeze
 
     - name: Build installer
@@ -380,7 +365,7 @@ jobs:
       shell: powershell
       run: |
         dist\${{ inputs.package_name }}\${{ inputs.package_name }}.exe --version
-      #./release/windows/dist/peptdeep_gui/peptdeep_gui.exe
+      # TODO: for peptdeep one needs to call `./release/windows/dist/peptdeep_gui/peptdeep_gui.exe`
 
     # Build GUI
     - name: Setup Node.js
