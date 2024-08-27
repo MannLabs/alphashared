@@ -155,7 +155,7 @@ jobs:
     - name: Install pyinstaller 6.10.0
       shell: bash -el {0}
       run: |
-        git clone git@github.com:mschwoer/pyinstaller.git
+        git clone https://github.com/mschwoer/pyinstaller.git
         cd pyinstaller
         git switch more_logs
         pip install .
