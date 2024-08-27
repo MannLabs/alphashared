@@ -139,8 +139,8 @@ jobs:
       run: |
         conda info
 
-    - name: Get architecture
-      id: get_arch
+    - name: Get artifact name
+      id: get_artifact
       shell: bash -el {0}
       run: |
         ARCH=$(python -c "import platform; arch=platform.machine().lower(); print('x64' if arch == 'x86_64' else arch)")
@@ -186,14 +186,14 @@ jobs:
         release/linux/build_package_linux.sh
         ls *
         ls dist/*
-        ARTIFACT_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ steps.get_arch.outputs.ARCH }}.deb
+        ARTIFACT_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ steps.get_artifact.outputs.ARCH }}.deb
         echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
 
     - name: Test package
       id: test_package
       shell: bash -l {0}
       run: |
-        sudo dpkg -i dist/${{steps.get_arch.outputs.ARTIFACT_NAME}}
+        sudo dpkg -i dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 
     - name: Upload installer
       id: upload-release-asset
@@ -202,8 +202,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.Create_Draft_Release.outputs.upload_url }}
-        asset_path: dist/${{steps.get_arch.outputs.ARTIFACT_NAME}}
-        asset_name: ${{steps.get_arch.outputs.ARTIFACT_NAME}}
+        asset_path: dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+        asset_name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
         asset_content_type: application/zip
 
     # Fallback upload to be able to manually debug the artifact
@@ -211,8 +211,8 @@ jobs:
       if: ${{ failure() && steps.test_package.conclusion == 'failure' }}
       uses: actions/upload-artifact@v4
       with:
-        name: ${{steps.get_arch.outputs.ARTIFACT_NAME}}
-        path: dist/${{steps.get_arch.outputs.ARTIFACT_NAME}}
+        name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+        path: dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
         if-no-files-found: error
 
   Create_MacOS_Installer:
@@ -245,8 +245,8 @@ jobs:
       run: |
         conda info
 
-    - name: Get architecture
-      id: get_arch
+    - name: Get artifact name
+      id: get_artifact
       shell: bash -el {0}
       run: |
         ARCH=$(python -c "import platform; arch=platform.machine().lower(); print('x64' if arch == 'x86_64' else arch)")
@@ -300,14 +300,14 @@ jobs:
         release/macos/build_package_macos.sh
         ls *
         ls dist/*
-        ARTIFACT_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ steps.get_arch.outputs.ARCH }}.pkg
+        ARTIFACT_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ steps.get_artifact.outputs.ARCH }}.pkg
         echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
         
     - name: Test package
       id: test_package
       shell: bash -l {0}
       run: |
-        sudo installer -pkg dist/${{steps.get_arch.outputs.ARTIFACT_NAME}} -target /
+        sudo installer -pkg dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}} -target /
 
     - name: Upload installer
       uses: actions/upload-release-asset@v1
@@ -315,8 +315,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
           upload_url: ${{ needs.Create_Draft_Release.outputs.upload_url }}
-          asset_path: dist/${{steps.get_arch.outputs.ARTIFACT_NAME}}
-          asset_name: ${{steps.get_arch.outputs.ARTIFACT_NAME}}
+          asset_path: dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+          asset_name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
           asset_content_type: application/zip
 
     # Fallback upload to be able to manually debug the artifact
@@ -324,8 +324,8 @@ jobs:
       if: ${{ failure() && steps.test_package.conclusion == 'failure' }}
       uses: actions/upload-artifact@v4
       with:
-        name: ${{steps.get_arch.outputs.ARTIFACT_NAME}}
-        path: dist/${{steps.get_arch.outputs.ARTIFACT_NAME}}
+        name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+        path: dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
         if-no-files-found: error
 
   Create_Windows_Installer:
@@ -352,8 +352,8 @@ jobs:
       run: |
         conda info
     
-    - name: Get architecture
-      id: get_arch
+    - name: Get artifact name
+      id: get_artifact
       shell: bash -el {0}
       run: |
         ARCH=$(python -c "import platform; arch=platform.machine().lower(); print('x64' if arch == 'x86_64' else arch)")
@@ -410,7 +410,7 @@ jobs:
       id: test_package
       shell: bash -l {0}
       run: |
-        release/windows/dist/${{steps.get_arch.outputs.ARTIFACT_NAME}} //verysilent //SUPPRESSMSGBOXES //log=log.txt //noicons //tasks= //portable=1
+        release/windows/dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}} //verysilent //SUPPRESSMSGBOXES //log=log.txt //noicons //tasks= //portable=1
         cat log.txt
 
     - name: Upload installer
@@ -419,8 +419,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
           upload_url: ${{ needs.Create_Draft_Release.outputs.upload_url }}
-          asset_path: release/windows/dist/${{steps.get_arch.outputs.ARTIFACT_NAME}}
-          asset_name: ${{steps.get_arch.outputs.ARTIFACT_NAME}}
+          asset_path: release/windows/dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+          asset_name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
           asset_content_type: application/zip
 
     # Fallback upload to be able to manually debug the artifact
@@ -428,6 +428,6 @@ jobs:
       if: ${{ failure() && steps.test_package.conclusion == 'failure' }}
       uses: actions/upload-artifact@v4
       with:
-        name: ${{steps.get_arch.outputs.ARTIFACT_NAME}}
-        path: dist/${{steps.get_arch.outputs.ARTIFACT_NAME}}
+        name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+        path: dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
         if-no-files-found: error
