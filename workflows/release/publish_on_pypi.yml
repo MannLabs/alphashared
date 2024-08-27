@@ -86,6 +86,7 @@ jobs:
           conda deactivate
           conda env remove --name pip_stable_test -y
           conda clean --all -y
+          # TODO CREATE SCRIPTS FOR DOING THIS
       - name: Publish distribution to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
