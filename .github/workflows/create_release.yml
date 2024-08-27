@@ -155,10 +155,7 @@ jobs:
     - name: Install pyinstaller 6.10.0
       shell: bash -el {0}
       run: |
-        git clone https://github.com/mschwoer/pyinstaller.git
-        cd pyinstaller
-        git switch more_logs
-        pip install .
+        pip install pyinstaller==6.10.0
         pip freeze
 
     - name: Build installer
@@ -261,10 +258,7 @@ jobs:
     - name: Install pyinstaller 6.10.0
       shell: bash -el {0}
       run: |
-        git clone https://github.com/mschwoer/pyinstaller.git
-        cd pyinstaller
-        git switch more_logs
-        pip install .
+        pip install pyinstaller==6.10.0
         pip freeze
 
     - name: Build installer
@@ -369,11 +363,8 @@ jobs:
     - name: Install pyinstaller 6.10.0
       shell: bash -el {0}
       run: |
-        git clone https://github.com/mschwoer/pyinstaller.git
-        cd pyinstaller
-        git switch more_logs
-        pip install .
-        
+        pip install pefile==2023.2.7  # TODO: 2024.8.26 is super-slow on the 'binary vs. data reclassification' step
+        pip install pyinstaller==6.10.0
         pip freeze
 
     - name: Build installer
