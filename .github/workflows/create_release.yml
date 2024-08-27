@@ -189,7 +189,7 @@ jobs:
         asset_content_type: application/zip
 
     # Fallback upload to be able to manually debug the artifact
-    - name: Upload installer as job asset
+    - name: Fallback upload installer as job asset
       if: ${{ failure() && steps.test_package.conclusion == 'failure' }}
       uses: actions/upload-artifact@v4
       with:
@@ -300,7 +300,7 @@ jobs:
           asset_content_type: application/zip
 
     # Fallback upload to be able to manually debug the artifact
-    - name: Upload installer as job asset
+    - name: Fallback upload installer as job asset
       if: ${{ failure() && steps.test_package.conclusion == 'failure' }}
       uses: actions/upload-artifact@v4
       with:
@@ -389,8 +389,12 @@ jobs:
     - name: Test package
       id: test_package
       shell: bash -l {0}
+      # TODO this is not unified yet between peptdeep & alphadia
       run: |
-        release/windows/dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}} //verysilent //SUPPRESSMSGBOXES //log=log.txt //noicons //tasks= //portable=1
+        if [ -e release/windows/dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}} ]; then
+            cd release/windows
+        fi
+        dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}} //verysilent //SUPPRESSMSGBOXES //log=log.txt //noicons //tasks= //portable=1
         cat log.txt
 
     - name: Upload installer
@@ -404,7 +408,7 @@ jobs:
           asset_content_type: application/zip
 
     # Fallback upload to be able to manually debug the artifact
-    - name: Upload installer as job asset
+    - name: Fallback upload installer as job asset
       if: ${{ failure() && steps.test_package.conclusion == 'failure' }}
       uses: actions/upload-artifact@v4
       with:
