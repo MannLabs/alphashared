@@ -1,3 +1,5 @@
+name: Create Draft Release
+
 on:
   workflow_call:
     inputs:
@@ -26,10 +28,6 @@ on:
         description: "Python version to be used"
         type: string
         default: "3.11"
-
-
-
-name: Create Draft Release
 
 jobs:
   Get_New_Version:

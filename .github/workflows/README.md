@@ -84,7 +84,7 @@ jobs:
 #### 'Publish on pypi' workflow
 1. Create a new github action `publish_on_pypi.yml` in `.github/workflows` like this:
 ```yaml
-# Create a draft release and build and upload all installers to it.
+# Publish and test release on Test-PyPI and PyPI.
 name: Publish on PyPi
 
 on:
@@ -98,12 +98,13 @@ on:
 jobs:
   publish_on_pypi:
     uses: MannLabs/alphashared/.github/workflows/publish_on_pypi.yml@v1
+    secrets:
+      test_pypi_api_token: ${{ secrets.TEST_PYPI_API_TOKEN }}
+      pypi_api_token: ${{ secrets.PYPI_API_TOKEN }}
     with:
       # see the documentation of the action for more information on the parameters
       package_name: <Name of package, e.g. "alphadia", "peptdeep", ..>
       tag_to_release: ${{ inputs.tag_to_release }}
-      test_pypi_api_token: ${{ secrets.TEST_PYPI_API_TOKEN }}
-      pypi_api_token: ${{ secrets.PYPI_API_TOKEN }}
       # optional parameters:
       python_version: 3.9
       use_pyproject_toml: false
