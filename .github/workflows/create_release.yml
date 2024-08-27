@@ -363,7 +363,7 @@ jobs:
     - name: Install pyinstaller 6.10.0
       shell: bash -el {0}
       run: |
-        pip install pefile==2023.2.7  # TODO: 2024.8.26 is super-slow on the 'binary vs. data reclassification' step
+        pip install pefile==2023.2.7  # TODO: 2024.8.26 is super-slow on the 'binary vs. data reclassification' step, cf. https://github.com/erocarrera/pefile/issues/420
         pip install pyinstaller==6.10.0
         pip freeze
 

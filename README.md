@@ -7,3 +7,4 @@ Shared non-production code for AlphaX packages
 
 - `.github/workflows`: reusable github workflows
 - `.github/workflows/create_release.yml`: reusable workflow for creating releases, see [README](.github/workflows/README.md)
+- `.github/workflows/publish_on_pypi.yml`: reusable workflow for publishing on PyPi, see [README](.github/workflows/README.md)
