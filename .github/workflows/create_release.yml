@@ -175,13 +175,18 @@ jobs:
       run: |
         sudo dpkg -i dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 
+#    - name: Upload installer
+#      uses: svenstaro/upload-release-action@v2
+#      with:
+#          repo_token: ${{ secrets.GITHUB_TOKEN }}
+#          tag: ${{ inputs.tag_to_release }}
+#          file: dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+#          asset_name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
     - name: Upload installer
-      uses: svenstaro/upload-release-action@v2
-      with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          tag_name: ${{ inputs.tag_to_release }}
-          file: dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
-          asset_name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+      run: gh release upload ${{ inputs.tag_to_release }} dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 
     # Fallback upload to be able to manually debug the artifact
     - name: Fallback upload installer as job asset
@@ -284,13 +289,18 @@ jobs:
       run: |
         sudo installer -pkg dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}} -target /
 
+#    - name: Upload installer
+#      uses: svenstaro/upload-release-action@v2
+#      with:
+#          repo_token: ${{ secrets.GITHUB_TOKEN }}
+#          tag: ${{ inputs.tag_to_release }}
+#          file: dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+#          asset_name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
     - name: Upload installer
-      uses: svenstaro/upload-release-action@v2
-      with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          tag_name: ${{ inputs.tag_to_release }}
-          file: dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
-          asset_name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+      run: gh release upload ${{ inputs.tag_to_release }} dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 
     # Fallback upload to be able to manually debug the artifact
     - name: Fallback upload installer as job asset
@@ -381,7 +391,8 @@ jobs:
 
     - name: Get artifact location
       id: get_artifact_loc
-      # TODO this is not unified yet between peptdeep & alphadia
+      shell: bash -l {0}
+      # TODO git rid of this step, this is not unified yet between peptdeep & alphadia
       run: |
         if [ -e release/windows/dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}} ]; then
             ARTIFACT_LOC=release/windows/dist
@@ -398,13 +409,18 @@ jobs:
         ${{steps.get_artifact_loc.outputs.ARTIFACT_LOC}}/${{steps.get_artifact.outputs.ARTIFACT_NAME}} //verysilent //SUPPRESSMSGBOXES //log=log.txt //noicons //tasks= //portable=1
         cat log.txt
 
+#    - name: Upload installer
+#      uses: svenstaro/upload-release-action@v2
+#      with:
+#          repo_token: ${{ secrets.GITHUB_TOKEN }}
+#          tag: ${{ inputs.tag_to_release }}
+#          file: ${{steps.get_artifact_loc.outputs.ARTIFACT_LOC}}/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+#          asset_name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
     - name: Upload installer
-      uses: svenstaro/upload-release-action@v2
-      with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          tag_name: ${{ inputs.tag_to_release }}
-          file: ${{steps.get_artifact_loc.outputs.ARTIFACT_LOC}}/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
-          asset_name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+      run: gh release upload "${{ inputs.tag_to_release }}" ${{steps.get_artifact_loc.outputs.ARTIFACT_LOC}}/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 
     # Fallback upload to be able to manually debug the artifact
     - name: Fallback upload installer as job asset
