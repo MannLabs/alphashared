@@ -10,7 +10,7 @@ on:
         type: string
         required: true
       tag_to_release:
-        description: 'Enter tag of the new release to create (example: v1.5.5). Note that the code version needs to be bumped already.'
+        description: 'Enter tag of the new release to create (example: v1.5.5). The code version needs to be bumped already to match the tag.'
         type: string
         required: true
       # optional switches
@@ -24,7 +24,7 @@ on:
         type: boolean
       python_version:
         description: "Python version to be used"
-        default: "3.9"  # TODO change to 3.11
+        default: "3.11"
         type: string
 
 
@@ -186,8 +186,6 @@ jobs:
         release/linux/build_package_linux.sh
         ls *
         ls dist/*
-        ARTIFACT_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ steps.get_artifact.outputs.ARCH }}.deb
-        echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
 
     - name: Test package
       id: test_package
@@ -255,7 +253,7 @@ jobs:
         BUILD_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-macos-${KERNEL}-${ARCH}
         echo "BUILD_NAME=$BUILD_NAME" >> $GITHUB_ENV
         
-        ARTIFACT_NAME=${BUILD_NAME}.deb
+        ARTIFACT_NAME=${BUILD_NAME}.pkg
         echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
         echo got ARTIFACT_NAME=$ARTIFACT_NAME
 
@@ -300,9 +298,7 @@ jobs:
         release/macos/build_package_macos.sh
         ls *
         ls dist/*
-        ARTIFACT_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ steps.get_artifact.outputs.ARCH }}.pkg
-        echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
-        
+
     - name: Test package
       id: test_package
       shell: bash -l {0}
@@ -362,7 +358,7 @@ jobs:
         BUILD_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-${KERNEL}-${ARCH}
         echo "BUILD_NAME=$BUILD_NAME" >> $GITHUB_ENV
         
-        ARTIFACT_NAME=${BUILD_NAME}.deb
+        ARTIFACT_NAME=${BUILD_NAME}.exe
         echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
         echo got ARTIFACT_NAME=$ARTIFACT_NAME
 
