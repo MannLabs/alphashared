@@ -176,10 +176,12 @@ jobs:
         sudo dpkg -i dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 
     - name: Upload installer
-      uses: softprops/action-gh-release@v2
+      uses: svenstaro/upload-release-action@v2
       with:
-        tag_name: ${{ inputs.tag_to_release }}
-        files: dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ inputs.tag_to_release }}
+          file: dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+          asset_name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 
     # Fallback upload to be able to manually debug the artifact
     - name: Fallback upload installer as job asset
@@ -283,10 +285,12 @@ jobs:
         sudo installer -pkg dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}} -target /
 
     - name: Upload installer
-      uses: softprops/action-gh-release@v2
+      uses: svenstaro/upload-release-action@v2
       with:
-        tag_name: ${{ inputs.tag_to_release }}
-        files: dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ inputs.tag_to_release }}
+          file: dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+          asset_name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 
     # Fallback upload to be able to manually debug the artifact
     - name: Fallback upload installer as job asset
@@ -374,23 +378,33 @@ jobs:
         release/windows/build_package_windows.ps1
         ls *
         ls dist/*
-        
-    - name: Test package
-      id: test_package
-      shell: bash -l {0}
+
+    - name: Get artifact location
+      id: get_artifact_loc
       # TODO this is not unified yet between peptdeep & alphadia
       run: |
         if [ -e release/windows/dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}} ]; then
-            cd release/windows
+            ARTIFACT_LOC=release/windows/dist
+        else
+            ARTIFACT_LOC=dist
         fi
-        dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}} //verysilent //SUPPRESSMSGBOXES //log=log.txt //noicons //tasks= //portable=1
+        echo got ARTIFACT_LOC=$ARTIFACT_LOC
+        echo "ARTIFACT_LOC=$ARTIFACT_LOC" >> $GITHUB_OUTPUT
+
+    - name: Test package
+      id: test_package
+      shell: bash -l {0}
+      run: |
+        ${{steps.get_artifact_loc.outputs.ARTIFACT_LOC}}/${{steps.get_artifact.outputs.ARTIFACT_NAME}} //verysilent //SUPPRESSMSGBOXES //log=log.txt //noicons //tasks= //portable=1
         cat log.txt
 
     - name: Upload installer
-      uses: softprops/action-gh-release@v2
+      uses: svenstaro/upload-release-action@v2
       with:
-        tag_name: ${{ inputs.tag_to_release }}
-        files: dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ inputs.tag_to_release }}
+          file: ${{steps.get_artifact_loc.outputs.ARTIFACT_LOC}}/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+          asset_name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 
     # Fallback upload to be able to manually debug the artifact
     - name: Fallback upload installer as job asset
@@ -398,5 +412,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
-        path: dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+        path: ${{steps.get_artifact_loc.outputs.ARTIFACT_LOC}}/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
         if-no-files-found: error
