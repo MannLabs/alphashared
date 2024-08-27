@@ -65,7 +65,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install build twine
           
-          if [ ${{ inputs.use_pyproject_toml }} ]; then
+          if [ "${{ inputs.use_pyproject_toml }}" == "true" ]; then
             echo "Building using pyproject.toml"
             python -m build
           else
