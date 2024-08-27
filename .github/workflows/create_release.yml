@@ -182,8 +182,8 @@ jobs:
         release/linux/build_package_linux.sh
         ls *
         ls dist/*
-        ARTIFACT_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ steps.get_arch.ARCH }}.deb
-        echo ARTIFACT_NAME=$ARTIFACT_NAME >> $GITHUB_OUTPUT
+        ARTIFACT_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-linux-${{ steps.get_arch.outputs.ARCH }}.deb
+        echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
 
     - name: Test package
       id: test_package
@@ -293,15 +293,14 @@ jobs:
         release/macos/build_package_macos.sh
         ls *
         ls dist/*
-        ARTIFACT_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ steps.get_arch.ARCH }}.pkg
-        echo ARTIFACT_NAME=$ARTIFACT_NAME >> $GITHUB_OUTPUT
+        ARTIFACT_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ steps.get_arch.outputs.ARCH }}.pkg
+        echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
         
     - name: Test package
       id: test_package
       shell: bash -l {0}
       run: |
         sudo installer -pkg dist/${{steps.build_package.outputs.ARTIFACT_NAME}} -target /
-        exit 1
 
     - name: Upload installer
       uses: actions/upload-release-asset@v1
@@ -396,8 +395,8 @@ jobs:
         release/windows/build_package_windows.ps1
         ls *
         ls dist/*
-        ARTIFACT_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ steps.get_arch.ARCH }}.exe
-        echo ARTIFACT_NAME=$ARTIFACT_NAME >> $GITHUB_OUTPUT
+        ARTIFACT_NAME=${{ inputs.package_name }}-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ steps.get_arch.outputs.ARCH }}.exe
+        echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
         
     - name: Test package
       id: test_package
