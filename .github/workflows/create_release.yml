@@ -88,9 +88,10 @@ jobs:
     needs: Get_New_Version
     steps:
       - name: Draft Release
-        id: draft_release
-        run: |
-          gh release create ${{ inputs.tag_to_release }} --target ${{ inputs.commit_to_release }} --draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release create ${{ inputs.tag_to_release }} --target ${{ inputs.commit_to_release }} --draft
 #        uses: softprops/action-gh-release@v2
 #        with:
 #          name:
