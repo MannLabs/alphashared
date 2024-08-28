@@ -181,10 +181,11 @@ jobs:
 #          file: dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 #          asset_name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
     - name: Upload installer
-      env:
-        GH_TOKEN: ${{ github.token }}
-        GH_REPO: ${{ github.repository }}
-      run: gh release upload ${{ inputs.tag_to_release }} dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+#      env:
+#        GH_TOKEN: ${{ github.token }}
+#        GH_REPO: ${{ github.repository }}
+      run: echo X
+      #gh release upload ${{ inputs.tag_to_release }} dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 
     # Fallback upload to be able to manually debug the artifact
     - name: Fallback upload installer as job asset
@@ -295,10 +296,11 @@ jobs:
 #          file: dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 #          asset_name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
     - name: Upload installer
-      env:
-        GH_TOKEN: ${{ github.token }}
-        GH_REPO: ${{ github.repository }}
-      run: gh release upload ${{ inputs.tag_to_release }} dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+#      env:
+#        GH_TOKEN: ${{ github.token }}
+#        GH_REPO: ${{ github.repository }}
+      run: echo X
+      #gh release upload ${{ inputs.tag_to_release }} dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 
     # Fallback upload to be able to manually debug the artifact
     - name: Fallback upload installer as job asset
@@ -421,10 +423,11 @@ jobs:
 #          file: ${{steps.get_artifact_loc.outputs.ARTIFACT_LOC}}/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 #          asset_name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
     - name: Upload installer
-      env:
-        GH_TOKEN: ${{ github.token }}
-        GH_REPO: ${{ github.repository }}
-      run: gh release upload "${{ inputs.tag_to_release }}" ${{steps.get_artifact_loc.outputs.ARTIFACT_LOC}}/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+#      env:
+#        GH_TOKEN: ${{ github.token }}
+#        GH_REPO: ${{ github.repository }}
+      run: echo X
+      #gh release upload "${{ inputs.tag_to_release }}" ${{steps.get_artifact_loc.outputs.ARTIFACT_LOC}}/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 
     # Fallback upload to be able to manually debug the artifact
     - name: Fallback upload installer as job asset
