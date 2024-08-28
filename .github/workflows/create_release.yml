@@ -93,7 +93,7 @@ jobs:
         id: draft_release
         uses: softprops/action-gh-release@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ github.token }}
           name: ${{ inputs.tag_to_release }}
           target_commitish: ${{ inputs.commit_to_release }}
           tag_name: ${{ inputs.tag_to_release }}
