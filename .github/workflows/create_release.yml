@@ -88,16 +88,12 @@ jobs:
     needs: Get_New_Version
     steps:
       - name: Draft Release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-        run: gh release create ${{ inputs.tag_to_release }} --target ${{ inputs.commit_to_release }} --draft
-#        uses: softprops/action-gh-release@v2
-#        with:
-#          name:
-#          tag_name: ${{ inputs.tag_to_release }}
-#          target_commitish: ${{ inputs.commit_to_release }}
-#          draft: True
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ inputs.tag_to_release }}
+          tag_name: ${{ inputs.tag_to_release }}
+          target_commitish: ${{ inputs.commit_to_release }}
+          draft: True
 
   Create_Linux_Installer:
     needs: [ Create_Draft_Release, Get_New_Version ]
