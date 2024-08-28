@@ -94,7 +94,7 @@ jobs:
           tag_name: ${{ inputs.tag_to_release }}
           target_commitish: ${{ inputs.commit_to_release }}
           draft: True
-          # token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ github.token }}
           repository: ${{ github.repository }}
 
   Create_Linux_Installer:
