@@ -1,6 +1,6 @@
 # AlphaX Release Process
-These [reusable workflow](https://docs.github.com/en/actions/sharing-automations/reusing-workflows) aim at unifying the release process for all AlphaX packages.
-It automates the creation of a draft release on GitHub, the building of installers for different platforms,
+These [reusable workflows](https://docs.github.com/en/actions/sharing-automations/reusing-workflows) aim at unifying the release process for all AlphaX packages.
+They automate the creation of a draft release on GitHub, the building of installers for different platforms,
 testing of the installers, the publishing of the package on PyPi and (optionally) the publishing on Docker Hub.
 
 The first part of this Readme explains the release process itself.
@@ -9,27 +9,29 @@ The last part explains how to further develop this pipeline.
 
 ## Release a new version
 
-### Release a new version
-Note: these instructions assume that the release is done from the `main` branch.
+### Prerequisites
+Note: these instructions assume that the release is done from the `main` branch,
+and that the following worklows are present in the repository (cf. [below](#installation-of-the-release-pipeline)):
+- 'Create Draft Release' (referencing [this workflow](https://github.com/MannLabs/alphashared/.github/workflows/create_release.yml))
+- 'Publish on PyPi' (referencing [this workflow](https://github.com/MannLabs/alphashared/.github/workflows/publish_on_pypi.yml))
+- 'Publish Docker Image' (referencing [this workflow](https://github.com/MannLabs/alphashared/.github/workflows/publish_docker_image.yml))
 
+
+### Step-by-step instructions
 1. Bump the version locally to (e.g. to `X.Y.Z`), e.g. using `bumpversion`, and push this change to `main`.
 2. Manually run the 'Create Draft Release' workflow 
-(the one referencing [this workflow](https://github.com/MannLabs/alphashared/.github/workflows/create_release.yml))
 in your repository to create a new draft release on GitHub 
 (in GitHub UI: "Actions" -> Workflow "Create Draft Release" -> "Run Workflow").
 
-When running the workflow you will be prompted to specify
+When running the workflow you will be prompted to specify as input parameters
 - the full commit hash to release (e.g. the latest commit to `main`), and
 - the release tag (e.g. `vX.Y.Z`, note the prefixed `v`). The version in this tag must match the code version.
 3. After the workflow ran successfully, it uploads the installer packages as artifacts to the draft
 release page. You can download and test these installers manually (in addition to the tests done by the workflow).
 4. On the GitHub page of the draft release, add release notes and then publish the release.
-5. Similar to before, run the 'Publish on PyPi' workflow
-(referencing [this](https://github.com/MannLabs/alphashared/.github/workflows/publish_on_pypi.yml)),
-specifying the release tag (e.g. `vX.Y.Z`).
-6. TODO not implemented yet (optional, if present) Run the 'Publish Docker Image' workflow
-(referencing [this](https://github.com/MannLabs/alphashared/.github/workflows/publish_docker_image.yml)),
-specifying the release tag (e.g. `vX.Y.Z`).
+5. Similar to before, run the 'Publish on PyPi' workflow, specifying the release tag (e.g. `vX.Y.Z`) as an input parameter.
+6. TODO not implemented yet (optional, if present) Run the 'Publish Docker Image' workflow, specifying the release tag 
+(e.g. `vX.Y.Z`) as an input parameter.
 
 
 ## Installation of the release pipeline
