@@ -33,10 +33,10 @@ specifying the release tag (e.g. `vX.Y.Z`).
 
 
 ## Installation of the release pipeline
-In order to incorporate this pipline into your repository, it might help to look into
-the following PRs:
-TODO TODO TODO
-
+In order to incorporate this pipeline into your repository, it might help to look at
+the following pull request:
+- https://github.com/MannLabs/alphapeptdeep/pull/206
+- https://github.com/MannLabs/alphadia/pull/326
 
 
 ### Requirements on the caller repository
