@@ -284,12 +284,16 @@ jobs:
         ls *
 
     - name: Build package
+      continue-on-error: true
       id: build_package
       shell: bash -el {0}
       run: |
         release/macos/build_package_macos.sh
         ls *
         ls dist/*
+
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
 
     - name: Test package
       id: test_package
@@ -384,11 +388,15 @@ jobs:
 
     - name: Build package
       id: build_package
+      continue-on-error: true
       shell: powershell
       run: |
         release/windows/build_package_windows.ps1
         ls *
         ls dist/*
+
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
 
     - name: Get artifact location
       id: get_artifact_loc
