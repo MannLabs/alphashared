@@ -27,7 +27,7 @@ on:
       python_version:
         description: "Python version to be used"
         type: string
-        default: "3.11"
+        default: "3.8"
 
 jobs:
   Get_New_Version:
