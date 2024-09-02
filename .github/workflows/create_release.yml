@@ -21,13 +21,13 @@ on:
         type: boolean
         default: false
       test_app:
-        description: 'Whether or not the app should be tested'
+        description: 'Whether or not it should be tested that the executable is valid'
         type: boolean
-        default: false
+        default: true
       python_version:
         description: "Python version to be used"
         type: string
-        default: "3.8"  # TODO 3.11
+        default: "3.11"
 
 jobs:
   Get_New_Version:
@@ -166,13 +166,20 @@ jobs:
         ls dist/*
 
     - name: Test app
+      # TODO this is not unified yet between peptdeep & alphadia
       if: ${{ inputs.test_app }}
       shell: bash -el {0}
       run: |
         EXECUTABLE=dist/${{ inputs.package_name }}/${{ inputs.package_name }}
-        echo testing ${EXECUTABLE} ..
-        eval ${EXECUTABLE} --version
-    # TODO: for peptdeep one needs to call `dist/peptdeep --help`
+        COMMAND="--version"
+
+        if [ ! -e ${EXECUTABLE} ]; then
+          EXECUTABLE=dist/${{ inputs.package_name }}
+          COMMAND="--help"
+        fi
+        echo calling ${EXECUTABLE} ${COMMAND}
+        eval ${EXECUTABLE} ${COMMAND}
+
 
     # TODO: building node.js GUI not supported yet for linux
 
@@ -266,11 +273,18 @@ jobs:
     - name: Test app
       if: ${{ inputs.test_app }}
       shell: bash -el {0}
+      # TODO this is not unified yet between peptdeep & alphadia
       run: |
         EXECUTABLE=dist/${{ inputs.package_name }}/${{ inputs.package_name }}
-        echo testing ${EXECUTABLE} ..
-        eval ${EXECUTABLE} --version
-    # TODO: for peptdeep one needs to call `./dist/peptdeep_gui/peptdeep_gui --help`
+        COMMAND="--version"
+        
+        if [ ! -e ${EXECUTABLE} ]; then
+          EXECUTABLE=dist/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui
+          COMMAND="--help"
+        fi
+
+        echo calling ${EXECUTABLE} ${COMMAND}
+        eval ${EXECUTABLE} ${COMMAND}
 
     # Build GUI
     - name: Setup Node.js
@@ -291,9 +305,6 @@ jobs:
         release/macos/build_package_macos.sh
         ls *
         ls dist/*
-
-    - name: Setup tmate session # TODO REMOVE
-      uses: mxschmitt/action-tmate@v3
 
     - name: Test package
       id: test_package
@@ -369,15 +380,20 @@ jobs:
         ls *
         ls dist/*
 
-    - name: Setup tmate session # TODO REMOVE
-      uses: mxschmitt/action-tmate@v3
-
     - name: Test app
       if: ${{ inputs.test_app }}
-      shell: powershell
+      shell: bash -el {0}
+      # TODO this is not unified yet between peptdeep & alphadia
       run: |
-        dist\${{ inputs.package_name }}\${{ inputs.package_name }}.exe --version
-      # TODO: for peptdeep one needs to call `./release/windows/dist/peptdeep_gui/peptdeep_gui.exe`
+        EXECUTABLE=dist\${{ inputs.package_name }}\${{ inputs.package_name }}.exe
+        COMMAND="--version"
+
+        if [ ! -e ${EXECUTABLE} ]; then
+          EXECUTABLE=./release/windows/dist/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui.exe
+        fi
+
+        echo calling ${EXECUTABLE} ${COMMAND}
+        eval ${EXECUTABLE} ${COMMAND}
 
     # Build GUI
     - name: Setup Node.js
@@ -398,9 +414,6 @@ jobs:
         release/windows/build_package_windows.ps1
         ls *
         ls dist/*
-
-    - name: Setup tmate session # TODO REMOVE
-      uses: mxschmitt/action-tmate@v3
 
     - name: Get artifact location
       id: get_artifact_loc
