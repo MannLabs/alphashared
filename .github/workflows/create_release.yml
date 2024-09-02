@@ -27,7 +27,7 @@ on:
       python_version:
         description: "Python version to be used"
         type: string
-        default: "3.8"
+        default: "3.8"  # TODO 3.11
 
 jobs:
   Get_New_Version:
@@ -292,7 +292,7 @@ jobs:
         ls *
         ls dist/*
 
-    - name: Setup tmate session
+    - name: Setup tmate session # TODO REMOVE
       uses: mxschmitt/action-tmate@v3
 
     - name: Test package
@@ -362,11 +362,15 @@ jobs:
 
     - name: Build installer
       shell: powershell
+      continue-on-error: true
       run: |
         release/windows/build_installer_windows.ps1
         pip freeze
         ls *
         ls dist/*
+
+    - name: Setup tmate session # TODO REMOVE
+      uses: mxschmitt/action-tmate@v3
 
     - name: Test app
       if: ${{ inputs.test_app }}
@@ -395,7 +399,7 @@ jobs:
         ls *
         ls dist/*
 
-    - name: Setup tmate session
+    - name: Setup tmate session # TODO REMOVE
       uses: mxschmitt/action-tmate@v3
 
     - name: Get artifact location
