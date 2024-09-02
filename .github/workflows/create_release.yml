@@ -170,18 +170,18 @@ jobs:
         release/linux/build_installer_linux.sh
         pip freeze
         ls *
-        ls dist/*
+        ls dist*/*
 
     - name: Test app
       # TODO this is not unified yet between peptdeep & alphadia
       if: ${{ inputs.test_app }}
       shell: bash -el {0}
       run: |
-        EXECUTABLE=dist/${{ inputs.package_name }}/${{ inputs.package_name }}
+        EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}/${{ inputs.package_name }}
         COMMAND="--version"
 
         if [ ! -e ${EXECUTABLE} ]; then
-          EXECUTABLE=dist/${{ inputs.package_name }}
+          EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}
           COMMAND="--help"
         fi
         
@@ -197,19 +197,19 @@ jobs:
       run: |
         release/linux/build_package_linux.sh
         ls *
-        ls dist/*
+        ls dist*/*
 
     - name: Test package
       id: test_package
       shell: bash -l {0}
       run: |
-        sudo dpkg -i dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+        sudo dpkg -i ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 
     - name: Upload installer
       env:
         GH_TOKEN: ${{ github.token }}
         GH_REPO: ${{ github.repository }}
-      run: gh release upload ${{ inputs.tag_to_release }} dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+      run: gh release upload ${{ inputs.tag_to_release }} ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 
     # Fallback upload to be able to manually debug the artifact
     - name: Fallback upload installer as job asset
@@ -276,18 +276,18 @@ jobs:
         release/macos/build_installer_macos.sh
         pip freeze
         ls *
-        ls dist/*
+        ls dist*/*
 
     - name: Test app
       if: ${{ inputs.test_app }}
       shell: bash -el {0}
       # TODO this is not unified yet between peptdeep & alphadia
       run: |
-        EXECUTABLE=dist/${{ inputs.package_name }}/${{ inputs.package_name }}
+        EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}/${{ inputs.package_name }}
         COMMAND="--version"
         
         if [ ! -e ${EXECUTABLE} ]; then
-          EXECUTABLE=dist/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui
+          EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui
           COMMAND="--help"
         fi
 
@@ -312,19 +312,19 @@ jobs:
       run: |
         release/macos/build_package_macos.sh
         ls *
-        ls dist/*
+        ls dist*/*
 
     - name: Test package
       id: test_package
       shell: bash -l {0}
       run: |
-        sudo installer -pkg dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}} -target /
+        sudo installer -pkg ./${{steps.get_artifact.outputs.ARTIFACT_NAME}} -target /
 
     - name: Upload installer
       env:
         GH_TOKEN: ${{ github.token }}
         GH_REPO: ${{ github.repository }}
-      run: gh release upload ${{ inputs.tag_to_release }} dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+      run: gh release upload ${{ inputs.tag_to_release }} ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 
     # Fallback upload to be able to manually debug the artifact
     - name: Fallback upload installer as job asset
@@ -386,18 +386,18 @@ jobs:
         release/windows/build_installer_windows.ps1
         pip freeze
         ls *
-        ls dist/*
+        ls dist*/*
 
     - name: Test app
       if: ${{ inputs.test_app }}
       shell: bash -el {0}
       # TODO this is not unified yet between peptdeep & alphadia
       run: |
-        EXECUTABLE=dist/${{ inputs.package_name }}/${{ inputs.package_name }}.exe
+        EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}/${{ inputs.package_name }}.exe
         COMMAND="--version"
 
         if [ ! -e ${EXECUTABLE} ]; then
-          EXECUTABLE=dist/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui.exe
+          EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui.exe
           COMMAND="--help"
         fi
 
@@ -422,33 +422,20 @@ jobs:
       run: |
         release/windows/build_package_windows.ps1
         ls *
-        ls dist/*
-
-    - name: Get artifact location
-      id: get_artifact_loc
-      shell: bash -l {0}
-      # TODO git rid of this step, this is not unified yet between peptdeep & alphadia
-      run: |
-        if [ -e release/windows/dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}} ]; then
-            ARTIFACT_LOC=release/windows/dist
-        else
-            ARTIFACT_LOC=dist
-        fi
-        echo got ARTIFACT_LOC=$ARTIFACT_LOC
-        echo "ARTIFACT_LOC=$ARTIFACT_LOC" >> $GITHUB_OUTPUT
+        ls dist*/*
 
     - name: Test package
       id: test_package
       shell: bash -l {0}
       run: |
-        ${{steps.get_artifact_loc.outputs.ARTIFACT_LOC}}/${{steps.get_artifact.outputs.ARTIFACT_NAME}} //verysilent //SUPPRESSMSGBOXES //log=log.txt //noicons //tasks= //portable=1
+        ./${{steps.get_artifact.outputs.ARTIFACT_NAME}} //verysilent //SUPPRESSMSGBOXES //log=log.txt //noicons //tasks= //portable=1
         cat log.txt
 
     - name: Upload installer
       env:
         GH_TOKEN: ${{ github.token }}
         GH_REPO: ${{ github.repository }}
-      run: gh release upload "${{ inputs.tag_to_release }}" ${{steps.get_artifact_loc.outputs.ARTIFACT_LOC}}/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+      run: gh release upload "${{ inputs.tag_to_release }}" ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 
     # Fallback upload to be able to manually debug the artifact
     - name: Fallback upload installer as job asset
@@ -456,5 +443,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
-        path: ${{steps.get_artifact_loc.outputs.ARTIFACT_LOC}}/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+        path: ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
         if-no-files-found: error
