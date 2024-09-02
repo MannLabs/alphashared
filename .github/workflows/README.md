@@ -19,13 +19,12 @@ and that the following worklows are present in the repository (cf. [below](#inst
 
 ### Step-by-step instructions
 1. Bump the version locally to (e.g. to `X.Y.Z`), e.g. using `bumpversion`, and push this change to `main`.
+This version will determine the version of the release and the corresponding tag (e.g. `vX.Y.Z`).
 2. Manually run the 'Create Draft Release' workflow 
 in your repository to create a new draft release on GitHub 
 (in GitHub UI: "Actions" -> Workflow "Create Draft Release" -> "Run Workflow").
-
-When running the workflow you will be prompted to specify as input parameters
-- the full commit hash to release (e.g. the latest commit to `main`), and
-- the release tag (e.g. `vX.Y.Z`, note the prefixed `v`). The version in this tag must match the code version.
+When running the workflow you can specify an optional input parameter, which is
+the full commit hash or branch to release (defaults to `main`).
 3. After the workflow ran successfully, it uploads the installer packages as artifacts to the draft
 release page. You can download and test these installers manually (in addition to the tests done by the workflow).
 4. On the GitHub page of the draft release, add release notes and then publish the release.
@@ -85,14 +84,10 @@ name: Create Draft Release
 on:
   workflow_dispatch:
     inputs:
-      commit_to_release:
-        description: 'Enter commit hash to release (example: ef4037cb571f99cb4919b520fde7174972aae473)'
+      commitish_to_release:
+        description: 'Enter commit hash or branch to release (default: main).'
         type: string
-        required: true
-      tag_to_release:
-        description: 'Enter tag of the new release to create (example: v1.5.5). The code version needs to be bumped already to match the tag.'
-        type: string
-        required: true
+        required: false
 
 jobs:
   create-release:
@@ -100,9 +95,8 @@ jobs:
     uses: MannLabs/alphashared/.github/workflows/create_release.yml@v1
     with:
       # see the documentation of the action for more information on the parameters
+      commitish_to_release: ${{ inputs.commitish_to_release }}
       package_name: <Name of package, e.g. "alphadia", "peptdeep", ..>
-      commit_to_release: ${{ inputs.commit_to_release }}
-      tag_to_release: ${{ inputs.tag_to_release }}
       # optional parameters
       build_nodejs_ui: true
       test_app: true
@@ -121,7 +115,7 @@ on:
   workflow_dispatch:
     inputs:
       tag_to_release:
-        description: 'Enter tag to release (example: v1.5.5). A tag with the same name must exist in the repository.'
+        description: 'Enter tag to release (example: v1.5.5). A tag with this name must exist in the repository.'
         type: string
         required: true
 
