@@ -36,9 +36,10 @@ release page. You can download and test these installers manually (in addition t
 
 ## Installation of the release pipeline
 In order to incorporate this pipeline into your repository, it might help to look at
-the following pull request:
+the following pull requests and the respective workflow files in these repositories:
 - https://github.com/MannLabs/alphapeptdeep/pull/206
 - https://github.com/MannLabs/alphadia/pull/326
+- https://github.com/MannLabs/directlfq/pull/42
 
 
 ### Requirements on the caller repository
