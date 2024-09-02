@@ -165,6 +165,10 @@ jobs:
         ls *
         ls dist/*
 
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+
+
     - name: Test app
       # TODO this is not unified yet between peptdeep & alphadia
       if: ${{ inputs.test_app }}
@@ -269,6 +273,10 @@ jobs:
         pip freeze
         ls *
         ls dist/*
+
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+
 
     - name: Test app
       if: ${{ inputs.test_app }}
@@ -380,6 +388,9 @@ jobs:
         ls *
         ls dist/*
 
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+
     - name: Test app
       if: ${{ inputs.test_app }}
       shell: bash -el {0}
@@ -390,6 +401,7 @@ jobs:
 
         if [ ! -e ${EXECUTABLE} ]; then
           EXECUTABLE=./release/windows/dist/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui.exe
+          COMMAND="--help"
         fi
 
         echo calling ${EXECUTABLE} ${COMMAND}
