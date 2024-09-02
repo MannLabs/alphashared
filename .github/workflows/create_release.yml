@@ -48,15 +48,16 @@ jobs:
         id: check_release_tag
         shell: bash -le {0}
         run: |
-          firstletter=${${{ inputs.tag_to_release }}:0:1}
+          TAG_TO_RELEASE=${{ inputs.tag_to_release }}
+          firstletter=${TAG_TO_RELEASE:0:1}
           if [ "$firstletter" != "v" ]; then
-            echo "Tag ${{ inputs.tag_to_release }} does not start with 'v'"
+            echo "Tag ${TAG_TO_RELEASE} does not start with 'v'. Example: 'v1.2.3'."
             exit 1
           fi
           
           CURRENT_VERSION=$(grep "__version__" ${{ inputs.package_name }}/__init__.py | cut -f3 -d ' ' | sed 's/"//g')
-          if [ "v${CURRENT_VERSION}" != "${{ inputs.tag_to_release }}" ]; then
-            echo Code version "v${CURRENT_VERSION}" does not match the tag to release ${{ inputs.tag_to_release }}
+          if [ "v${CURRENT_VERSION}" != "${TAG_TO_RELEASE}" ]; then
+            echo Code version "v${CURRENT_VERSION}" does not match the tag to release ${TAG_TO_RELEASE}
 
           fi
           echo "new_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
