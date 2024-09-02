@@ -23,11 +23,11 @@ on:
       test_app:
         description: 'Whether or not it should be tested that the executable is valid'
         type: boolean
-        default: true
+        default: false
       python_version:
         description: "Python version to be used"
         type: string
-        default: "3.8" # TODO
+        default: "3.11"
 
 jobs:
   Get_New_Version:
@@ -48,6 +48,12 @@ jobs:
         id: check_release_tag
         shell: bash -le {0}
         run: |
+          firstletter=${${{ inputs.tag_to_release }}:0:1}
+          if [ "$firstletter" != "v" ]; then
+            echo "Tag ${{ inputs.tag_to_release }} does not start with 'v'"
+            exit 1
+          fi
+          
           CURRENT_VERSION=$(grep "__version__" ${{ inputs.package_name }}/__init__.py | cut -f3 -d ' ' | sed 's/"//g')
           if [ "v${CURRENT_VERSION}" != "${{ inputs.tag_to_release }}" ]; then
             echo Code version "v${CURRENT_VERSION}" does not match the tag to release ${{ inputs.tag_to_release }}
@@ -165,10 +171,6 @@ jobs:
         ls *
         ls dist/*
 
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-
-
     - name: Test app
       # TODO this is not unified yet between peptdeep & alphadia
       if: ${{ inputs.test_app }}
@@ -181,6 +183,7 @@ jobs:
           EXECUTABLE=dist/${{ inputs.package_name }}
           COMMAND="--help"
         fi
+        
         echo calling ${EXECUTABLE} ${COMMAND}
         eval ${EXECUTABLE} ${COMMAND}
 
@@ -273,10 +276,6 @@ jobs:
         pip freeze
         ls *
         ls dist/*
-
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-
 
     - name: Test app
       if: ${{ inputs.test_app }}
@@ -388,19 +387,16 @@ jobs:
         ls *
         ls dist/*
 
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-
     - name: Test app
       if: ${{ inputs.test_app }}
       shell: bash -el {0}
       # TODO this is not unified yet between peptdeep & alphadia
       run: |
-        EXECUTABLE=dist\${{ inputs.package_name }}\${{ inputs.package_name }}.exe
+        EXECUTABLE=dist/${{ inputs.package_name }}/${{ inputs.package_name }}.exe
         COMMAND="--version"
 
         if [ ! -e ${EXECUTABLE} ]; then
-          EXECUTABLE=./release/windows/dist/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui.exe
+          EXECUTABLE=dist/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui.exe
           COMMAND="--help"
         fi
 
