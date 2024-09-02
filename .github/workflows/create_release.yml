@@ -7,15 +7,11 @@ on:
         description: 'Name of package, e.g. "alphadia", "peptdeep", ..'
         type: string
         required: true
-      commit_to_release:
-        description: 'Enter commit hash to release (example: ef4037cb571f99cb4919b520fde7174972aae473)'
+      # optional parameters and switches
+      commitish_to_release:
         type: string
-        required: true
-      tag_to_release:
-        description: 'Enter tag of the new release to create (example: v1.5.5). The code version needs to be bumped already to match the tag.'
-        type: string
-        required: true
-      # optional switches
+        description: 'Enter commit hash or branch to release (default: main).'
+        default: "main"
       build_nodejs_ui:
         description: 'Whether or not a nodejs UI needs to be built'
         type: boolean
@@ -34,6 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       new_version: ${{ steps.check_release_tag.outputs.new_version }}
+      release_tag: ${{ steps.check_release_tag.outputs.release_tag }}
       run_linux: ${{ steps.check_os.outputs.run_linux }}
       run_macos: ${{ steps.check_os.outputs.run_macos }}
       run_windows: ${{ steps.check_os.outputs.run_windows }}
@@ -41,31 +38,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.commit_to_release }}
+          ref: ${{ inputs.commitish_to_release }}
           fetch-depth: 0  # required to be able to check for existing tags
 
       - name: Check release tag
         id: check_release_tag
         shell: bash -le {0}
         run: |
-          TAG_TO_RELEASE=${{ inputs.tag_to_release }}
-          firstletter=${TAG_TO_RELEASE:0:1}
-          if [ "$firstletter" != "v" ]; then
-            echo "Tag ${TAG_TO_RELEASE} does not start with 'v'. Example: 'v1.2.3'."
-            exit 1
-          fi
-          
           CURRENT_VERSION=$(grep "__version__" ${{ inputs.package_name }}/__init__.py | cut -f3 -d ' ' | sed 's/"//g')
-          if [ "v${CURRENT_VERSION}" != "${TAG_TO_RELEASE}" ]; then
-            echo Code version "v${CURRENT_VERSION}" does not match the tag to release ${TAG_TO_RELEASE}
-
-          fi
+          $RELEASE_TAG=v${CURRENT_VERSION}
+          echo ${{secrets.DEBUG_RELEASE_WORKFLOW_SUFFIX}}
           echo "new_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-      # exit 1  #TODO add again
+          echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
 
       - name: Check if tag already exists
         run: |
-          TAG="${{ inputs.tag_to_release }}"
+          TAG="${{ steps.check_release_tag.outputs.release_tag }}"
           if git show-ref --tags --verify --quiet "refs/tags/${TAG}"; then
             echo "Tag ${TAG} exists"
             exit 1
@@ -99,9 +87,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         continue-on-error: true
         with:
-          name: ${{ inputs.tag_to_release }}
-          tag_name: ${{ inputs.tag_to_release }}
-          target_commitish: ${{ inputs.commit_to_release }}
+          name: ${{ steps.check_release_tag.release_tag }}
+          tag_name: ${{ steps.check_release_tag.outputs.release_tag }}
+          target_commitish: ${{ inputs.commitish_to_release }}
           draft: True
 
       # for some reason, the above step failes for peptdeep
@@ -115,9 +103,9 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             /repos/${{ github.repository }}/releases \
-            -f "tag_name=${{ inputs.tag_to_release }}" \
-            -f "name=${{ inputs.tag_to_release }}" \ 
-            -f "target_commitish=${{ inputs.commit_to_release }}" \ 
+            -f "tag_name=${{ steps.check_release_tag.release_tag }}" \
+            -f "name=${{ steps.check_release_tag.release_tag }}" \ 
+            -f "target_commitish=${{ inputs.commitish_to_release }}" \ 
             -F "draft=true"
 
   Create_Linux_Installer:
@@ -128,7 +116,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        ref: ${{ inputs.commit_to_release }}
+        ref: ${{ inputs.commitish_to_release }}
 
     - name: Install conda
       uses: conda-incubator/setup-miniconda@v3
@@ -209,7 +197,7 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
         GH_REPO: ${{ github.repository }}
-      run: gh release upload ${{ inputs.tag_to_release }} ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+      run: gh release upload ${{ needs.Get_New_Version.outputs.release_tag }} ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 
     # Fallback upload to be able to manually debug the artifact
     - name: Fallback upload installer as job asset
@@ -235,7 +223,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        ref: ${{ inputs.commit_to_release }}
+        ref: ${{ inputs.commitish_to_release }}
 
     - name: Install conda
       uses: conda-incubator/setup-miniconda@v3
@@ -324,7 +312,7 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
         GH_REPO: ${{ github.repository }}
-      run: gh release upload ${{ inputs.tag_to_release }} ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+      run: gh release upload ${{ needs.Get_New_Version.outputs.release_tag }} ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 
     # Fallback upload to be able to manually debug the artifact
     - name: Fallback upload installer as job asset
@@ -343,7 +331,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        ref: ${{ inputs.commit_to_release }}
+        ref: ${{ inputs.commitish_to_release }}
 
     - name: Install conda
       uses: conda-incubator/setup-miniconda@v3
@@ -435,7 +423,7 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
         GH_REPO: ${{ github.repository }}
-      run: gh release upload "${{ inputs.tag_to_release }}" ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+      run: gh release upload "${{ needs.Get_New_Version.outputs.release_tag }}" ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 
     # Fallback upload to be able to manually debug the artifact
     - name: Fallback upload installer as job asset
