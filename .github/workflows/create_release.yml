@@ -46,8 +46,7 @@ jobs:
         shell: bash -le {0}
         run: |
           CURRENT_VERSION=$(grep "__version__" ${{ inputs.package_name }}/__init__.py | cut -f3 -d ' ' | sed 's/"//g')
-          $RELEASE_TAG=v${CURRENT_VERSION}
-          echo ${{secrets.DEBUG_RELEASE_WORKFLOW_SUFFIX}}
+          RELEASE_TAG=v${CURRENT_VERSION}${{secrets.DEBUG_RELEASE_WORKFLOW_SUFFIX}}
           echo "new_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
           echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
 
