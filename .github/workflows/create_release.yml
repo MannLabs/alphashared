@@ -85,28 +85,27 @@ jobs:
       - name: Create draft release
         id: draft_release
         uses: softprops/action-gh-release@v2
-        continue-on-error: true
         with:
-          name: ${{ steps.get_release_tag.outputs.release_tag }}
-          tag_name: ${{ steps.get_release_tag.outputs.release_tag }}
+          name: ${{ needs.Get_New_Version.outputs.release_tag }}
+          tag_name: ${{ needs.Get_New_Version.outputs.release_tag }}
           target_commitish: ${{ inputs.commitish_to_release }}
           draft: True
 
-      # for some reason, the above step failes for peptdeep
-      - name: Create draft release (alternative)
-        if: ${{ steps.draft_release.conclusion == 'failure' }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh api \
-            --method POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            /repos/${{ github.repository }}/releases \
-            -f "tag_name=${{ steps.get_release_tag.outputs.release_tag }}" \
-            -f "name=${{ steps.get_release_tag.outputs.release_tag }}" \ 
-            -f "target_commitish=${{ inputs.commitish_to_release }}" \ 
-            -F "draft=true"
+      # for some reason, the above step started failing once
+#      - name: Create draft release (alternative)
+#        if: ${{ steps.draft_release.conclusion == 'failure' }}
+#        env:
+#          GH_TOKEN: ${{ github.token }}
+#        run: |
+#          gh api \
+#            --method POST \
+#            -H "Accept: application/vnd.github+json" \
+#            -H "X-GitHub-Api-Version: 2022-11-28" \
+#            /repos/${{ github.repository }}/releases \
+#            -f "tag_name=${{ steps.get_release_tag.outputs.release_tag }}" \
+#            -f "name=${{ steps.get_release_tag.outputs.release_tag }}" \
+#            -f "target_commitish=${{ inputs.commitish_to_release }}" \
+#            -F "draft=true"
 
   Create_Linux_Installer:
     needs: [ Create_Draft_Release, Get_New_Version ]
