@@ -7,11 +7,6 @@ on:
         description: 'Name of package, e.g. "alphadia", "peptdeep", ..'
         type: string
         required: true
-      package_nameX:
-        description: 'Name of package, e.g. "alphadia", "peptdeep", ..'
-        type: string
-        required: false
-        default: "alphastats"
       # optional parameters and switches
       commitish_to_release:
         type: string
@@ -56,9 +51,9 @@ jobs:
         shell: bash -le {0}
         # the DEBUG_RELEASE_WORKFLOW_SUFFIX can be set to get a unique tag in order to test the release workflow
         run: |
-          CURRENT_VERSION=$(grep "__version__" ${{ inputs.package_nameX }}/__init__.py | cut -f3 -d ' ' | sed 's/"//g')
+          CURRENT_VERSION=$(grep "__version__" ${{ inputs.package_name }}/__init__.py | cut -f3 -d ' ' | sed 's/"//g')
           if [ "$CURRENT_VERSION" == "" ]; then
-            echo "Could not determine version from ${{ inputs.package_nameX }}/__init__.py"
+            echo "Could not determine version from ${{ inputs.package_name }}/__init__.py"
             exit 1
           fi
           
@@ -134,7 +129,7 @@ jobs:
         miniconda-version: "latest"
         auto-update-conda: true
         activate-environment: alphax_release
-        python-version: "${{ inputs.python_versionX }}"
+        python-version: "${{ inputs.python_version }}"
 
     - name: Conda info
       shell: bash -el {0}
@@ -148,7 +143,7 @@ jobs:
         ARCH=$(python -c "import platform; arch=platform.machine().lower(); print('x64' if arch == 'x86_64' else arch)")
         KERNEL=$(python -c "import platform; print(platform.system().lower())")
         
-        BUILD_NAME=${{ inputs.package_nameX }}-${{ needs.Create_Release.outputs.new_version }}-${KERNEL}-${ARCH}
+        BUILD_NAME=${{ inputs.package_name }}-${{ needs.Create_Release.outputs.new_version }}-${KERNEL}-${ARCH}
         echo "BUILD_NAME=$BUILD_NAME" >> $GITHUB_ENV
         
         ARTIFACT_NAME=${BUILD_NAME}.deb
@@ -175,19 +170,16 @@ jobs:
       if: ${{ inputs.test_app }}
       shell: bash -el {0}
       run: |
-        EXECUTABLE=dist_pyinstaller/${{ inputs.package_nameX }}/${{ inputs.package_nameX }}
+        EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}/${{ inputs.package_name }}
         COMMAND="--version"
 
         if [ ! -e ${EXECUTABLE} ]; then
-          EXECUTABLE=dist_pyinstaller/${{ inputs.package_nameX }}
+          EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}
           COMMAND="--help"
         fi
         
         echo calling ${EXECUTABLE} ${COMMAND}
         eval ${EXECUTABLE} ${COMMAND}
-
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
 
     # TODO: building node.js GUI not supported yet for linux
 
@@ -246,7 +238,7 @@ jobs:
         miniconda-version: "latest"
         auto-update-conda: true
         activate-environment: alphax_release
-        python-version: "${{ inputs.python_versionX }}"
+        python-version: "${{ inputs.python_version }}"
 
     - name: Conda info
       shell: bash -el {0}
@@ -260,7 +252,7 @@ jobs:
         ARCH=$(python -c "import platform; arch=platform.machine().lower(); print('x64' if arch == 'x86_64' else arch)")
         KERNEL=$(python -c "import platform; print(platform.system().lower())")
         
-        BUILD_NAME=${{ inputs.package_nameX }}-${{ needs.Create_Release.outputs.new_version }}-macos-${KERNEL}-${ARCH}
+        BUILD_NAME=${{ inputs.package_name }}-${{ needs.Create_Release.outputs.new_version }}-macos-${KERNEL}-${ARCH}
         echo "BUILD_NAME=$BUILD_NAME" >> $GITHUB_ENV
         
         ARTIFACT_NAME=${BUILD_NAME}.pkg
@@ -286,11 +278,11 @@ jobs:
       shell: bash -el {0}
       # TODO this is not unified yet between peptdeep & alphadia
       run: |
-        EXECUTABLE=dist_pyinstaller/${{ inputs.package_nameX }}/${{ inputs.package_nameX }}
+        EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}/${{ inputs.package_name }}
         COMMAND="--version"
         
         if [ ! -e ${EXECUTABLE} ]; then
-          EXECUTABLE=dist_pyinstaller/${{ inputs.package_nameX }}_gui/${{ inputs.package_nameX }}_gui
+          EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui
           COMMAND="--help"
         fi
 
@@ -316,9 +308,6 @@ jobs:
         release/macos/build_package_macos.sh
         ls *
         ls dist*/*
-
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
 
     - name: Test package
       id: test_package
@@ -357,7 +346,7 @@ jobs:
         miniconda-version: "latest"
         auto-update-conda: true
         activate-environment: alphax_release
-        python-version: "${{ inputs.python_versionX }}"
+        python-version: "${{ inputs.python_version }}"
 
     - name: Conda info
       shell: bash -el {0}
@@ -371,7 +360,7 @@ jobs:
         ARCH=$(python -c "import platform; arch=platform.machine().lower(); print('x64' if arch == 'x86_64' else arch)")
         KERNEL=$(python -c "import platform; print(platform.system().lower())")
         
-        BUILD_NAME=${{ inputs.package_nameX }}-${{ needs.Create_Release.outputs.new_version }}-${KERNEL}-${ARCH}
+        BUILD_NAME=${{ inputs.package_name }}-${{ needs.Create_Release.outputs.new_version }}-${KERNEL}-${ARCH}
         echo "BUILD_NAME=$BUILD_NAME" >> $GITHUB_ENV
         
         ARTIFACT_NAME=${BUILD_NAME}.exe
@@ -399,11 +388,11 @@ jobs:
       shell: bash -el {0}
       # TODO this is not unified yet between peptdeep & alphadia
       run: |
-        EXECUTABLE=dist_pyinstaller/${{ inputs.package_nameX }}/${{ inputs.package_nameX }}.exe
+        EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}/${{ inputs.package_name }}.exe
         COMMAND="--version"
 
         if [ ! -e ${EXECUTABLE} ]; then
-          EXECUTABLE=dist_pyinstaller/${{ inputs.package_nameX }}_gui/${{ inputs.package_nameX }}_gui.exe
+          EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui.exe
           COMMAND="--help"
         fi
 
@@ -429,9 +418,6 @@ jobs:
         release/windows/build_package_windows.ps1
         ls *
         ls dist*/*
-
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
 
     - name: Test package
       id: test_package
