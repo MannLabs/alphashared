@@ -7,6 +7,11 @@ on:
         description: 'Name of package, e.g. "alphadia", "peptdeep", ..'
         type: string
         required: true
+      package_nameXX:
+        description: 'Name of package, e.g. "alphadia", "peptdeep", ..'
+        type: string
+        required: false
+        default: "alphastats"
       # optional parameters and switches
       commitish_to_release:
         type: string
@@ -138,7 +143,7 @@ jobs:
         ARCH=$(python -c "import platform; arch=platform.machine().lower(); print('x64' if arch == 'x86_64' else arch)")
         KERNEL=$(python -c "import platform; print(platform.system().lower())")
         
-        BUILD_NAME=${{ inputs.package_name }}-${{ needs.Create_Release.outputs.new_version }}-${KERNEL}-${ARCH}
+        BUILD_NAME=${{ inputs.package_nameX }}-${{ needs.Create_Release.outputs.new_version }}-${KERNEL}-${ARCH}
         echo "BUILD_NAME=$BUILD_NAME" >> $GITHUB_ENV
         
         ARTIFACT_NAME=${BUILD_NAME}.deb
@@ -165,11 +170,11 @@ jobs:
       continue-on-error: ${{ ! inputs.test_app }}
       shell: bash -el {0}
       run: |
-        EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}/${{ inputs.package_name }}
+        EXECUTABLE=dist_pyinstaller/${{ inputs.package_nameX }}/${{ inputs.package_nameX }}
         COMMAND="--version"
 
         if [ ! -e ${EXECUTABLE} ]; then
-          EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}
+          EXECUTABLE=dist_pyinstaller/${{ inputs.package_nameX }}
           COMMAND="--help"
         fi
         
@@ -245,7 +250,7 @@ jobs:
         ARCH=$(python -c "import platform; arch=platform.machine().lower(); print('x64' if arch == 'x86_64' else arch)")
         KERNEL=$(python -c "import platform; print(platform.system().lower())")
         
-        BUILD_NAME=${{ inputs.package_name }}-${{ needs.Create_Release.outputs.new_version }}-macos-${KERNEL}-${ARCH}
+        BUILD_NAME=${{ inputs.package_nameX }}-${{ needs.Create_Release.outputs.new_version }}-macos-${KERNEL}-${ARCH}
         echo "BUILD_NAME=$BUILD_NAME" >> $GITHUB_ENV
         
         ARTIFACT_NAME=${BUILD_NAME}.pkg
@@ -271,11 +276,11 @@ jobs:
       shell: bash -el {0}
       # TODO this is not unified yet between peptdeep & alphadia
       run: |
-        EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}/${{ inputs.package_name }}
+        EXECUTABLE=dist_pyinstaller/${{ inputs.package_nameX }}/${{ inputs.package_nameX }}
         COMMAND="--version"
         
         if [ ! -e ${EXECUTABLE} ]; then
-          EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui
+          EXECUTABLE=dist_pyinstaller/${{ inputs.package_nameX }}_gui/${{ inputs.package_nameX }}_gui
           COMMAND="--help"
         fi
 
@@ -353,7 +358,7 @@ jobs:
         ARCH=$(python -c "import platform; arch=platform.machine().lower(); print('x64' if arch == 'x86_64' else arch)")
         KERNEL=$(python -c "import platform; print(platform.system().lower())")
         
-        BUILD_NAME=${{ inputs.package_name }}-${{ needs.Create_Release.outputs.new_version }}-${KERNEL}-${ARCH}
+        BUILD_NAME=${{ inputs.package_nameX }}-${{ needs.Create_Release.outputs.new_version }}-${KERNEL}-${ARCH}
         echo "BUILD_NAME=$BUILD_NAME" >> $GITHUB_ENV
         
         ARTIFACT_NAME=${BUILD_NAME}.exe
@@ -381,11 +386,11 @@ jobs:
       shell: bash -el {0}
       # TODO this is not unified yet between peptdeep & alphadia
       run: |
-        EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}/${{ inputs.package_name }}.exe
+        EXECUTABLE=dist_pyinstaller/${{ inputs.package_nameX }}/${{ inputs.package_nameX }}.exe
         COMMAND="--version"
 
         if [ ! -e ${EXECUTABLE} ]; then
-          EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui.exe
+          EXECUTABLE=dist_pyinstaller/${{ inputs.package_nameX }}_gui/${{ inputs.package_nameX }}_gui.exe
           COMMAND="--help"
         fi
 
