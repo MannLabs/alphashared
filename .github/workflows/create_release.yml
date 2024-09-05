@@ -29,6 +29,10 @@ on:
         description: "Python version to be used"
         type: string
         default: "3.11"
+      python_versionX:
+        description: "Python version to be used"
+        type: string
+        default: "3.10"
 
 jobs:
   Create_Release:
@@ -129,7 +133,7 @@ jobs:
         miniconda-version: "latest"
         auto-update-conda: true
         activate-environment: alphax_release
-        python-version: "${{ inputs.python_version }}"
+        python-version: "${{ inputs.python_versionX }}"
 
     - name: Conda info
       shell: bash -el {0}
@@ -238,7 +242,7 @@ jobs:
         miniconda-version: "latest"
         auto-update-conda: true
         activate-environment: alphax_release
-        python-version: "${{ inputs.python_version }}"
+        python-version: "${{ inputs.python_versionX }}"
 
     - name: Conda info
       shell: bash -el {0}
@@ -349,7 +353,7 @@ jobs:
         miniconda-version: "latest"
         auto-update-conda: true
         activate-environment: alphax_release
-        python-version: "${{ inputs.python_version }}"
+        python-version: "${{ inputs.python_versionX }}"
 
     - name: Conda info
       shell: bash -el {0}
