@@ -46,7 +46,12 @@ jobs:
         shell: bash -le {0}
         # the DEBUG_RELEASE_WORKFLOW_SUFFIX can be set to get a unique tag in order to test the release workflow
         run: |
-          CURRENT_VERSION=$(grep "__version__" ${{ inputs.package_name }}/__init__.py | cut -f3 -d ' ' | sed 's/"//g')
+          CURRENT_VERSION=$(grep "__version__" ${{ inputs.package_nameX }}/__init__.py | cut -f3 -d ' ' | sed 's/"//g')
+          if [ "$CURRENT_VERSION" == "" ]; then
+            echo "Could not determine version from ${{ inputs.package_nameX }}/__init__.py"
+            exit 1
+          fi
+          
           RELEASE_TAG=v${CURRENT_VERSION}${{secrets.DEBUG_RELEASE_WORKFLOW_SUFFIX}}
           echo "new_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
           echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
