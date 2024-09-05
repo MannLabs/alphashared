@@ -29,10 +29,11 @@ on:
         description: "Python version to be used"
         type: string
         default: "3.11"
-      python_versionX:
-        description: "Python version to be used"
-        type: string
-        default: "3.10"
+      skip_macos_arm64_build:
+        description: 'Whether or not to skip the build for MacOS ARM64'
+        type: boolean
+        default: false
+
 
 jobs:
   Create_Release:
@@ -228,6 +229,8 @@ jobs:
         runner:
           - macos-latest-xlarge # this is ARM
           - macos-13 # this is not ARM
+        exclude:
+          - runner: ${{ inputs.skip_macos_arm64_build && 'macos-latest-xlarge' }}
     runs-on: ${{matrix.runner}}
     env:
       EAGER_IMPORT: true  # TODO move to alphadia?
