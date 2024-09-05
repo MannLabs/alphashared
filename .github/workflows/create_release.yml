@@ -167,7 +167,7 @@ jobs:
 
     - name: Test app
       # TODO this is not unified yet between peptdeep & alphadia
-      continue-on-error: ${{ ! inputs.test_app }}
+      if: ${{ inputs.test_app }}
       shell: bash -el {0}
       run: |
         EXECUTABLE=dist_pyinstaller/${{ inputs.package_nameX }}/${{ inputs.package_nameX }}
@@ -274,7 +274,7 @@ jobs:
         ls dist*/*
 
     - name: Test app
-      continue-on-error: ${{ ! inputs.test_app }}
+      if: ${{ inputs.test_app }}
       shell: bash -el {0}
       # TODO this is not unified yet between peptdeep & alphadia
       run: |
@@ -387,7 +387,7 @@ jobs:
         ls dist*/*
 
     - name: Test app
-      continue-on-error: ${{ ! inputs.test_app }}
+      if: ${{ inputs.test_app }}
       shell: bash -el {0}
       # TODO this is not unified yet between peptdeep & alphadia
       run: |
