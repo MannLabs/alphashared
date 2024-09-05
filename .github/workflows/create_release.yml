@@ -223,9 +223,10 @@ jobs:
     needs: [Create_Release]
     if: ${{ needs.Create_Release.outputs.run_macos == 'true' }}
     strategy:
+      fail-fast: false
       matrix:
-#           - macos-latest-xlarge # this is ARM
         runner:
+          - macos-latest-xlarge # this is ARM
           - macos-13 # this is not ARM
     runs-on: ${{matrix.runner}}
     env:
