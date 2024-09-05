@@ -7,7 +7,7 @@ on:
         description: 'Name of package, e.g. "alphadia", "peptdeep", ..'
         type: string
         required: true
-      package_nameXX:
+      package_nameX:
         description: 'Name of package, e.g. "alphadia", "peptdeep", ..'
         type: string
         required: false
