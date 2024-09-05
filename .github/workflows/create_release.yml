@@ -181,6 +181,8 @@ jobs:
         echo calling ${EXECUTABLE} ${COMMAND}
         eval ${EXECUTABLE} ${COMMAND}
 
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
 
     # TODO: building node.js GUI not supported yet for linux
 
@@ -218,8 +220,8 @@ jobs:
     if: ${{ needs.Create_Release.outputs.run_macos == 'true' }}
     strategy:
       matrix:
+#           - macos-latest-xlarge # this is ARM
         runner:
-          - macos-latest-xlarge # this is ARM
           - macos-13 # this is not ARM
     runs-on: ${{matrix.runner}}
     env:
@@ -306,6 +308,9 @@ jobs:
         release/macos/build_package_macos.sh
         ls *
         ls dist*/*
+
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
 
     - name: Test package
       id: test_package
@@ -416,6 +421,9 @@ jobs:
         release/windows/build_package_windows.ps1
         ls *
         ls dist*/*
+
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
 
     - name: Test package
       id: test_package
