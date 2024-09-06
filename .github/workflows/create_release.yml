@@ -49,7 +49,7 @@ jobs:
       - name: Get release tag
         id: get_release_tag
         shell: bash -le {0}
-        # the DEBUG_RELEASE_WORKFLOW_SUFFIX can be set to get a unique tag in order to test the release workflow
+        # the DEBUG_RELEASE_WORKFLOW_SUFFIX repository variable can be set to get a unique tag in order to test the release workflow
         run: |
           CURRENT_VERSION=$(grep "__version__" ${{ inputs.package_name }}/__init__.py | cut -f3 -d ' ' | sed 's/"//g')
           if [ "$CURRENT_VERSION" == "" ]; then
@@ -57,7 +57,7 @@ jobs:
             exit 1
           fi
           
-          RELEASE_TAG=v${CURRENT_VERSION}${{secrets.DEBUG_RELEASE_WORKFLOW_SUFFIX}}
+          RELEASE_TAG=v${CURRENT_VERSION}${{vars.DEBUG_RELEASE_WORKFLOW_SUFFIX}}
           echo "new_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
           echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
 
@@ -430,7 +430,7 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
         GH_REPO: ${{ github.repository }}
-      run: gh release upload "${{ needs.Create_Release.outputs.release_tag }}" ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+      run: gh release upload ${{ needs.Create_Release.outputs.release_tag }} ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 
     # Fallback upload to be able to manually debug the artifact
     - name: Fallback upload installer as job asset
