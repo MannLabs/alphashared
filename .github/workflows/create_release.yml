@@ -195,10 +195,14 @@ jobs:
     - name: Build package
       id: build_package
       shell: bash -l {0}
+      continue-on-error: true
       run: |
         release/linux/build_package_linux.sh
         ls *
         ls dist*/*
+
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
 
     - name: Test package
       id: test_package
