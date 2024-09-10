@@ -181,7 +181,16 @@ jobs:
         echo calling ${EXECUTABLE} ${COMMAND}
         eval ${EXECUTABLE} ${COMMAND}
 
-    # TODO: building node.js GUI not supported yet for linux
+    # Build GUI
+    - name: Setup Node.js
+      if: ${{ inputs.build_nodejs_ui }}
+      uses: actions/setup-node@v4
+
+    - name: Build Node.js GUI
+      if: ${{ inputs.build_nodejs_ui }}
+      run: |
+        release/linux/build_gui_linux.sh
+        ls *
 
     - name: Build package
       id: build_package
