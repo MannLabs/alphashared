@@ -8,7 +8,7 @@ check_artifact_exists() {
     --method GET \
     -H "Accept: application/vnd.github+json" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
-    /repos/$GITHUB_REPOSITORY/releases/${release_id}/assets)
+    repos/$GITHUB_REPOSITORY/releases/${release_id}/assets)
 
   echo $json_response
 

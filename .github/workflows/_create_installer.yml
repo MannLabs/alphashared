@@ -47,7 +47,7 @@ jobs:
       id: get_artifact
       shell: bash
       run: |
-        result=$(source .github/scripts/get_artifact_name.sh; get_artifact_name "${{ inputs.package_name }}" "${{ inputs.new_version }}" "${{ inputs.os }}")
+        result=$(source ${{ github.action_path }}/.github/scripts/get_artifact_name.sh; get_artifact_name "${{ inputs.package_name }}" "${{ inputs.new_version }}" "${{ inputs.os }}")
         BUILD_NAME=$(echo $result | cut -d'|' -f1)
         ARTIFACT_NAME=$(echo $result | cut -d'|' -f2)
         
@@ -62,7 +62,7 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        source .github/scripts/check_artifact_exists.sh
+        source ${{ github.action_path }}/.github/scripts/check_artifact_exists.sh
         check_artifact_exists "${{ steps.get_artifact.outputs.ARTIFACT_NAME }}" "${{ inputs.release_id }}"
 
     - name: Install conda
@@ -104,7 +104,7 @@ jobs:
       if: ${{ inputs.test_app }}
       shell: bash -el {0}
       run: |
-        source .github/scripts/test_app.sh
+        source ${{ github.action_path }}/.github/scripts/test_app.sh
         test_app "${{ inputs.package_name }}" "${{ inputs.os }}"
 
     - name: Setup Node.js
@@ -145,7 +145,7 @@ jobs:
       id: test_package
       shell: bash -el {0}
       run: |
-        source .github/scripts/test_package.sh
+        source ${{ github.action_path }}/.github/scripts/test_package.sh
         test_package "${{ steps.get_artifact.outputs.ARTIFACT_NAME }}" "${{ inputs.os }}"
 
     - name: Upload installer
