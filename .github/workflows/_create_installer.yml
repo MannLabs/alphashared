@@ -47,23 +47,44 @@ jobs:
       id: get_artifact
       shell: bash
       run: |
-        result=$(source ${{ github.action_path }}/.github/scripts/get_artifact_name.sh; get_artifact_name "${{ inputs.package_name }}" "${{ inputs.new_version }}" "${{ inputs.os }}")
-        BUILD_NAME=$(echo $result | cut -d'|' -f1)
-        ARTIFACT_NAME=$(echo $result | cut -d'|' -f2)
+          ARCH=$(python -c "import platform; arch=platform.machine().lower(); print('x64' if arch == 'x86_64' else arch)")
+          KERNEL=$(python -c "import platform; print(platform.system().lower())")
         
-        echo "got BUILD_NAME=${BUILD_NAME}"
-        echo "got ARTIFACT_NAME=${ARTIFACT_NAME}"
+          BUILD_NAME="${{ inputs.package_name }}-${{ inputs.new_version }}-${{ inputs.os }}-${KERNEL}-${ARCH}"
         
-        echo "BUILD_NAME=${BUILD_NAME}" >> $GITHUB_ENV
-        echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
+          if [ "$os" == "linux" ]; then
+            ARTIFACT_NAME="${BUILD_NAME}.deb"
+          elif [ "$os" == "macos" ]; then
+            ARTIFACT_NAME="${BUILD_NAME}.pkg"
+          else
+            ARTIFACT_NAME="${BUILD_NAME}.exe"
+          fi
+          
+          echo "got BUILD_NAME=${BUILD_NAME}"
+          echo "got ARTIFACT_NAME=${{ steps.get_artifact.outputs.ARTIFACT_NAME }}"
+          
+          echo "BUILD_NAME=${BUILD_NAME}" >> $GITHUB_ENV
+          echo "ARTIFACT_NAME=${{ steps.get_artifact.outputs.ARTIFACT_NAME }}" >> $GITHUB_OUTPUT
 
     - name: Check if artifact exists
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
-        source ${{ github.action_path }}/.github/scripts/check_artifact_exists.sh
-        check_artifact_exists "${{ steps.get_artifact.outputs.ARTIFACT_NAME }}" "${{ inputs.release_id }}"
+        json_response=$(gh api \
+          --method GET \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          repos/$GITHUB_REPOSITORY/releases/${{ inputs.release_id }}/assets)
+      
+        echo $json_response
+      
+        if echo "$json_response" | jq -e '.[] | select(.name == "'"${{ steps.get_artifact.outputs.ARTIFACT_NAME }}"'")' > /dev/null; then
+          echo "Artifact ${{ steps.get_artifact.outputs.ARTIFACT_NAME }} already exists in release ${{ inputs.release_id }}"
+          echo "This might be okay if you are re-running the workflow"
+          exit 1
+        fi
+
 
     - name: Install conda
       uses: conda-incubator/setup-miniconda@v3
@@ -104,8 +125,24 @@ jobs:
       if: ${{ inputs.test_app }}
       shell: bash -el {0}
       run: |
-        source ${{ github.action_path }}/.github/scripts/test_app.sh
-        test_app "${{ inputs.package_name }}" "${{ inputs.os }}"
+        if [ "${{ inputs.os }}" == "windows" ]; then
+          EXECUTABLE="dist_pyinstaller/${{ inputs.package_name }}/${{ inputs.package_name }}.exe"
+        else
+          EXECUTABLE="dist_pyinstaller/${{ inputs.package_name }}/${{ inputs.package_name }}"
+        fi
+        COMMAND="--version"
+      
+        if [ ! -e ${EXECUTABLE} ]; then
+          if [ "${{ inputs.os }}" == "windows" ]; then
+            EXECUTABLE="dist_pyinstaller/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui.exe"
+          else
+            EXECUTABLE="dist_pyinstaller/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui"
+          fi
+          COMMAND="--help"
+        fi
+      
+        echo "calling ${EXECUTABLE} ${COMMAND}"
+        eval ${EXECUTABLE} ${COMMAND}
 
     - name: Setup Node.js
       if: ${{ inputs.build_nodejs_ui }}
@@ -145,8 +182,14 @@ jobs:
       id: test_package
       shell: bash -el {0}
       run: |
-        source ${{ github.action_path }}/.github/scripts/test_package.sh
-        test_package "${{ steps.get_artifact.outputs.ARTIFACT_NAME }}" "${{ inputs.os }}"
+        if [ "${{ inputs.os }}" == "linux" ]; then
+          sudo dpkg -i ./${{ steps.get_artifact.outputs.ARTIFACT_NAME }}
+        elif [ "${{ inputs.os }}" == "macos" ]; then
+          sudo installer -pkg ./${{ steps.get_artifact.outputs.ARTIFACT_NAME }} -target /
+        else
+          ./${{ steps.get_artifact.outputs.ARTIFACT_NAME }} //verysilent //SUPPRESSMSGBOXES //log=log.txt //noicons //tasks= //portable=1
+          cat log.txt
+        fi
 
     - name: Upload installer
       env:
