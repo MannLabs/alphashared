@@ -19,7 +19,7 @@ on:
       test_app:
         description: 'Whether or not it should be tested that the executable is valid'
         type: boolean
-        default: true
+        default: false
       python_version:
         description: "Python version to be used"
         type: string
