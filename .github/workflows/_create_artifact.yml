@@ -109,6 +109,11 @@ jobs:
         activate-environment: alphax_release
         python-version: "${{ inputs.python_version }}"
 
+    - name: Conda info
+      shell: bash -el {0}
+      run: |
+        conda info
+
     - name: Install dependencies
       shell: bash -el {0}
       run: |
@@ -150,9 +155,8 @@ jobs:
             EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui
             COMMAND="--help"
           fi
-        fi
         
-        if [ "${{ inputs.os }}" == "macos" ]; then
+        elif [ "${{ inputs.os }}" == "macos" ]; then
           EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}/${{ inputs.package_name }}
           COMMAND="--version"
           
@@ -160,9 +164,8 @@ jobs:
             EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui
             COMMAND="--help"
           fi
-        fi
         
-        if [ "${{ inputs.os }}" == "windows" ]; then
+        elif [ "${{ inputs.os }}" == "windows" ]; then
           EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}/${{ inputs.package_name }}.exe
           COMMAND="--version"
   
@@ -217,7 +220,7 @@ jobs:
           sudo dpkg -i ./${{ steps.get_artifact.outputs.ARTIFACT_NAME }}
         elif [ "${{ inputs.os }}" == "macos" ]; then
           sudo installer -pkg ./${{ steps.get_artifact.outputs.ARTIFACT_NAME }} -target /
-        else
+        elif [ "${{ inputs.os }}" == "windows" ]; then
           ./${{ steps.get_artifact.outputs.ARTIFACT_NAME }} //verysilent //SUPPRESSMSGBOXES //log=log.txt //noicons //tasks= //portable=1
           cat log.txt
         fi
