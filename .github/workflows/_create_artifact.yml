@@ -51,16 +51,21 @@ jobs:
           ARCH=$(python -c "import platform; arch=platform.machine().lower(); print('x64' if arch == 'x86_64' else arch)")
           KERNEL=$(python -c "import platform; print(platform.system().lower())")
         
-          BUILD_NAME="${{ inputs.package_name }}-${{ inputs.new_version }}-${{ inputs.os }}-${KERNEL}-${ARCH}"
+          BUILD_NAME="${{ inputs.package_name }}-${{ inputs.new_version }}-${KERNEL}-${ARCH}"
         
-          if [ "$os" == "linux" ]; then
-            ARTIFACT_NAME="${BUILD_NAME}.deb"
-          elif [ "$os" == "macos" ]; then
-            ARTIFACT_NAME="${BUILD_NAME}.pkg"
-          else
-            ARTIFACT_NAME="${BUILD_NAME}.exe"
+          OS_STRING=""
+          if [ "${{ inputs.os }}" == "linux" ]; then
+            EXTENSION=".deb"
+          elif [ "${{ inputs.os }}" == "macos" ]; then
+            OS_STRING="-macos"
+            EXTENSION=".pkg"
+          elif [ "${{ inputs.os }}" == "windows" ]; then
+            EXTENSION=".exe"
           fi
-          
+
+          BUILD_NAME="${{ inputs.package_name }}-${{ inputs.new_version }}${OS_STRING}-${KERNEL}-${ARCH}"
+          ARTIFACT_NAME="${BUILD_NAME}${EXTENSION}"
+        
           echo "got BUILD_NAME=${BUILD_NAME}"
           echo "got ARTIFACT_NAME=${ARTIFACT_NAME}"
           
@@ -99,13 +104,14 @@ jobs:
       shell: bash -el {0}
       run: |
         if [ "${{ inputs.os }}" == "windows" ]; then
+          # TODO: pefile==2024.8.26 is super-slow on the 'binary vs. data reclassification' step, cf. https://github.com/erocarrera/pefile/issues/420
           pip install pefile==2023.2.7
         fi
         pip install pyinstaller==6.10.0 build==1.2.1
         pip freeze
 
     - name: Build installer (Unix)
-      #if: inputs.os != 'windows'
+      if: inputs.os != 'windows'
       shell: bash -el {0}
       run: |
         release/${{ inputs.os }}/build_installer_${{ inputs.os }}.sh
@@ -113,18 +119,19 @@ jobs:
         ls *
         ls dist*/*
 
-    #- name: Build installer (Windows)
-    #  if: inputs.os == 'windows'
-    #  shell: pwsh
-    #  run: |
-    #    release/${{ inputs.os }}/build_installer_${{ inputs.os }}.ps1
-    #    pip freeze
-    #    ls *
-    #    ls dist*/*
+    - name: Build installer (Windows)
+      if: inputs.os == 'windows'
+      shell: pwsh
+      run: |
+        release/${{ inputs.os }}/build_installer_${{ inputs.os }}.ps1
+        pip freeze
+        ls *
+        ls dist*/*
 
     - name: Test app
       if: ${{ inputs.test_app }}
       shell: bash -el {0}
+      # TODO this is not unified yet between peptdeep & alphadia
       run: |
         if [ "${{ inputs.os }}" == "windows" ]; then
           EXECUTABLE="dist_pyinstaller/${{ inputs.package_name }}/${{ inputs.package_name }}.exe"
@@ -150,19 +157,19 @@ jobs:
       uses: actions/setup-node@v4
 
     - name: Build Node.js GUI (Unix)
-      #if: inputs.build_nodejs_ui && inputs.os != 'windows'
+      if: inputs.build_nodejs_ui && inputs.os != 'windows'
       shell: bash
       run: |
         release/${{ inputs.os }}/build_gui_${{ inputs.os }}.sh
 
-    #- name: Build Node.js GUI (Windows)
-    #  if: inputs.build_nodejs_ui && inputs.os == 'windows'
-    #  shell: pwsh
-    #  run: |
-    #    release/${{ inputs.os }}/build_gui_${{ inputs.os }}.ps1
+    - name: Build Node.js GUI (Windows)
+      if: inputs.build_nodejs_ui && inputs.os == 'windows'
+      shell: pwsh
+      run: |
+        release/${{ inputs.os }}/build_gui_${{ inputs.os }}.ps1
 
     - name: Build package (Unix)
-     # if: inputs.os != 'windows'
+      if: inputs.os != 'windows'
       shell: bash -el {0}
       continue-on-error: true
       run: |
@@ -170,14 +177,14 @@ jobs:
         ls *
         ls dist*/*
 
-    #- name: Build package (Windows)
-    #  if: inputs.os == 'windows'
-    #  shell: pwsh
-    #  continue-on-error: true
-    #  run: |
-    #    release/${{ inputs.os }}/build_package_${{ inputs.os }}.ps1
-    #    ls *
-    #   ls dist*/*
+    - name: Build package (Windows)
+      if: inputs.os == 'windows'
+      shell: pwsh
+      continue-on-error: true
+      run: |
+        release/${{ inputs.os }}/build_package_${{ inputs.os }}.ps1
+        ls *
+       ls dist*/*
 
     - name: Test package
       id: test_package
