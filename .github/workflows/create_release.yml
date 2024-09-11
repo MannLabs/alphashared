@@ -150,6 +150,23 @@ jobs:
         echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
         echo got ARTIFACT_NAME=$ARTIFACT_NAME
 
+    - name: Check if artifact exists
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        json_response=$(gh api \
+          --method GET \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          /repos/${{ github.repository }}/releases/${{ steps.get_release_tag.outputs.release_tag }}/assets)
+        
+        echo $json_response
+
+        if echo "$json_response" | jq -e '.[] | select(.name == "${{steps.get_artifact.ARTIFACT_NAME}}")' > /dev/null; then
+            echo "Artifact ${{steps.get_artifact.ARTIFACT_NAME}} already exists in release ${{ steps.get_release_tag.outputs.release_tag }}"
+            echo This might be okay if you are re-running the workflow
+            exit 1
+        fi
 
     - name: Install pyinstaller 6.10.0 and build 1.2.1
       shell: bash -el {0}
@@ -272,6 +289,24 @@ jobs:
         echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
         echo got ARTIFACT_NAME=$ARTIFACT_NAME
 
+    - name: Check if artifact exists
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        json_response=$(gh api \
+          --method GET \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          /repos/${{ github.repository }}/releases/${{ steps.get_release_tag.outputs.release_tag }}/assets)
+        
+        echo $json_response
+
+        if echo "$json_response" | jq -e '.[] | select(.name == "${{steps.get_artifact.ARTIFACT_NAME}}")' > /dev/null; then
+            echo "Artifact ${{steps.get_artifact.ARTIFACT_NAME}} already exists in release ${{ steps.get_release_tag.outputs.release_tag }}"
+            echo This might be okay if you are re-running the workflow
+            exit 1
+        fi
+
     - name: Install pyinstaller 6.10.0 and build 1.2.1
       shell: bash -el {0}
       run: |
@@ -379,6 +414,24 @@ jobs:
         ARTIFACT_NAME=${BUILD_NAME}.exe
         echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
         echo got ARTIFACT_NAME=$ARTIFACT_NAME
+
+    - name: Check if artifact exists
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        json_response=$(gh api \
+          --method GET \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          /repos/${{ github.repository }}/releases/${{ steps.get_release_tag.outputs.release_tag }}/assets)
+        
+        echo $json_response
+
+        if echo "$json_response" | jq -e '.[] | select(.name == "${{steps.get_artifact.ARTIFACT_NAME}}")' > /dev/null; then
+            echo "Artifact ${{steps.get_artifact.ARTIFACT_NAME}} already exists in release ${{ steps.get_release_tag.outputs.release_tag }}"
+            echo This might be okay if you are re-running the workflow
+            exit 1
+        fi
 
     - name: Install pyinstaller 6.10.0 and build 1.2.1
       shell: bash -el {0}
