@@ -35,8 +35,9 @@ on:
         required: true
 
 jobs:
-  create_installer:
+  create_artifact:
     runs-on: ${{ inputs.runner }}
+    name: Create artifact for ${{ inputs.os }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
