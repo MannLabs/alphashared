@@ -124,19 +124,6 @@ jobs:
       with:
         ref: ${{ inputs.commitish_to_release }}
 
-    - name: Install conda
-      uses: conda-incubator/setup-miniconda@v3
-      with:
-        miniconda-version: "latest"
-        auto-update-conda: true
-        activate-environment: alphax_release
-        python-version: "${{ inputs.python_version }}"
-
-    - name: Conda info
-      shell: bash -el {0}
-      run: |
-        conda info
-
     - name: Get artifact name
       id: get_artifact
       shell: bash -el {0}
@@ -151,23 +138,36 @@ jobs:
         echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
         echo got ARTIFACT_NAME=$ARTIFACT_NAME
 
-#    - name: Check if artifact exists
-#      env:
-#        GH_TOKEN: ${{ github.token }}
-#      run: |
-#        json_response=$(gh api \
-#          --method GET \
-#          -H "Accept: application/vnd.github+json" \
-#          -H "X-GitHub-Api-Version: 2022-11-28" \
-#          /repos/${{ github.repository }}/releases/${{ needs.Create_Release.outputs.release_id }}/assets)
-#
-#        echo $json_response
-#
-#        if echo "$json_response" | jq -e '.[] | select(.name == "${{steps.get_artifact.ARTIFACT_NAME}}")' > /dev/null; then
-#            echo "Artifact ${{steps.get_artifact.ARTIFACT_NAME}} already exists in release ${{ needs.Create_Release.outputs.release_id }}"
-#            echo This might be okay if you are re-running the workflow
-#            exit 1
-#        fi
+    - name: Check if artifact exists
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        json_response=$(gh api \
+          --method GET \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          /repos/${{ github.repository }}/releases/${{ needs.Create_Release.outputs.release_id }}/assets)
+
+        echo $json_response
+
+        if echo "$json_response" | jq -e '.[] | select(.name == "${{steps.get_artifact.outputs.ARTIFACT_NAME}}")' > /dev/null; then
+            echo "Artifact ${{steps.get_artifact.outputs.ARTIFACT_NAME}} already exists in release ${{ needs.Create_Release.outputs.release_id }}"
+            echo This might be okay if you are re-running the workflow
+            exit 1
+        fi
+
+    - name: Install conda
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        miniconda-version: "latest"
+        auto-update-conda: true
+        activate-environment: alphax_release
+        python-version: "${{ inputs.python_version }}"
+
+    - name: Conda info
+      shell: bash -el {0}
+      run: |
+        conda info
 
     - name: Install pyinstaller 6.10.0 and build 1.2.1
       shell: bash -el {0}
@@ -219,9 +219,6 @@ jobs:
         ls *
         ls dist*/*
 
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-
     - name: Test package
       id: test_package
       shell: bash -l {0}
@@ -263,19 +260,6 @@ jobs:
       with:
         ref: ${{ inputs.commitish_to_release }}
 
-    - name: Install conda
-      uses: conda-incubator/setup-miniconda@v3
-      with:
-        miniconda-version: "latest"
-        auto-update-conda: true
-        activate-environment: alphax_release
-        python-version: "${{ inputs.python_version }}"
-
-    - name: Conda info
-      shell: bash -el {0}
-      run: |
-        conda info
-
     - name: Get artifact name
       id: get_artifact
       shell: bash -el {0}
@@ -302,11 +286,24 @@ jobs:
 
         echo $json_response
 
-        if echo "$json_response" | jq -e '.[] | select(.name == "${{steps.get_artifact.ARTIFACT_NAME}}")' > /dev/null; then
-            echo "Artifact ${{steps.get_artifact.ARTIFACT_NAME}} already exists in release ${{ needs.Create_Release.outputs.release_id }}"
+        if echo "$json_response" | jq -e '.[] | select(.name == "${{steps.get_artifact.outputs.ARTIFACT_NAME}}")' > /dev/null; then
+            echo "Artifact ${{steps.get_artifact.outputs.ARTIFACT_NAME}} already exists in release ${{ needs.Create_Release.outputs.release_id }}"
             echo This might be okay if you are re-running the workflow
             exit 1
         fi
+
+    - name: Install conda
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        miniconda-version: "latest"
+        auto-update-conda: true
+        activate-environment: alphax_release
+        python-version: "${{ inputs.python_version }}"
+
+    - name: Conda info
+      shell: bash -el {0}
+      run: |
+        conda info
 
     - name: Install pyinstaller 6.10.0 and build 1.2.1
       shell: bash -el {0}
@@ -389,19 +386,6 @@ jobs:
       with:
         ref: ${{ inputs.commitish_to_release }}
 
-    - name: Install conda
-      uses: conda-incubator/setup-miniconda@v3
-      with:
-        miniconda-version: "latest"
-        auto-update-conda: true
-        activate-environment: alphax_release
-        python-version: "${{ inputs.python_version }}"
-
-    - name: Conda info
-      shell: bash -el {0}
-      run: |
-        conda info
-
     - name: Get artifact name
       id: get_artifact
       shell: bash -el {0}
@@ -428,11 +412,24 @@ jobs:
 
         echo $json_response
 
-        if echo "$json_response" | jq -e '.[] | select(.name == "${{steps.get_artifact.ARTIFACT_NAME}}")' > /dev/null; then
-            echo "Artifact ${{steps.get_artifact.ARTIFACT_NAME}} already exists in release ${{ needs.Create_Release.outputs.release_id }}"
+        if echo "$json_response" | jq -e '.[] | select(.name == "${{steps.get_artifact.outputs.ARTIFACT_NAME}}")' > /dev/null; then
+            echo "Artifact ${{steps.get_artifact.outputs.ARTIFACT_NAME}} already exists in release ${{ needs.Create_Release.outputs.release_id }}"
             echo This might be okay if you are re-running the workflow
             exit 1
         fi
+
+    - name: Install conda
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        miniconda-version: "latest"
+        auto-update-conda: true
+        activate-environment: alphax_release
+        python-version: "${{ inputs.python_version }}"
+
+    - name: Conda info
+      shell: bash -el {0}
+      run: |
+        conda info
 
     - name: Install pyinstaller 6.10.0 and build 1.2.1
       shell: bash -el {0}
