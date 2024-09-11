@@ -62,10 +62,10 @@ jobs:
           fi
           
           echo "got BUILD_NAME=${BUILD_NAME}"
-          echo "got ARTIFACT_NAME=${{ steps.get_artifact.outputs.ARTIFACT_NAME }}"
+          echo "got ARTIFACT_NAME=${ARTIFACT_NAME}"
           
           echo "BUILD_NAME=${BUILD_NAME}" >> $GITHUB_ENV
-          echo "ARTIFACT_NAME=${{ steps.get_artifact.outputs.ARTIFACT_NAME }}" >> $GITHUB_OUTPUT
+          echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
 
     - name: Check if artifact exists
       shell: bash
