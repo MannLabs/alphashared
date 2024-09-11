@@ -1,0 +1,138 @@
+name: Create Installer
+
+on:
+  workflow_call:
+    inputs:
+      package_name:
+        type: string
+        required: true
+      new_version:
+        type: string
+        required: true
+      release_tag:
+        type: string
+        required: true
+      release_id:
+        type: string
+        required: true
+      os:
+        type: string
+        required: true
+      runner:
+        type: string
+        required: true
+      python_version:
+        type: string
+        required: true
+      build_nodejs_ui:
+        type: boolean
+        required: true
+      test_app:
+        type: boolean
+        required: true
+      commitish_to_release:
+        type: string
+        required: true
+
+jobs:
+  create_installer:
+    runs-on: ${{ inputs.runner }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.commitish_to_release }}
+
+    - name: Get artifact name
+      id: get_artifact
+      shell: bash
+      run: |
+        result=$(source .github/scripts/get_artifact_name.sh; get_artifact_name "${{ inputs.package_name }}" "${{ inputs.new_version }}" "${{ inputs.os }}")
+        BUILD_NAME=$(echo $result | cut -d'|' -f1)
+        ARTIFACT_NAME=$(echo $result | cut -d'|' -f2)
+        
+        echo "got BUILD_NAME=${BUILD_NAME}"
+        echo "got ARTIFACT_NAME=${ARTIFACT_NAME}"
+        
+        echo "BUILD_NAME=${BUILD_NAME}" >> $GITHUB_ENV
+        echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
+
+    - name: Check if artifact exists
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        source .github/scripts/check_artifact_exists.sh
+        check_artifact_exists "${{ steps.get_artifact.outputs.ARTIFACT_NAME }}" "${{ inputs.release_id }}"
+
+    - name: Install conda
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        miniconda-version: "latest"
+        auto-update-conda: true
+        activate-environment: alphax_release
+        python-version: "${{ inputs.python_version }}"
+
+    - name: Install dependencies
+      shell: bash -el {0}
+      run: |
+        if [ "${{ inputs.os }}" == "windows" ]; then
+          pip install pefile==2023.2.7
+        fi
+        pip install pyinstaller==6.10.0 build==1.2.1
+        pip freeze
+
+    - name: Build installer
+      shell: ${{ inputs.os == 'windows' && 'powershell' || 'bash -el {0}' }}
+      run: |
+        release/${{ inputs.os }}/build_installer_${{ inputs.os }}.${{ inputs.os == 'windows' && 'ps1' || 'sh' }}
+        pip freeze
+        ls *
+        ls dist*/*
+
+    - name: Test app
+      if: ${{ inputs.test_app }}
+      shell: bash -el {0}
+      run: |
+        source .github/scripts/test_app.sh
+        test_app "${{ inputs.package_name }}" "${{ inputs.os }}"
+
+    - name: Setup Node.js
+      if: ${{ inputs.build_nodejs_ui }}
+      uses: actions/setup-node@v4
+
+    - name: Build Node.js GUI
+      if: ${{ inputs.build_nodejs_ui }}
+      shell: ${{ inputs.os == 'windows' && 'powershell' || 'bash' }}
+      run: |
+        release/${{ inputs.os }}/build_gui_${{ inputs.os }}.${{ inputs.os == 'windows' && 'ps1' || 'sh' }}
+
+    - name: Build package
+      id: build_package
+      shell: ${{ inputs.os == 'windows' && 'powershell' || 'bash -el {0}' }}
+      continue-on-error: true
+      run: |
+        release/${{ inputs.os }}/build_package_${{ inputs.os }}.${{ inputs.os == 'windows' && 'ps1' || 'sh' }}
+        ls *
+        ls dist*/*
+
+    - name: Test package
+      id: test_package
+      shell: bash -el {0}
+      run: |
+        source .github/scripts/test_package.sh
+        test_package "${{ steps.get_artifact.outputs.ARTIFACT_NAME }}" "${{ inputs.os }}"
+
+    - name: Upload installer
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+      run: gh release upload ${{ inputs.release_tag }} ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+
+    - name: Fallback upload installer as job asset
+      if: ${{ failure() && steps.test_package.conclusion == 'failure' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+        path: ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+        if-no-files-found: error

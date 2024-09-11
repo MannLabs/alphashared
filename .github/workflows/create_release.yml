@@ -115,131 +115,20 @@ jobs:
 #            -F "draft=true"
 
   Create_Linux_Installer:
-    needs: [ Create_Release  ]
+    needs: [ Create_Release ]
     if: ${{ needs.Create_Release.outputs.run_linux == 'true' }}
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ inputs.commitish_to_release }}
-
-    - name: Get artifact name
-      id: get_artifact
-      shell: bash -el {0}
-      run: |
-        ARCH=$(python -c "import platform; arch=platform.machine().lower(); print('x64' if arch == 'x86_64' else arch)")
-        KERNEL=$(python -c "import platform; print(platform.system().lower())")
-        
-        BUILD_NAME=${{ inputs.package_name }}-${{ needs.Create_Release.outputs.new_version }}-${KERNEL}-${ARCH}
-        echo "BUILD_NAME=$BUILD_NAME" >> $GITHUB_ENV
-        
-        ARTIFACT_NAME=${BUILD_NAME}.deb
-        echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
-        echo got ARTIFACT_NAME=$ARTIFACT_NAME
-
-    - name: Check if artifact exists
-      shell: bash -el {0}
-      env:
-        GH_TOKEN: ${{ github.token }}
-      run: |
-        json_response=$(gh api \
-          --method GET \
-          -H "Accept: application/vnd.github+json" \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          /repos/${{ github.repository }}/releases/${{ needs.Create_Release.outputs.release_id }}/assets)
-
-        echo $json_response
-
-        if echo "$json_response" | jq -e '.[] | select(.name == "${{steps.get_artifact.outputs.ARTIFACT_NAME}}")' > /dev/null; then
-            echo "Artifact ${{steps.get_artifact.outputs.ARTIFACT_NAME}} already exists in release ${{ needs.Create_Release.outputs.release_id }}"
-            echo This might be okay if you are re-running the workflow
-            exit 1
-        fi
-
-    - name: Install conda
-      uses: conda-incubator/setup-miniconda@v3
-      with:
-        miniconda-version: "latest"
-        auto-update-conda: true
-        activate-environment: alphax_release
-        python-version: "${{ inputs.python_version }}"
-
-    - name: Conda info
-      shell: bash -el {0}
-      run: |
-        conda info
-
-    - name: Install pyinstaller 6.10.0 and build 1.2.1
-      shell: bash -el {0}
-      run: |
-        pip install pyinstaller==6.10.0 build==1.2.1
-        pip freeze
-
-    - name: Build installer
-      shell: bash -el {0}
-      run: |
-        release/linux/build_installer_linux.sh
-        pip freeze
-        ls *
-        ls dist*/*
-
-    - name: Test app
-      if: ${{ inputs.test_app }}
-      shell: bash -el {0}
-      # TODO this is not unified yet between peptdeep & alphadia
-      run: |
-        EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}/${{ inputs.package_name }}
-        COMMAND="--version"
-
-        if [ ! -e ${EXECUTABLE} ]; then
-          EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui
-          COMMAND="--help"
-        fi
-        
-        echo calling ${EXECUTABLE} ${COMMAND}
-        eval ${EXECUTABLE} ${COMMAND}
-
-    # Build GUI
-    - name: Setup Node.js
-      if: ${{ inputs.build_nodejs_ui }}
-      uses: actions/setup-node@v4
-
-    - name: Build Node.js GUI
-      if: ${{ inputs.build_nodejs_ui }}
-      run: |
-        release/linux/build_gui_linux.sh
-        ls *
-
-    - name: Build package
-      id: build_package
-      shell: bash -el {0}
-      continue-on-error: true
-      run: |
-        release/linux/build_package_linux.sh
-        ls *
-        ls dist*/*
-
-    - name: Test package
-      id: test_package
-      shell: bash -el {0}
-      run: |
-        sudo dpkg -i ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
-
-    - name: Upload installer
-      env:
-        GH_TOKEN: ${{ github.token }}
-        GH_REPO: ${{ github.repository }}
-      run: gh release upload ${{ needs.Create_Release.outputs.release_tag }} ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
-
-    # Fallback upload to be able to manually debug the artifact
-    - name: Fallback upload installer as job asset
-      if: ${{ failure() && steps.test_package.conclusion == 'failure' }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
-        path: ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
-        if-no-files-found: error
+    uses: ./.github/workflows/_create-installer.yml
+    with:
+      package_name: ${{ inputs.package_name }}
+      new_version: ${{ needs.Create_Release.outputs.new_version }}
+      release_tag: ${{ needs.Create_Release.outputs.release_tag }}
+      release_id: ${{ needs.Create_Release.outputs.release_id }}
+      os: linux
+      runner: ubuntu-latest
+      python_version: ${{ inputs.python_version }}
+      build_nodejs_ui: ${{ inputs.build_nodejs_ui }}
+      test_app: ${{ inputs.test_app }}
+      commitish_to_release: ${{ inputs.commitish_to_release }}
 
   Create_MacOS_Installer:
     needs: [Create_Release]
@@ -248,261 +137,429 @@ jobs:
       fail-fast: false
       matrix:
         runner:
-          - macos-latest-xlarge # this is ARM
-          - macos-13 # this is not ARM
+          - macos-latest-xlarge
+          - macos-13
         exclude:
           - runner: ${{ inputs.skip_macos_arm64_build && 'macos-latest-xlarge' }}
-    runs-on: ${{matrix.runner}}
-    env:
-      EAGER_IMPORT: true  # TODO move to alphadia?
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ inputs.commitish_to_release }}
-
-    - name: Get artifact name
-      id: get_artifact
-      shell: bash -el {0}
-      run: |
-        ARCH=$(python -c "import platform; arch=platform.machine().lower(); print('x64' if arch == 'x86_64' else arch)")
-        KERNEL=$(python -c "import platform; print(platform.system().lower())")
-        
-        BUILD_NAME=${{ inputs.package_name }}-${{ needs.Create_Release.outputs.new_version }}-macos-${KERNEL}-${ARCH}
-        echo "BUILD_NAME=$BUILD_NAME" >> $GITHUB_ENV
-        
-        ARTIFACT_NAME=${BUILD_NAME}.pkg
-        echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
-        echo got ARTIFACT_NAME=$ARTIFACT_NAME
-
-    - name: Check if artifact exists
-      shell: bash -el {0}
-      env:
-        GH_TOKEN: ${{ github.token }}
-      run: |
-        json_response=$(gh api \
-          --method GET \
-          -H "Accept: application/vnd.github+json" \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          /repos/${{ github.repository }}/releases/${{ needs.Create_Release.outputs.release_id }}/assets)
-
-        echo $json_response
-
-        if echo "$json_response" | jq -e '.[] | select(.name == "${{steps.get_artifact.outputs.ARTIFACT_NAME}}")' > /dev/null; then
-            echo "Artifact ${{steps.get_artifact.outputs.ARTIFACT_NAME}} already exists in release ${{ needs.Create_Release.outputs.release_id }}"
-            echo This might be okay if you are re-running the workflow
-            exit 1
-        fi
-
-    - name: Install conda
-      uses: conda-incubator/setup-miniconda@v3
-      with:
-        miniconda-version: "latest"
-        auto-update-conda: true
-        activate-environment: alphax_release
-        python-version: "${{ inputs.python_version }}"
-
-    - name: Conda info
-      shell: bash -el {0}
-      run: |
-        conda info
-
-    - name: Install pyinstaller 6.10.0 and build 1.2.1
-      shell: bash -el {0}
-      run: |
-        pip install pyinstaller==6.10.0 build==1.2.1
-        pip freeze
-
-    - name: Build installer
-      shell: bash -el {0}
-      run: |
-        release/macos/build_installer_macos.sh
-        pip freeze
-        ls *
-        ls dist*/*
-
-    - name: Test app
-      if: ${{ inputs.test_app }}
-      shell: bash -el {0}
-      # TODO this is not unified yet between peptdeep & alphadia
-      run: |
-        EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}/${{ inputs.package_name }}
-        COMMAND="--version"
-        
-        if [ ! -e ${EXECUTABLE} ]; then
-          EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui
-          COMMAND="--help"
-        fi
-
-        echo calling ${EXECUTABLE} ${COMMAND}
-        eval ${EXECUTABLE} ${COMMAND}
-
-    # Build GUI
-    - name: Setup Node.js
-      if: ${{ inputs.build_nodejs_ui }}
-      uses: actions/setup-node@v4
-
-    - name: Build Node.js GUI
-      if: ${{ inputs.build_nodejs_ui }}
-      run: |
-        release/macos/build_gui_macos.sh
-        ls *
-
-    - name: Build package
-      id: build_package
-      shell: bash -el {0}
-      continue-on-error: true
-      run: |
-        release/macos/build_package_macos.sh
-        ls *
-        ls dist*/*
-
-    - name: Test package
-      id: test_package
-      shell: bash -el {0}
-      run: |
-        sudo installer -pkg ./${{steps.get_artifact.outputs.ARTIFACT_NAME}} -target /
-
-    - name: Upload installer
-      env:
-        GH_TOKEN: ${{ github.token }}
-        GH_REPO: ${{ github.repository }}
-      run: gh release upload ${{ needs.Create_Release.outputs.release_tag }} ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
-
-    # Fallback upload to be able to manually debug the artifact
-    - name: Fallback upload installer as job asset
-      if: ${{ failure() && steps.test_package.conclusion == 'failure' }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
-        path: ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
-        if-no-files-found: error
+    uses: ./.github/workflows/_create-installer.yml
+    with:
+      package_name: ${{ inputs.package_name }}
+      new_version: ${{ needs.Create_Release.outputs.new_version }}
+      release_tag: ${{ needs.Create_Release.outputs.release_tag }}
+      release_id: ${{ needs.Create_Release.outputs.release_id }}
+      os: macos
+      runner: ${{ matrix.runner }}
+      python_version: ${{ inputs.python_version }}
+      build_nodejs_ui: ${{ inputs.build_nodejs_ui }}
+      test_app: ${{ inputs.test_app }}
+      commitish_to_release: ${{ inputs.commitish_to_release }}
 
   Create_Windows_Installer:
     needs: [Create_Release]
     if: ${{ needs.Create_Release.outputs.run_windows == 'true' }}
-    runs-on: windows-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ inputs.commitish_to_release }}
-
-    - name: Get artifact name
-      id: get_artifact
-      shell: bash -el {0}
-      run: |
-        ARCH=$(python -c "import platform; arch=platform.machine().lower(); print('x64' if arch == 'x86_64' else arch)")
-        KERNEL=$(python -c "import platform; print(platform.system().lower())")
-        
-        BUILD_NAME=${{ inputs.package_name }}-${{ needs.Create_Release.outputs.new_version }}-${KERNEL}-${ARCH}
-        echo "BUILD_NAME=$BUILD_NAME" >> $GITHUB_ENV
-        
-        ARTIFACT_NAME=${BUILD_NAME}.exe
-        echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
-        echo got ARTIFACT_NAME=$ARTIFACT_NAME
-
-    - name: Check if artifact exists
-      shell: bash -el {0}
-      env:
-        GH_TOKEN: ${{ github.token }}
-      run: |
-        json_response=$(gh api \
-          --method GET \
-          -H "Accept: application/vnd.github+json" \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          /repos/${{ github.repository }}/releases/${{ needs.Create_Release.outputs.release_id }}/assets)
-
-        echo $json_response
-
-        if echo "$json_response" | jq -e '.[] | select(.name == "${{steps.get_artifact.outputs.ARTIFACT_NAME}}")' > /dev/null; then
-            echo "Artifact ${{steps.get_artifact.outputs.ARTIFACT_NAME}} already exists in release ${{ needs.Create_Release.outputs.release_id }}"
-            echo This might be okay if you are re-running the workflow
-            exit 1
-        fi
-
-    - name: Install conda
-      uses: conda-incubator/setup-miniconda@v3
-      with:
-        miniconda-version: "latest"
-        auto-update-conda: true
-        activate-environment: alphax_release
-        python-version: "${{ inputs.python_version }}"
-
-    - name: Conda info
-      shell: bash -el {0}
-      run: |
-        conda info
-
-    - name: Install pyinstaller 6.10.0 and build 1.2.1
-      shell: bash -el {0}
-      run: |
-        pip install pefile==2023.2.7  # TODO: 2024.8.26 is super-slow on the 'binary vs. data reclassification' step, cf. https://github.com/erocarrera/pefile/issues/420
-        pip install pyinstaller==6.10.0 build==1.2.1
-        pip freeze
-
-    - name: Build installer
-      shell: powershell
-      run: |
-        release/windows/build_installer_windows.ps1
-        pip freeze
-        ls *
-        ls dist*/*
-
-    - name: Test app
-      if: ${{ inputs.test_app }}
-      shell: bash -el {0}
-      # TODO this is not unified yet between peptdeep & alphadia
-      run: |
-        EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}/${{ inputs.package_name }}.exe
-        COMMAND="--version"
-
-        if [ ! -e ${EXECUTABLE} ]; then
-          EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui.exe
-          COMMAND="--help"
-        fi
-
-        echo calling ${EXECUTABLE} ${COMMAND}
-        eval ${EXECUTABLE} ${COMMAND}
-
-    # Build GUI
-    - name: Setup Node.js
-      if: ${{ inputs.build_nodejs_ui }}
-      uses: actions/setup-node@v4
-
-    - name: Build Node.js GUI
-      if: ${{ inputs.build_nodejs_ui }}
-      shell: powershell
-      run: |
-        release/windows/build_gui_windows.ps1
-
-    - name: Build package
-      id: build_package
-      shell: powershell
-      continue-on-error: true
-      run: |
-        release/windows/build_package_windows.ps1
-        ls *
-        ls dist*/*
-
-    - name: Test package
-      id: test_package
-      shell: bash -el {0}
-      run: |
-        ./${{steps.get_artifact.outputs.ARTIFACT_NAME}} //verysilent //SUPPRESSMSGBOXES //log=log.txt //noicons //tasks= //portable=1
-        cat log.txt
-
-    - name: Upload installer
-      env:
-        GH_TOKEN: ${{ github.token }}
-        GH_REPO: ${{ github.repository }}
-      run: gh release upload ${{ needs.Create_Release.outputs.release_tag }} ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
-
-    # Fallback upload to be able to manually debug the artifact
-    - name: Fallback upload installer as job asset
-      if: ${{ failure() && steps.test_package.conclusion == 'failure' }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
-        path: ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
-        if-no-files-found: error
+    uses: ./.github/workflows/_create-installer.yml
+    with:
+      package_name: ${{ inputs.package_name }}
+      new_version: ${{ needs.Create_Release.outputs.new_version }}
+      release_tag: ${{ needs.Create_Release.outputs.release_tag }}
+      release_id: ${{ needs.Create_Release.outputs.release_id }}
+      os: windows
+      runner: windows-latest
+      python_version: ${{ inputs.python_version }}
+      build_nodejs_ui: ${{ inputs.build_nodejs_ui }}
+      test_app: ${{ inputs.test_app }}
+      commitish_to_release: ${{ inputs.commitish_to_release }}
+      
+#      
+#  Create_Linux_Installer:
+#    needs: [ Create_Release  ]
+#    if: ${{ needs.Create_Release.outputs.run_linux == 'true' }}
+#    runs-on: ubuntu-latest
+#    steps:
+#    - name: Checkout code
+#      uses: actions/checkout@v4
+#      with:
+#        ref: ${{ inputs.commitish_to_release }}
+#
+#    - name: Get artifact name
+#      id: get_artifact
+#      shell: bash -el {0}
+#      run: |
+#        ARCH=$(python -c "import platform; arch=platform.machine().lower(); print('x64' if arch == 'x86_64' else arch)")
+#        KERNEL=$(python -c "import platform; print(platform.system().lower())")
+#        
+#        BUILD_NAME=${{ inputs.package_name }}-${{ needs.Create_Release.outputs.new_version }}-${KERNEL}-${ARCH}
+#        echo "BUILD_NAME=$BUILD_NAME" >> $GITHUB_ENV
+#        
+#        ARTIFACT_NAME=${BUILD_NAME}.deb
+#        echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
+#        echo got ARTIFACT_NAME=$ARTIFACT_NAME
+#
+#    - name: Check if artifact exists
+#      shell: bash -el {0}
+#      env:
+#        GH_TOKEN: ${{ github.token }}
+#      run: |
+#        json_response=$(gh api \
+#          --method GET \
+#          -H "Accept: application/vnd.github+json" \
+#          -H "X-GitHub-Api-Version: 2022-11-28" \
+#          /repos/${{ github.repository }}/releases/${{ needs.Create_Release.outputs.release_id }}/assets)
+#
+#        echo $json_response
+#
+#        if echo "$json_response" | jq -e '.[] | select(.name == "${{steps.get_artifact.outputs.ARTIFACT_NAME}}")' > /dev/null; then
+#            echo "Artifact ${{steps.get_artifact.outputs.ARTIFACT_NAME}} already exists in release ${{ needs.Create_Release.outputs.release_id }}"
+#            echo This might be okay if you are re-running the workflow
+#            exit 1
+#        fi
+#
+#    - name: Install conda
+#      uses: conda-incubator/setup-miniconda@v3
+#      with:
+#        miniconda-version: "latest"
+#        auto-update-conda: true
+#        activate-environment: alphax_release
+#        python-version: "${{ inputs.python_version }}"
+#
+#    - name: Conda info
+#      shell: bash -el {0}
+#      run: |
+#        conda info
+#
+#    - name: Install pyinstaller 6.10.0 and build 1.2.1
+#      shell: bash -el {0}
+#      run: |
+#        pip install pyinstaller==6.10.0 build==1.2.1
+#        pip freeze
+#
+#    - name: Build installer
+#      shell: bash -el {0}
+#      run: |
+#        release/linux/build_installer_linux.sh
+#        pip freeze
+#        ls *
+#        ls dist*/*
+#
+#    - name: Test app
+#      if: ${{ inputs.test_app }}
+#      shell: bash -el {0}
+#      # TODO this is not unified yet between peptdeep & alphadia
+#      run: |
+#        EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}/${{ inputs.package_name }}
+#        COMMAND="--version"
+#
+#        if [ ! -e ${EXECUTABLE} ]; then
+#          EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui
+#          COMMAND="--help"
+#        fi
+#        
+#        echo calling ${EXECUTABLE} ${COMMAND}
+#        eval ${EXECUTABLE} ${COMMAND}
+#
+#    # Build GUI
+#    - name: Setup Node.js
+#      if: ${{ inputs.build_nodejs_ui }}
+#      uses: actions/setup-node@v4
+#
+#    - name: Build Node.js GUI
+#      if: ${{ inputs.build_nodejs_ui }}
+#      run: |
+#        release/linux/build_gui_linux.sh
+#        ls *
+#
+#    - name: Build package
+#      id: build_package
+#      shell: bash -el {0}
+#      continue-on-error: true
+#      run: |
+#        release/linux/build_package_linux.sh
+#        ls *
+#        ls dist*/*
+#
+#    - name: Test package
+#      id: test_package
+#      shell: bash -el {0}
+#      run: |
+#        sudo dpkg -i ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+#
+#    - name: Upload installer
+#      env:
+#        GH_TOKEN: ${{ github.token }}
+#        GH_REPO: ${{ github.repository }}
+#      run: gh release upload ${{ needs.Create_Release.outputs.release_tag }} ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+#
+#    # Fallback upload to be able to manually debug the artifact
+#    - name: Fallback upload installer as job asset
+#      if: ${{ failure() && steps.test_package.conclusion == 'failure' }}
+#      uses: actions/upload-artifact@v4
+#      with:
+#        name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+#        path: ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+#        if-no-files-found: error
+#
+#  Create_MacOS_Installer:
+#    needs: [Create_Release]
+#    if: ${{ needs.Create_Release.outputs.run_macos == 'true' }}
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        runner:
+#          - macos-latest-xlarge # this is ARM
+#          - macos-13 # this is not ARM
+#        exclude:
+#          - runner: ${{ inputs.skip_macos_arm64_build && 'macos-latest-xlarge' }}
+#    runs-on: ${{matrix.runner}}
+#    env:
+#      EAGER_IMPORT: true  # TODO move to alphadia?
+#    steps:
+#    - name: Checkout code
+#      uses: actions/checkout@v4
+#      with:
+#        ref: ${{ inputs.commitish_to_release }}
+#
+#    - name: Get artifact name
+#      id: get_artifact
+#      shell: bash -el {0}
+#      run: |
+#        ARCH=$(python -c "import platform; arch=platform.machine().lower(); print('x64' if arch == 'x86_64' else arch)")
+#        KERNEL=$(python -c "import platform; print(platform.system().lower())")
+#        
+#        BUILD_NAME=${{ inputs.package_name }}-${{ needs.Create_Release.outputs.new_version }}-macos-${KERNEL}-${ARCH}
+#        echo "BUILD_NAME=$BUILD_NAME" >> $GITHUB_ENV
+#        
+#        ARTIFACT_NAME=${BUILD_NAME}.pkg
+#        echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
+#        echo got ARTIFACT_NAME=$ARTIFACT_NAME
+#
+#    - name: Check if artifact exists
+#      shell: bash -el {0}
+#      env:
+#        GH_TOKEN: ${{ github.token }}
+#      run: |
+#        json_response=$(gh api \
+#          --method GET \
+#          -H "Accept: application/vnd.github+json" \
+#          -H "X-GitHub-Api-Version: 2022-11-28" \
+#          /repos/${{ github.repository }}/releases/${{ needs.Create_Release.outputs.release_id }}/assets)
+#
+#        echo $json_response
+#
+#        if echo "$json_response" | jq -e '.[] | select(.name == "${{steps.get_artifact.outputs.ARTIFACT_NAME}}")' > /dev/null; then
+#            echo "Artifact ${{steps.get_artifact.outputs.ARTIFACT_NAME}} already exists in release ${{ needs.Create_Release.outputs.release_id }}"
+#            echo This might be okay if you are re-running the workflow
+#            exit 1
+#        fi
+#
+#    - name: Install conda
+#      uses: conda-incubator/setup-miniconda@v3
+#      with:
+#        miniconda-version: "latest"
+#        auto-update-conda: true
+#        activate-environment: alphax_release
+#        python-version: "${{ inputs.python_version }}"
+#
+#    - name: Conda info
+#      shell: bash -el {0}
+#      run: |
+#        conda info
+#
+#    - name: Install pyinstaller 6.10.0 and build 1.2.1
+#      shell: bash -el {0}
+#      run: |
+#        pip install pyinstaller==6.10.0 build==1.2.1
+#        pip freeze
+#
+#    - name: Build installer
+#      shell: bash -el {0}
+#      run: |
+#        release/macos/build_installer_macos.sh
+#        pip freeze
+#        ls *
+#        ls dist*/*
+#
+#    - name: Test app
+#      if: ${{ inputs.test_app }}
+#      shell: bash -el {0}
+#      # TODO this is not unified yet between peptdeep & alphadia
+#      run: |
+#        EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}/${{ inputs.package_name }}
+#        COMMAND="--version"
+#        
+#        if [ ! -e ${EXECUTABLE} ]; then
+#          EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui
+#          COMMAND="--help"
+#        fi
+#
+#        echo calling ${EXECUTABLE} ${COMMAND}
+#        eval ${EXECUTABLE} ${COMMAND}
+#
+#    # Build GUI
+#    - name: Setup Node.js
+#      if: ${{ inputs.build_nodejs_ui }}
+#      uses: actions/setup-node@v4
+#
+#    - name: Build Node.js GUI
+#      if: ${{ inputs.build_nodejs_ui }}
+#      run: |
+#        release/macos/build_gui_macos.sh
+#        ls *
+#
+#    - name: Build package
+#      id: build_package
+#      shell: bash -el {0}
+#      continue-on-error: true
+#      run: |
+#        release/macos/build_package_macos.sh
+#        ls *
+#        ls dist*/*
+#
+#    - name: Test package
+#      id: test_package
+#      shell: bash -el {0}
+#      run: |
+#        sudo installer -pkg ./${{steps.get_artifact.outputs.ARTIFACT_NAME}} -target /
+#
+#    - name: Upload installer
+#      env:
+#        GH_TOKEN: ${{ github.token }}
+#        GH_REPO: ${{ github.repository }}
+#      run: gh release upload ${{ needs.Create_Release.outputs.release_tag }} ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+#
+#    # Fallback upload to be able to manually debug the artifact
+#    - name: Fallback upload installer as job asset
+#      if: ${{ failure() && steps.test_package.conclusion == 'failure' }}
+#      uses: actions/upload-artifact@v4
+#      with:
+#        name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+#        path: ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+#        if-no-files-found: error
+#
+#  Create_Windows_Installer:
+#    needs: [Create_Release]
+#    if: ${{ needs.Create_Release.outputs.run_windows == 'true' }}
+#    runs-on: windows-latest
+#    steps:
+#    - name: Checkout code
+#      uses: actions/checkout@v4
+#      with:
+#        ref: ${{ inputs.commitish_to_release }}
+#
+#    - name: Get artifact name
+#      id: get_artifact
+#      shell: bash -el {0}
+#      run: |
+#        ARCH=$(python -c "import platform; arch=platform.machine().lower(); print('x64' if arch == 'x86_64' else arch)")
+#        KERNEL=$(python -c "import platform; print(platform.system().lower())")
+#        
+#        BUILD_NAME=${{ inputs.package_name }}-${{ needs.Create_Release.outputs.new_version }}-${KERNEL}-${ARCH}
+#        echo "BUILD_NAME=$BUILD_NAME" >> $GITHUB_ENV
+#        
+#        ARTIFACT_NAME=${BUILD_NAME}.exe
+#        echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
+#        echo got ARTIFACT_NAME=$ARTIFACT_NAME
+#
+#    - name: Check if artifact exists
+#      shell: bash -el {0}
+#      env:
+#        GH_TOKEN: ${{ github.token }}
+#      run: |
+#        json_response=$(gh api \
+#          --method GET \
+#          -H "Accept: application/vnd.github+json" \
+#          -H "X-GitHub-Api-Version: 2022-11-28" \
+#          /repos/${{ github.repository }}/releases/${{ needs.Create_Release.outputs.release_id }}/assets)
+#
+#        echo $json_response
+#
+#        if echo "$json_response" | jq -e '.[] | select(.name == "${{steps.get_artifact.outputs.ARTIFACT_NAME}}")' > /dev/null; then
+#            echo "Artifact ${{steps.get_artifact.outputs.ARTIFACT_NAME}} already exists in release ${{ needs.Create_Release.outputs.release_id }}"
+#            echo This might be okay if you are re-running the workflow
+#            exit 1
+#        fi
+#
+#    - name: Install conda
+#      uses: conda-incubator/setup-miniconda@v3
+#      with:
+#        miniconda-version: "latest"
+#        auto-update-conda: true
+#        activate-environment: alphax_release
+#        python-version: "${{ inputs.python_version }}"
+#
+#    - name: Conda info
+#      shell: bash -el {0}
+#      run: |
+#        conda info
+#
+#    - name: Install pyinstaller 6.10.0 and build 1.2.1
+#      shell: bash -el {0}
+#      run: |
+#        pip install pefile==2023.2.7  # TODO: 2024.8.26 is super-slow on the 'binary vs. data reclassification' step, cf. https://github.com/erocarrera/pefile/issues/420
+#        pip install pyinstaller==6.10.0 build==1.2.1
+#        pip freeze
+#
+#    - name: Build installer
+#      shell: powershell
+#      run: |
+#        release/windows/build_installer_windows.ps1
+#        pip freeze
+#        ls *
+#        ls dist*/*
+#
+#    - name: Test app
+#      if: ${{ inputs.test_app }}
+#      shell: bash -el {0}
+#      # TODO this is not unified yet between peptdeep & alphadia
+#      run: |
+#        EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}/${{ inputs.package_name }}.exe
+#        COMMAND="--version"
+#
+#        if [ ! -e ${EXECUTABLE} ]; then
+#          EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui.exe
+#          COMMAND="--help"
+#        fi
+#
+#        echo calling ${EXECUTABLE} ${COMMAND}
+#        eval ${EXECUTABLE} ${COMMAND}
+#
+#    # Build GUI
+#    - name: Setup Node.js
+#      if: ${{ inputs.build_nodejs_ui }}
+#      uses: actions/setup-node@v4
+#
+#    - name: Build Node.js GUI
+#      if: ${{ inputs.build_nodejs_ui }}
+#      shell: powershell
+#      run: |
+#        release/windows/build_gui_windows.ps1
+#
+#    - name: Build package
+#      id: build_package
+#      shell: powershell
+#      continue-on-error: true
+#      run: |
+#        release/windows/build_package_windows.ps1
+#        ls *
+#        ls dist*/*
+#
+#    - name: Test package
+#      id: test_package
+#      shell: bash -el {0}
+#      run: |
+#        ./${{steps.get_artifact.outputs.ARTIFACT_NAME}} //verysilent //SUPPRESSMSGBOXES //log=log.txt //noicons //tasks= //portable=1
+#        cat log.txt
+#
+#    - name: Upload installer
+#      env:
+#        GH_TOKEN: ${{ github.token }}
+#        GH_REPO: ${{ github.repository }}
+#      run: gh release upload ${{ needs.Create_Release.outputs.release_tag }} ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+#
+#    # Fallback upload to be able to manually debug the artifact
+#    - name: Fallback upload installer as job asset
+#      if: ${{ failure() && steps.test_package.conclusion == 'failure' }}
+#      uses: actions/upload-artifact@v4
+#      with:
+#        name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+#        path: ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+#        if-no-files-found: error
