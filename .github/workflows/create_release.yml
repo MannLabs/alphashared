@@ -117,7 +117,7 @@ jobs:
   Create_Linux_Installer:
     needs: [ Create_Release ]
     if: ${{ needs.Create_Release.outputs.run_linux == 'true' }}
-    uses: ./.github/workflows/_create-installer.yml
+    uses: ./.github/workflows/_create_installer.yml
     with:
       package_name: ${{ inputs.package_name }}
       new_version: ${{ needs.Create_Release.outputs.new_version }}
@@ -141,7 +141,7 @@ jobs:
           - macos-13
         exclude:
           - runner: ${{ inputs.skip_macos_arm64_build && 'macos-latest-xlarge' }}
-    uses: ./.github/workflows/_create-installer.yml
+    uses: ./.github/workflows/_create_installer.yml
     with:
       package_name: ${{ inputs.package_name }}
       new_version: ${{ needs.Create_Release.outputs.new_version }}
@@ -157,7 +157,7 @@ jobs:
   Create_Windows_Installer:
     needs: [Create_Release]
     if: ${{ needs.Create_Release.outputs.run_windows == 'true' }}
-    uses: ./.github/workflows/_create-installer.yml
+    uses: ./.github/workflows/_create_installer.yml
     with:
       package_name: ${{ inputs.package_name }}
       new_version: ${{ needs.Create_Release.outputs.new_version }}
