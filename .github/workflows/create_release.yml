@@ -401,6 +401,7 @@ jobs:
         echo got ARTIFACT_NAME=$ARTIFACT_NAME
 
     - name: Check if artifact exists
+      shell: bash -el {0}
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
