@@ -1,24 +1,11 @@
-name: Create Installer
+# Reusable workflow to create an artifact for a release
+name: Create Artifact
 
 on:
   workflow_call:
     inputs:
+      # these are just passed from the calling workflow, see docu there
       package_name:
-        type: string
-        required: true
-      new_version:
-        type: string
-        required: true
-      release_tag:
-        type: string
-        required: true
-      release_id:
-        type: string
-        required: true
-      os:
-        type: string
-        required: true
-      runner:
         type: string
         required: true
       python_version:
@@ -33,6 +20,28 @@ on:
       commitish_to_release:
         type: string
         required: true
+      # these are extracted by the calling workflow
+      new_version:
+        type: string
+        required: true
+        description: "The new version to release, e.g. 1.2.3"
+      release_tag:
+        type: string
+        required: true
+        description: "The new release tag to release, e.g. v1.2.3"
+      release_id:
+        type: string
+        required: true
+        description: "The github id of the release, e.g. 123456"
+      os:
+        type: string
+        required: true
+        description: "The operating system to build for, e.g. windows, macos, linux"
+      runner:
+        type: string
+        required: true
+        description: "The runner to use, e.g. ubuntu-latest, macos-latest-xlarge, windows-latest"
+
 
 jobs:
   create_artifact:
@@ -205,6 +214,7 @@ jobs:
         GH_REPO: ${{ github.repository }}
       run: gh release upload ${{ inputs.release_tag }} ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 
+    # Fallback upload to be able to manually debug the artifact
     - name: Fallback upload installer as job asset
       if: ${{ failure() && steps.test_package.conclusion == 'failure' }}
       uses: actions/upload-artifact@v4
