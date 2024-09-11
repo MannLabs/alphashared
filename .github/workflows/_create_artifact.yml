@@ -142,20 +142,34 @@ jobs:
       shell: bash -el {0}
       # TODO this is not unified yet between peptdeep & alphadia
       run: |
-        if [ "${{ inputs.os }}" == "windows" ]; then
-          EXECUTABLE="dist_pyinstaller/${{ inputs.package_name }}/${{ inputs.package_name }}.exe"
-        else
-          EXECUTABLE="dist_pyinstaller/${{ inputs.package_name }}/${{ inputs.package_name }}"
-        fi
-        COMMAND="--version"
-      
-        if [ ! -e ${EXECUTABLE} ]; then
-          if [ "${{ inputs.os }}" == "windows" ]; then
-            EXECUTABLE="dist_pyinstaller/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui.exe"
-          else
-            EXECUTABLE="dist_pyinstaller/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui"
+        if [ "${{ inputs.os }}" == "linux" ]; then
+          EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}/${{ inputs.package_name }}
+          COMMAND="--version"
+  
+          if [ ! -e ${EXECUTABLE} ]; then
+            EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui
+            COMMAND="--help"
           fi
-          COMMAND="--help"
+        fi
+        
+        if [ "${{ inputs.os }}" == "macos" ]; then
+          EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}/${{ inputs.package_name }}
+          COMMAND="--version"
+          
+          if [ ! -e ${EXECUTABLE} ]; then
+            EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui
+            COMMAND="--help"
+          fi
+        fi
+        
+        if [ "${{ inputs.os }}" == "windows" ]; then
+          EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}/${{ inputs.package_name }}.exe
+          COMMAND="--version"
+  
+          if [ ! -e ${EXECUTABLE} ]; then
+            EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui.exe
+            COMMAND="--help"
+          fi
         fi
       
         echo "calling ${EXECUTABLE} ${COMMAND}"
