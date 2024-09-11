@@ -37,6 +37,8 @@ on:
 jobs:
   create_installer:
     runs-on: ${{ inputs.runner }}
+    env:
+      OS: ${{ inputs.os }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -47,7 +49,7 @@ jobs:
       id: get_artifact
       shell: bash
       run: |
-        result=$(source .github/scripts/get_artifact_name.sh; get_artifact_name "${{ inputs.package_name }}" "${{ inputs.new_version }}" "${{ inputs.os }}")
+        result=$(source .github/scripts/get_artifact_name.sh; get_artifact_name "${{ inputs.package_name }}" "${{ inputs.new_version }}" "${{ env.OS }}")
         BUILD_NAME=$(echo $result | cut -d'|' -f1)
         ARTIFACT_NAME=$(echo $result | cut -d'|' -f2)
         
@@ -76,16 +78,16 @@ jobs:
     - name: Install dependencies
       shell: bash -el {0}
       run: |
-        if [ "${{ inputs.os }}" == "windows" ]; then
+        if [ "${{ env.OS }}" == "windows" ]; then
           pip install pefile==2023.2.7
         fi
         pip install pyinstaller==6.10.0 build==1.2.1
         pip freeze
 
     - name: Build installer
-      shell: ${{ inputs.os == 'windows' && 'powershell' || 'bash -el {0}' }}
+      shell: ${{ env.OS == 'windows' && 'powershell' || 'bash -el {0}' }}
       run: |
-        release/${{ inputs.os }}/build_installer_${{ inputs.os }}.${{ inputs.os == 'windows' && 'ps1' || 'sh' }}
+        release/${{ env.OS }}/build_installer_${{ env.OS }}.${{ env.OS == 'windows' && 'ps1' || 'sh' }}
         pip freeze
         ls *
         ls dist*/*
@@ -95,7 +97,7 @@ jobs:
       shell: bash -el {0}
       run: |
         source .github/scripts/test_app.sh
-        test_app "${{ inputs.package_name }}" "${{ inputs.os }}"
+        test_app "${{ inputs.package_name }}" "${{ env.OS }}"
 
     - name: Setup Node.js
       if: ${{ inputs.build_nodejs_ui }}
@@ -103,16 +105,16 @@ jobs:
 
     - name: Build Node.js GUI
       if: ${{ inputs.build_nodejs_ui }}
-      shell: ${{ inputs.os == 'windows' && 'powershell' || 'bash' }}
+      shell: ${{ env.OS == 'windows' && 'powershell' || 'bash' }}
       run: |
-        release/${{ inputs.os }}/build_gui_${{ inputs.os }}.${{ inputs.os == 'windows' && 'ps1' || 'sh' }}
+        release/${{ env.OS }}/build_gui_${{ env.OS }}.${{ env.OS == 'windows' && 'ps1' || 'sh' }}
 
     - name: Build package
       id: build_package
-      shell: ${{ inputs.os == 'windows' && 'powershell' || 'bash -el {0}' }}
+      shell: ${{ env.OS == 'windows' && 'powershell' || 'bash -el {0}' }}
       continue-on-error: true
       run: |
-        release/${{ inputs.os }}/build_package_${{ inputs.os }}.${{ inputs.os == 'windows' && 'ps1' || 'sh' }}
+        release/${{ env.OS }}/build_package_${{ env.OS }}.${{ env.OS == 'windows' && 'ps1' || 'sh' }}
         ls *
         ls dist*/*
 
@@ -121,7 +123,7 @@ jobs:
       shell: bash -el {0}
       run: |
         source .github/scripts/test_package.sh
-        test_package "${{ steps.get_artifact.outputs.ARTIFACT_NAME }}" "${{ inputs.os }}"
+        test_package "${{ steps.get_artifact.outputs.ARTIFACT_NAME }}" "${{ env.OS }}"
 
     - name: Upload installer
       env:
