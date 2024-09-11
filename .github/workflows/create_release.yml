@@ -49,7 +49,7 @@ jobs:
 
       - name: Get release tag
         id: get_release_tag
-        shell: bash -le {0}
+        shell: bash -el {0}
         # the DEBUG_RELEASE_WORKFLOW_SUFFIX repository variable can be set to get a unique tag in order to test the release workflow
         run: |
           CURRENT_VERSION=$(grep "__version__" ${{ inputs.package_name }}/__init__.py | cut -f3 -d ' ' | sed 's/"//g')
@@ -139,6 +139,7 @@ jobs:
         echo got ARTIFACT_NAME=$ARTIFACT_NAME
 
     - name: Check if artifact exists
+      shell: bash -el {0}
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
@@ -176,7 +177,7 @@ jobs:
         pip freeze
 
     - name: Build installer
-      shell: bash -l {0}
+      shell: bash -el {0}
       run: |
         release/linux/build_installer_linux.sh
         pip freeze
@@ -184,15 +185,15 @@ jobs:
         ls dist*/*
 
     - name: Test app
-      # TODO this is not unified yet between peptdeep & alphadia
       if: ${{ inputs.test_app }}
       shell: bash -el {0}
+      # TODO this is not unified yet between peptdeep & alphadia
       run: |
         EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}/${{ inputs.package_name }}
         COMMAND="--version"
 
         if [ ! -e ${EXECUTABLE} ]; then
-          EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}
+          EXECUTABLE=dist_pyinstaller/${{ inputs.package_name }}_gui/${{ inputs.package_name }}_gui
           COMMAND="--help"
         fi
         
@@ -212,7 +213,7 @@ jobs:
 
     - name: Build package
       id: build_package
-      shell: bash -l {0}
+      shell: bash -el {0}
       continue-on-error: true
       run: |
         release/linux/build_package_linux.sh
@@ -221,7 +222,7 @@ jobs:
 
     - name: Test package
       id: test_package
-      shell: bash -l {0}
+      shell: bash -el {0}
       run: |
         sudo dpkg -i ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
 
@@ -237,7 +238,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
-        path: dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+        path: ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
         if-no-files-found: error
 
   Create_MacOS_Installer:
@@ -275,6 +276,7 @@ jobs:
         echo got ARTIFACT_NAME=$ARTIFACT_NAME
 
     - name: Check if artifact exists
+      shell: bash -el {0}
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
@@ -347,9 +349,9 @@ jobs:
         ls *
 
     - name: Build package
-      continue-on-error: true
       id: build_package
       shell: bash -el {0}
+      continue-on-error: true
       run: |
         release/macos/build_package_macos.sh
         ls *
@@ -357,7 +359,7 @@ jobs:
 
     - name: Test package
       id: test_package
-      shell: bash -l {0}
+      shell: bash -el {0}
       run: |
         sudo installer -pkg ./${{steps.get_artifact.outputs.ARTIFACT_NAME}} -target /
 
@@ -373,7 +375,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
-        path: dist/${{steps.get_artifact.outputs.ARTIFACT_NAME}}
+        path: ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
         if-no-files-found: error
 
   Create_Windows_Installer:
@@ -441,7 +443,6 @@ jobs:
 
     - name: Build installer
       shell: powershell
-      continue-on-error: true
       run: |
         release/windows/build_installer_windows.ps1
         pip freeze
@@ -477,8 +478,8 @@ jobs:
 
     - name: Build package
       id: build_package
-      continue-on-error: true
       shell: powershell
+      continue-on-error: true
       run: |
         release/windows/build_package_windows.ps1
         ls *
@@ -486,7 +487,7 @@ jobs:
 
     - name: Test package
       id: test_package
-      shell: bash -l {0}
+      shell: bash -el {0}
       run: |
         ./${{steps.get_artifact.outputs.ARTIFACT_NAME}} //verysilent //SUPPRESSMSGBOXES //log=log.txt //noicons //tasks= //portable=1
         cat log.txt
