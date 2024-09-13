@@ -83,13 +83,13 @@ jobs:
           repository-url: https://test.pypi.org/legacy/
           user: __token__
           password: ${{ secrets.test_pypi_api_token }}
-      - name: Test Test-PyPI loose installation
+      - name: Test Test-PyPI loose installation # TODO reduce code duplication here
         shell: bash -le {0}
         run: |
           conda create -n pip_loose_test python=${{ env.PYTHON_VERSION }} -y
           conda activate pip_loose_test
           
-          command="pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple '${{ inputs.package_name }}==${{ steps.get_current_version.outputs.new_version }}'"
+          command="pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple \"${{ inputs.package_name }}==${{ steps.get_current_version.outputs.new_version }}\""
          
           # try 3 times to install the package to cover delays on pypi side
           max_attempts=3
@@ -110,7 +110,18 @@ jobs:
         run: |
           conda create -n pip_stable_test python=${{ env.PYTHON_VERSION }} -y
           conda activate pip_stable_test
-          pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple "${{ inputs.package_name }}[stable]==${{ steps.get_current_version.outputs.new_version }}"
+          command="pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple \"${{ inputs.package_name }}[stable]==${{ steps.get_current_version.outputs.new_version }}\""
+                   
+          # try 3 times to install the package to cover delays on pypi side
+          max_attempts=3
+          attempt=1
+          while [ $attempt -le $max_attempts ]; do
+              echo "Attempt $attempt of $max_attempts"
+              if ! $command; then
+                  attempt=$((attempt + 1))
+              fi
+          done
+          
           ${{ inputs.package_name }} -v
           conda deactivate
           conda env remove --name pip_stable_test -y
@@ -146,7 +157,7 @@ jobs:
         run: |
           conda create -n pip_stable python=${{ env.PYTHON_VERSION }} -y
           conda activate pip_stable
-          command="pip install '${{ inputs.package_name }}[stable]==${{ needs.Create_PyPi_Release.outputs.new_version }}'"
+          command="pip install \"${{ inputs.package_name }}[stable]==${{ needs.Create_PyPi_Release.outputs.new_version }}\""
           
           # try 3 times to install the package to cover delays on pypi side
           max_attempts=3
