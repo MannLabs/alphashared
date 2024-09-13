@@ -96,7 +96,9 @@ jobs:
           attempt=1
           while [ $attempt -le $max_attempts ]; do
               echo "Attempt $attempt of $max_attempts"
-              if ! $command; then
+              if $command; then
+                  break
+              else  
                   attempt=$((attempt + 1))
               fi
           done
@@ -117,7 +119,9 @@ jobs:
           attempt=1
           while [ $attempt -le $max_attempts ]; do
               echo "Attempt $attempt of $max_attempts"
-              if ! $command; then
+              if $command; then
+                  break
+              else  
                   attempt=$((attempt + 1))
               fi
           done
@@ -165,6 +169,8 @@ jobs:
           while [ $attempt -le $max_attempts ]; do
               echo "Attempt $attempt of $max_attempts"
               if ! $command; then
+                  break
+              else  
                   attempt=$((attempt + 1))
               fi
           done
