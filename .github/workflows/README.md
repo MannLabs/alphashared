@@ -150,3 +150,12 @@ If the change is non-breaking, you can overwrite an existing tag:
 TAG=v1
 git push --delete origin $TAG; git tag $TAG -f ; git push origin --tags
 ```
+
+### Test runs
+In order to test the release pipeline, you need to use a 'fresh' release tag, otherwise the pipeline will fail.
+As this tag is derived from the code version, an additional step is required to circumvent this:
+Set the `DEBUG_RELEASE_WORKFLOW_SUFFIX` variable to some value (e.g. `test1`) and it will
+be appended to the release tag thus making it unique.
+Don't forget to remove this variable after your tests finished.
+
+Repository variables can be set in the GiHub Repository "Settings" ->  "Secrets and Variables" ->  "Actions" -> "Variables" Tab -> "Repository variables"
