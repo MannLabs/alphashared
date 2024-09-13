@@ -78,6 +78,7 @@ jobs:
           conda clean --all -y
       - name: Publish distribution to Test-PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        continue-on-error: true # this is to cover cases where the upload has already been done but some downstream steps failed
         with:
           repository-url: https://test.pypi.org/legacy/
           user: __token__
@@ -87,7 +88,19 @@ jobs:
         run: |
           conda create -n pip_loose_test python=${{ env.PYTHON_VERSION }} -y
           conda activate pip_loose_test
-          pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple "${{ inputs.package_name }}==${{ steps.get_current_version.outputs.new_version }}"
+          
+          command="pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple '${{ inputs.package_name }}==${{ steps.get_current_version.outputs.new_version }}'"
+         
+          # try 3 times to install the package to cover delays on pypi side
+          max_attempts=3
+          attempt=1
+          while [ $attempt -le $max_attempts ]; do
+              echo "Attempt $attempt of $max_attempts"
+              if ! $command; then
+                  attempt=$((attempt + 1))
+              fi
+          done
+
           ${{ inputs.package_name }} -v
           conda deactivate
           conda env remove --name pip_stable_test -y
@@ -133,7 +146,18 @@ jobs:
         run: |
           conda create -n pip_stable python=${{ env.PYTHON_VERSION }} -y
           conda activate pip_stable
-          pip install "${{ inputs.package_name }}[stable]==${{ needs.Create_PyPi_Release.outputs.new_version }}"
+          command="pip install '${{ inputs.package_name }}[stable]==${{ needs.Create_PyPi_Release.outputs.new_version }}'"
+          
+          # try 3 times to install the package to cover delays on pypi side
+          max_attempts=3
+          attempt=1
+          while [ $attempt -le $max_attempts ]; do
+              echo "Attempt $attempt of $max_attempts"
+              if ! $command; then
+                  attempt=$((attempt + 1))
+              fi
+          done
+                    
           ${{ inputs.package_name }} -v
           conda deactivate
           conda env remove --name pip_stable -y
