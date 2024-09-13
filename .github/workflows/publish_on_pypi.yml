@@ -97,7 +97,7 @@ jobs:
           while [ $attempt -le $max_attempts ]; do
               echo "Attempt $attempt of $max_attempts"
               eval $command
-              if [ $? == 0 ] then
+              if [ $? == 0 ]; then
                   break
               else  
                   attempt=$((attempt + 1))
@@ -121,7 +121,7 @@ jobs:
           while [ $attempt -le $max_attempts ]; do
               echo "Attempt $attempt of $max_attempts"
               eval $command
-              if [ $? == 0 ] then
+              if [ $? == 0 ]; then
                   break
               else  
                   attempt=$((attempt + 1))
@@ -171,7 +171,7 @@ jobs:
           while [ $attempt -le $max_attempts ]; do
               echo "Attempt $attempt of $max_attempts"
               eval $command
-              if [ $? == 0 ] then
+              if [ $? == 0 ]; then
                   break
               else  
                   attempt=$((attempt + 1))
