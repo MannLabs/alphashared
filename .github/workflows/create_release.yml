@@ -1,200 +1,171 @@
+name: Create Release
+
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
-      commit_to_release:
-        description: 'Enter commit hash to release (example: ef4037cb571f99cb4919b520fde7174972aae473)'
+      package_name:
+        description: 'Name of package, e.g. "alphadia", "peptdeep", ..'
+        type: string
         required: true
-      tag_to_release:
-        description: 'Enter tag to release (example: v1.5.5)'
-        required: true
+      # optional parameters and switches
+      commitish_to_release:
+        type: string
+        description: 'Enter commit hash or branch to release (default: main).'
+        default: "main"
+      build_nodejs_ui:
+        description: 'Whether or not a nodejs UI needs to be built'
+        type: boolean
+        default: false
+      test_app:
+        description: 'Whether or not it should be tested that the executable is valid'
+        type: boolean
+        default: false
+      python_version:
+        description: "Python version to be used"
+        type: string
+        default: "3.11"
+      skip_macos_arm64_build:
+        description: 'Whether or not to skip the build for MacOS ARM64'
+        type: boolean
+        default: false
 
-
-name: Create Draft Release
 
 jobs:
-  Get_New_Version:
+  Create_Release:
     runs-on: ubuntu-latest
     outputs:
-      new_version: ${{ steps.check_release_tag.outputs.new_version }}
+      new_version: ${{ steps.get_release_tag.outputs.new_version }}
+      release_tag: ${{ steps.get_release_tag.outputs.release_tag }}
+      release_id: ${{ steps.create_release.outputs.id }}
+      run_linux: ${{ steps.get_os.outputs.run_linux }}
+      run_macos: ${{ steps.get_os.outputs.run_macos }}
+      run_windows: ${{ steps.get_os.outputs.run_windows }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.commit_to_release }}
+          ref: ${{ inputs.commitish_to_release }}
+          fetch-depth: 0  # required to be able to check for existing tags
 
-      - name: Check release tag
-        id: check_release_tag
-        shell: bash -le {0}
+      - name: Get release tag
+        id: get_release_tag
+        shell: bash -el {0}
+        # the DEBUG_RELEASE_WORKFLOW_SUFFIX repository variable can be set to get a unique tag in order to test the release workflow
         run: |
-          CURRENT_VERSION=$(./misc/get_current_version.sh)
-          if [ "v${CURRENT_VERSION}" != "${{ inputs.tag_to_release }}" ]; then
-            echo Code version "v${CURRENT_VERSION}" does not match the tag to release ${{ inputs.tag_to_release }}
+          CURRENT_VERSION=$(grep "__version__" ${{ inputs.package_name }}/__init__.py | cut -f3 -d ' ' | sed 's/"//g')
+          if [ "$CURRENT_VERSION" == "" ]; then
+            echo "Could not determine version from ${{ inputs.package_name }}/__init__.py"
             exit 1
           fi
+          
+          RELEASE_TAG=v${CURRENT_VERSION}${{vars.DEBUG_RELEASE_WORKFLOW_SUFFIX}}
           echo "new_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-
-      - uses: mukunku/tag-exists-action@v1.6.0
-        id: check-tag
-        with:
-          tag: ${{ inputs.tag_to_release }}
+          echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
 
       - name: Check if tag already exists
         run: |
-          echo "Tag already exists!"
-          exit 1
-        if: steps.check-tag.outputs.exists == 'true'
+          TAG="${{ steps.get_release_tag.outputs.release_tag }}"
+          if git show-ref --tags --verify --quiet "refs/tags/${TAG}"; then
+            echo "Tag ${TAG} exists. Did you forget to bump the version?"
+            exit 1
+          fi
 
+      - name: Get supported OS
+        id: get_os
+        run: |
+          if [[ -d 'release/macos' ]]; then
+            echo "run_macos=true" >> $GITHUB_OUTPUT
+          else
+            echo "run_macos=false" >> $GITHUB_OUTPUT
+          fi
+          if [[ -d 'release/linux' ]]; then
+            echo "run_linux=true" >> $GITHUB_OUTPUT
+          else
+            echo "run_linux=false" >> $GITHUB_OUTPUT
+          fi
+          if [[ -d 'release/windows' ]]; then
+            echo "run_windows=true" >> $GITHUB_OUTPUT
+          else
+            echo "run_windows=false" >> $GITHUB_OUTPUT
+          fi
 
-  Create_Draft_Release:
-    runs-on: ubuntu-latest
-    needs: Get_New_Version
-    outputs:
-      upload_url: ${{ steps.draft_release.outputs.upload_url }}
-    steps:
-      - name: Draft Release
-        id: draft_release
-        # TODO this action is deprecated, replace with https://github.com/ncipollo/release-action
-        # cf. https://github.com/actions/create-release/issues/119#issuecomment-783010321
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create release
+        id: create_release
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ inputs.tag_to_release }}
-          release_name: ${{ inputs.tag_to_release }}
-          draft: true
-          prerelease: false
+          name: ${{ steps.get_release_tag.outputs.release_tag }}
+          tag_name: ${{ steps.get_release_tag.outputs.release_tag }}
+          target_commitish: ${{ inputs.commitish_to_release }}
+          draft: True
+
+      # for some reason, the above step started failing once
+#      - name: Create release (alternative)
+#        if: ${{ steps.create_release.conclusion == 'failure' }}
+#        env:
+#          GH_TOKEN: ${{ github.token }}
+#        run: |
+#          gh api \
+#            --method POST \
+#            -H "Accept: application/vnd.github+json" \
+#            -H "X-GitHub-Api-Version: 2022-11-28" \
+#            /repos/${{ github.repository }}/releases \
+#            -f "tag_name=${{ steps.get_release_tag.outputs.release_tag }}" \
+#            -f "name=${{ steps.get_release_tag.outputs.release_tag }}" \
+#            -f "target_commitish=${{ inputs.commitish_to_release }}" \
+#            -F "draft=true"
+
+  Create_Linux_Installer:
+    needs: [ Create_Release ]
+    if: ${{ needs.Create_Release.outputs.run_linux == 'true' }}
+    uses: ./.github/workflows/_create_artifact.yml
+    with:
+      package_name: ${{ inputs.package_name }}
+      new_version: ${{ needs.Create_Release.outputs.new_version }}
+      release_tag: ${{ needs.Create_Release.outputs.release_tag }}
+      release_id: ${{ needs.Create_Release.outputs.release_id }}
+      os: linux
+      runner: ubuntu-latest
+      python_version: ${{ inputs.python_version }}
+      build_nodejs_ui: ${{ inputs.build_nodejs_ui }}
+      test_app: ${{ inputs.test_app }}
+      commitish_to_release: ${{ inputs.commitish_to_release }}
 
   Create_MacOS_Installer:
-    needs: [Create_Draft_Release, Get_New_Version]
-    env:
-        ARCH: x64
-        EAGER_IMPORT: true
-    runs-on: macos-latest-xlarge
-    steps:
-    - name : Checkout code
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ inputs.commit_to_release }}
-
-    # Build backend
-    - name: Install conda
-      uses: conda-incubator/setup-miniconda@v3
-      with:
-        miniconda-version: "latest"
-        auto-update-conda: true
-        activate-environment: alpha
-        python-version: "3.11"
-
-    - name: Check arm64
-      shell: bash -el {0}
-      run: |
-        python -c "import platform; print(platform.machine())"
-
-    - name: Build backend
-      shell: bash -el {0}
-      run: |
-        release/macos/build_backend_macos.sh
-
-    - name: Test backend
-      shell: bash -el {0}
-      run: |
-        dist/alphadia/alphadia --version
-
-    # Build GUI
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-
-    - name: Build GUI
-      run: |
-        release/macos/build_gui_macos.sh
-
-    # combine backend and GUI
-    - name: Build package
-      shell: bash -el {0}
-      run: |
-        release/macos/build_pkg_macos.sh
-
-    - name: List output files
-      run: |
-        ls dist
-
-    # Upload the package
-    - name: Upload a Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-          upload_url: ${{ needs.Create_Draft_Release.outputs.upload_url }}
-          asset_path: dist/alphadia-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ env.ARCH }}.pkg
-          asset_name: alphadia-${{ needs.Get_New_Version.outputs.new_version }}-darwin-${{ env.ARCH }}.pkg
-          asset_content_type: application/zip
+    needs: [Create_Release]
+    if: ${{ needs.Create_Release.outputs.run_macos == 'true' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner:
+          - macos-latest-xlarge
+          - macos-13
+        exclude:
+          - runner: ${{ inputs.skip_macos_arm64_build && 'macos-latest-xlarge' }}
+    uses: ./.github/workflows/_create_artifact.yml
+    with:
+      package_name: ${{ inputs.package_name }}
+      new_version: ${{ needs.Create_Release.outputs.new_version }}
+      release_tag: ${{ needs.Create_Release.outputs.release_tag }}
+      release_id: ${{ needs.Create_Release.outputs.release_id }}
+      os: macos
+      runner: ${{ matrix.runner }}
+      python_version: ${{ inputs.python_version }}
+      build_nodejs_ui: ${{ inputs.build_nodejs_ui }}
+      test_app: ${{ inputs.test_app }}
+      commitish_to_release: ${{ inputs.commitish_to_release }}
 
   Create_Windows_Installer:
-    needs: [Create_Draft_Release, Get_New_Version]
-    env:
-        ARCH: x64
-    runs-on: windows-latest
-    steps:
-    - name : Checkout code
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ inputs.commit_to_release }}
-
-    # Build backend
-    - name: Install conda
-      uses: conda-incubator/setup-miniconda@v3
-      with:
-        miniconda-version: "latest"
-        auto-update-conda: true
-        activate-environment: alpha
-        python-version: "3.11"
-
-    - name: Build Backend
-      shell: powershell
-      run: |
-        release/windows/build_backend.ps1
-
-    - name: Test Backend
-      shell: powershell
-      run: |
-        dist\alphadia\alphadia.exe --version
-
-    # Build GUI
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-
-    - name: Build GUI
-      shell: powershell
-      run: |
-        release/windows/build_gui.ps1
-
-    # combine backend and GUI
-    - name: Check if Innosetup is installed
-      shell: powershell
-      run: |
-        if (-not (Test-Path "C:\Program Files (x86)\Inno Setup 6\ISCC.exe")) {
-          Write-Host "Inno Setup is not installed"
-          exit 1
-        }
-        else {
-          Write-Host "Inno Setup is installed"
-        }
-
-    - name: Build Installer
-      shell: powershell
-      run: |
-        release/windows/build_installer.ps1
-
-    - name: List output files
-      run: |
-        ls dist
-
-    - name: Upload a Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-          upload_url: ${{ needs.Create_Draft_Release.outputs.upload_url }}
-          asset_path: dist/alphadia-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe
-          asset_name: alphadia-${{ needs.Get_New_Version.outputs.new_version }}-win-${{ env.ARCH }}.exe
-          asset_content_type: application/zip
+    needs: [Create_Release]
+    if: ${{ needs.Create_Release.outputs.run_windows == 'true' }}
+    uses: ./.github/workflows/_create_artifact.yml
+    with:
+      package_name: ${{ inputs.package_name }}
+      new_version: ${{ needs.Create_Release.outputs.new_version }}
+      release_tag: ${{ needs.Create_Release.outputs.release_tag }}
+      release_id: ${{ needs.Create_Release.outputs.release_id }}
+      os: windows
+      runner: windows-latest
+      python_version: ${{ inputs.python_version }}
+      build_nodejs_ui: ${{ inputs.build_nodejs_ui }}
+      test_app: ${{ inputs.test_app }}
+      commitish_to_release: ${{ inputs.commitish_to_release }}
