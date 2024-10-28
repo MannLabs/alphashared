@@ -127,6 +127,7 @@ jobs:
     name: Test_PyPi_version_on_${{ matrix.os }}
     needs: Create_PyPi_Release
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macOS-latest, windows-latest]
     runs-on: ${{ matrix.os }}
