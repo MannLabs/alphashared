@@ -67,6 +67,7 @@ jobs:
           TAG="${{ steps.get_release_tag.outputs.release_tag }}"
           if git show-ref --tags --verify --quiet "refs/tags/${TAG}"; then
             echo "Tag ${TAG} exists. Did you forget to bump the version?"
+            echo If you want to test or debug the release workflow, use the DEBUG_RELEASE_WORKFLOW_SUFFIX repo variable.
             exit 1
           fi
 
