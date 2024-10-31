@@ -93,13 +93,15 @@ jobs:
           # try 3 times to install the package to cover delays on pypi side
           max_attempts=3
           attempt=1
+          failed=0
           while [ $attempt -le $max_attempts ]; do
               echo "Attempt $attempt of $max_attempts"
-              eval $command
-              if [ $? == 0 ]; then
+              eval $command || failed=1
+              if [  "$failed" == "0" ]; then  # cannot check for $? == 0 here because of github specifics
                   break
               else  
                   attempt=$((attempt + 1))
+                  failed=0
               fi
           done
           
@@ -155,13 +157,15 @@ jobs:
           # try 3 times to install the package to cover delays on pypi side
           max_attempts=3
           attempt=1
+          failed=0
           while [ $attempt -le $max_attempts ]; do
               echo "Attempt $attempt of $max_attempts"
-              eval $command
-              if [ $? == 0 ]; then
+              eval $command || failed=1
+              if [  "$failed" == "0" ]; then  # cannot check for $? == 0 here because of github specifics
                   break
               else  
                   attempt=$((attempt + 1))
+                  failed=0
               fi
           done
                     
