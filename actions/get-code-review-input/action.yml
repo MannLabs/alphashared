@@ -57,7 +57,6 @@ runs:
       path: ${{ github.workspace }}/patches.txt
       if-no-files-found: error
 
-  # Dump repository contents
   - uses: actions/checkout@v4
     with:
       ref: ${{ github.event.pull_request.base.ref }}
@@ -77,16 +76,20 @@ runs:
       path: ${{ github.workspace }}/changed_files.txt
       if-no-files-found: warn
 
-  # upload artifacts
   - name: Dump whole codebase
     shell: bash
     continue-on-error: true  # although the script seems to return properly, in some cases we get `Error: Process completed with exit code 127.`
     run: |
-      ALL_FILES=$(find ./ -name "*" -type f | grep -v "\.git" | tr "\n" ";")
+      ALL_FILES=$(find ./ -name "*" -type f | grep -v "\.git" | grep -v "test_" | tr "\n" ";")
       echo ALL_FILES: $ALL_FILES
       python ${{ github.action_path }}/files_to_string.py $ALL_FILES ${{ github.workspace }}/all_files.txt  ${{ inputs.EXCLUDED_EXTENSIONS }}
+      
+      TEST_FILES=$(find ./ -name "test_*" -type f | grep -v "\.git" | tr "\n" ";")
+      echo TEST_FILES: $TEST_FILES
+      python ${{ github.action_path }}/files_to_string.py $TEST_FILES ${{ github.workspace }}/test_files.txt  ${{ inputs.EXCLUDED_EXTENSIONS }}
+      
       head ${{ github.workspace }}/all_files.txt
-      tail ${{ github.workspace }}/all_files.txt
+      head ${{ github.workspace }}/test_files.txt
 
   - uses: actions/upload-artifact@v4
     with:
@@ -94,3 +97,22 @@ runs:
       path: ${{ github.workspace }}/all_files.txt
       if-no-files-found: warn
 
+  - uses: actions/upload-artifact@v4
+    with:
+      name: test_files
+      path: ${{ github.workspace }}/test_files.txt
+      if-no-files-found: warn
+
+
+  - name: Dump directory structure
+    shell: bash
+    continue-on-error: true  # although the script seems to return properly, in some cases we get `Error: Process completed with exit code 127.`
+    run: |
+      apt-get install tree
+      tree -L 3 -a -I ".git" > ${{ github.workspace }}/directory_structure.txt
+
+  - uses: actions/upload-artifact@v4
+    with:
+      name: directory_structure
+      path: ${{ github.workspace }}/directory_structure.txt
+      if-no-files-found: warn
