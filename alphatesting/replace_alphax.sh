@@ -23,7 +23,7 @@ fi
 echo using $REQUIREMENTS_FILE
 
 # add any alphaX packages that others depend on here
-for a in alphabase alphatims alpharaw alphapeptdeep alphatims; do
+for a in alphabase alphatims alpharaw alphapeptdeep alphatims alphaviz; do
   sed -i "s/$a/### $a/" $REQUIREMENTS_FILE
 done
 
