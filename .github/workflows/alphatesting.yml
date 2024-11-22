@@ -54,8 +54,9 @@ jobs:
         tags: alphax:latest
         context: ./alphatesting
         outputs: type=docker,dest=/tmp/alphax.tar
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+#        cache-from: type=gha
+#        cache-to: type=gha,mode=max
+        no-cache: True
         build-args: |
           ALPHABASE_REF=${{ inputs.alphabase_ref }}
           ALPHATIMS_REF=${{ inputs.alphatims_ref }}
