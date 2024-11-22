@@ -1,0 +1,161 @@
+on:
+  workflow_dispatch:
+    inputs:
+      alphabase_ref:
+        description: "alphabase version: version of alphabase to use. Can be a commit hash, branch name or 'latest' for the latest release."
+        default: latest
+      alphatims_ref:
+        description: "alphatims version"
+        default: latest
+      alpharaw_ref:
+        description: "alpharaw version"
+        default: development  # TODO: change to latest once properly tagged release is out
+      alphapeptdeep_ref:
+        description: "alphapeptdeep version"
+        default: latest
+      directlfq_ref:
+        description: "alphatims version"
+        default: latest
+      alphadia_ref:
+        description: "alphadia version"
+        default: latest
+
+jobs:
+  build_image:
+    runs-on: AlphaDIA
+
+    steps:
+    - name: Print input parameters
+      run: echo "${{ toJSON(github.event.inputs) }}"
+
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+#    # avoid "no space left on device" error
+#    # https://github.com/actions/runner-images/issues/2840#issuecomment-790492173
+#    - name: cleanup
+#      run: |
+#        sudo rm -rf /usr/share/dotnet
+#        sudo rm -rf /opt/ghc
+#        sudo rm -rf "/usr/local/share/boost"
+#        sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+    - name: Build and export
+      uses: docker/build-push-action@v6
+      with:
+        tags: alphax:latest
+        context: ./alphatesting
+        outputs: type=docker,dest=/tmp/alphax.tar
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          ALPHABASE_REF=${{ inputs.alphabase_ref }}
+          ALPHATIMS_REF=${{ inputs.alphatims_ref }}
+          ALPHARAW_REF=${{ inputs.alpharaw_ref }}
+          ALPHAPEPTDEEP_REF=${{ inputs.alphapeptdeep_ref }}
+          DIRECTLFQ_REF=${{ inputs.directlfq_ref }}
+          ALPHADIA_REF=${{ inputs.alphadia_ref }}
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: alphax
+        path: /tmp/alphax.tar
+
+
+  alphabase_tests:
+    runs-on: AlphaDIA
+    needs: [ build_image ]
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: alphax
+        path: /tmp
+    - name: Load image
+      run: |
+        docker load --input /tmp/alphax.tar
+        docker image ls -a
+    - name: Print pip freeze
+      run: |
+        docker run alphax bash -c "pip freeze"
+    - name: alphabase tests
+      id: alphabase_tests
+      run: |
+        docker run alphax bash -c "cd alphabase/tests && chmod +x run_tests.sh && ./run_tests.sh"
+
+  alpharaw_tests:
+    runs-on: AlphaDIA
+    needs: [ build_image ]
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: alphax
+        path: /tmp
+    - name: Load image
+      run: |
+        docker load --input /tmp/alphax.tar
+        docker image ls -a
+    - name: Print pip freeze
+      run: |
+        docker run alphax bash -c "pip freeze"
+    - name: alpharaw tests
+      id: alpharaw_tests
+      run: |
+        docker run alphax bash -c "cd alpharaw/tests && ls && python -m download_test_data && chmod +x run_tests.sh && ./run_tests.sh"
+
+  alphapeptdeep_tests:
+    runs-on: AlphaDIA
+    needs: [ build_image ]
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: alphax
+        path: /tmp
+    - name: Load image
+      run: |
+        docker load --input /tmp/alphax.tar
+        docker image ls -a
+    - name: Print pip freeze
+      run: |
+        docker run alphax bash -c "pip freeze"
+    - name: alphapeptdeep tests
+      id: alphapeptdeep_tests
+      run: |
+        docker run alphax bash -c "cd alphapeptdeep/tests && chmod +x run_tests.sh && ./run_tests.sh"
+
+  alphadia_tests:
+    runs-on: AlphaDIA
+    needs: [ build_image ]
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: alphax
+        path: /tmp
+    - name: Load image
+      run: |
+        docker load --input /tmp/alphax.tar
+        docker image ls -a
+    - name: Print pip freeze
+      run: |
+        docker run alphax bash -c "pip freeze"
+    - name: alphadia unit tests ('not slow')
+      id: alphadia_unit_tests
+      run: |
+        docker run alphax bash -c "cd alphadia/tests &&  python -m pytest -k 'not slow'"
+    - name: alphadia unit tests ('slow')
+      id: alphadia_slow_unit_tests
+      run: |
+        docker run alphax bash -c "cd alphadia/tests &&  python -m pytest -k 'slow'"
+    - name: alphadia e2e test 'basic'
+      id: alphadia_e2e_tests
+      run: |
+        TEST_CASE_NAME=basic
+        docker run alphax bash -c "cd alphadia/tests/e2e_tests \
+          &&  python prepare_test_data.py $TEST_CASE_NAME \
+          &&  alphadia --config $TEST_CASE_NAME/config.yaml"    
