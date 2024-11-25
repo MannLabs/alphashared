@@ -133,7 +133,7 @@ jobs:
     - name: alphaviz tests
       id: alphaviz_tests
       run: |
-        docker run alphax bash -c "cd alphaviz/tests && ls && python -m pytest test_io.py && python -m pytest test_preprocessing.py
+        docker run alphax bash -c "cd alphaviz/tests && ls && python -m pytest test_io.py && python -m pytest test_preprocessing.py"
 
 
   alphapeptdeep_tests:
