@@ -1,3 +1,5 @@
+name: AlphaX cross-projects tests
+
 on:
   workflow_dispatch:
     inputs:
@@ -10,6 +12,9 @@ on:
       alpharaw_ref:
         description: "alpharaw version"
         default: development  # TODO: change to latest once properly tagged release is out
+      alphaviz_ref:
+        description: "alphaviz version"
+        default: latest
       alphapeptdeep_ref:
         description: "alphapeptdeep version"
         default: latest
@@ -49,12 +54,14 @@ jobs:
         tags: alphax:latest
         context: ./alphatesting
         outputs: type=docker,dest=/tmp/alphax.tar
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+#        cache-from: type=gha
+#        cache-to: type=gha,mode=max
+        no-cache: True
         build-args: |
           ALPHABASE_REF=${{ inputs.alphabase_ref }}
           ALPHATIMS_REF=${{ inputs.alphatims_ref }}
           ALPHARAW_REF=${{ inputs.alpharaw_ref }}
+          ALPHAVIZ_REF=${{ inputs.alphaviz_ref }}
           ALPHAPEPTDEEP_REF=${{ inputs.alphapeptdeep_ref }}
           DIRECTLFQ_REF=${{ inputs.directlfq_ref }}
           ALPHADIA_REF=${{ inputs.alphadia_ref }}
@@ -106,6 +113,28 @@ jobs:
       id: alpharaw_tests
       run: |
         docker run alphax bash -c "cd alpharaw/tests && ls && python -m download_test_data && chmod +x run_tests.sh && ./run_tests.sh"
+
+  alphaviz_tests:
+    runs-on: AlphaDIA
+    needs: [ build_image ]
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: alphax
+        path: /tmp
+    - name: Load image
+      run: |
+        docker load --input /tmp/alphax.tar
+        docker image ls -a
+    - name: Print pip freeze
+      run: |
+        docker run alphax bash -c "pip freeze"
+    - name: alphaviz tests
+      id: alphaviz_tests
+      run: |
+        docker run alphax bash -c "cd alphaviz/tests && ls && python -m pytest test_io.py && python -m pytest test_preprocessing.py"
+
 
   alphapeptdeep_tests:
     runs-on: AlphaDIA

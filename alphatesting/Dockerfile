@@ -53,6 +53,19 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 
 ############################################################################
+ARG ALPHAVIZ_REF="development"
+RUN git clone https://github.com/MannLabs/alphaviz.git \
+    && cd alphaviz \
+    && git checkout $(../get_ref.sh $ALPHAVIZ_REF) \
+    && ../replace_alphax.sh \
+    && git status
+
+RUN --mount=type=cache,target=/root/.cache/pip \
+    cd alphaviz && pip install "."
+
+
+
+############################################################################
 ARG ALPHAPEPTDEEP_REF="development"
 RUN git clone https://github.com/MannLabs/alphapeptdeep.git \
     && cd alphapeptdeep \
