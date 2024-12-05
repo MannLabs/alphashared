@@ -19,6 +19,10 @@ on:
         description: 'Whether the project uses pyproject.toml or the legacy setup.py-absed mechanism.'
         type: boolean
         default: true
+      only_testpypi_release:
+        description: 'If true, the release on "real" pypi will be skipped.'
+        type: boolean
+        default: false
     secrets:
       test_pypi_api_token:
         description: 'PyPI token for the test API'
@@ -121,6 +125,7 @@ jobs:
           conda env remove --name pip_loose_test -y
           conda clean --all -y
       - name: Publish distribution to PyPI
+        if: ${{ inputs.only_testpypi_release  != 'true' }}
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
@@ -128,6 +133,7 @@ jobs:
   Test_PyPi_Release:
     name: Test_PyPi_version_on_${{ matrix.os }}
     needs: Create_PyPi_Release
+    if: ${{ inputs.only_testpypi_release  != 'true' }}
     strategy:
       fail-fast: false
       matrix:

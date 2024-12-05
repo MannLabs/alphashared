@@ -132,6 +132,7 @@ jobs:
       # optional parameters:
       python_version: 3.9
       use_pyproject_toml: false
+      only_testpypi_release: false
 ```
 
 
