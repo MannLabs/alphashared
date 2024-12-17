@@ -19,7 +19,7 @@ on:
         description: "alphapeptdeep version"
         default: latest
       directlfq_ref:
-        description: "alphatims version"
+        description: "directlfq version"
         default: latest
       alphadia_ref:
         description: "alphadia version"
