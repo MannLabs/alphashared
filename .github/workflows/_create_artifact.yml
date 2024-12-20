@@ -121,7 +121,7 @@ jobs:
           # TODO: pefile==2024.8.26 is super-slow on the 'binary vs. data reclassification' step, cf. https://github.com/erocarrera/pefile/issues/420
           pip install pefile==2023.2.7
         fi
-        pip install pyinstaller==6.10.0 build==1.2.1
+        pip install pyinstaller build
         pip freeze
 
     - name: Build installer (Unix)
