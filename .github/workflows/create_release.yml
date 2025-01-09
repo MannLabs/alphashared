@@ -28,6 +28,10 @@ on:
         description: 'Whether or not to skip the build for MacOS ARM64'
         type: boolean
         default: false
+      use_src_folder:
+        description: "Wether to use the src folder for the package instead of <packagename>/ to find the version number"
+        type: boolean
+        default: false
 
 
 jobs:
@@ -52,9 +56,10 @@ jobs:
         shell: bash -el {0}
         # the DEBUG_RELEASE_WORKFLOW_SUFFIX repository variable can be set to get a unique tag in order to test the release workflow
         run: |
-          CURRENT_VERSION=$(grep "__version__" ${{ inputs.package_name }}/__init__.py | cut -f3 -d ' ' | sed 's/"//g')
+          init_file=$([[ "${{ inputs.use_src_folder }}" == "true" ]] && echo "src/__init__.py" || echo "${{ inputs.package_name }}/__init__.py")
+          CURRENT_VERSION=$(grep "__version__" $init_file | cut -f3 -d ' ' | sed 's/"//g')
           if [ "$CURRENT_VERSION" == "" ]; then
-            echo "Could not determine version from ${{ inputs.package_name }}/__init__.py"
+            echo "Could not determine version from $init_file"
             exit 1
           fi
           
