@@ -58,7 +58,7 @@ jobs:
         run: |
           if [ ! -z "${{ inputs.src_folder }}" ]; then  
             init_file=${{ inputs.src_folder }}/__init__.py  
-          else:  
+          else
             init_file=${{ inputs.package_name }}/__init__.py  
           fi  
           CURRENT_VERSION=$(grep "__version__" $init_file | cut -f3 -d ' ' | sed 's/"//g')
