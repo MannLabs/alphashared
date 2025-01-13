@@ -131,8 +131,10 @@ jobs:
       tag_to_release: ${{ inputs.tag_to_release }}
       # optional parameters:
       python_version: 3.9
-      use_pyproject_toml: false
+      test_stable: true
       only_testpypi_release: false
+      skip_macos_arm64_build: false
+      # src_folder: src      
 ```
 
 

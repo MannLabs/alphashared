@@ -16,7 +16,7 @@ on:
         type: string
         default: "3.11"
       use_pyproject_toml:
-        description: 'Whether the project uses pyproject.toml or the legacy setup.py-absed mechanism.'
+        description: '(deprecated)'
         type: boolean
         default: true
       only_testpypi_release:
@@ -82,12 +82,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install build twine
           
-          if [ "${{ inputs.use_pyproject_toml }}" == "true" ]; then
-            echo "Building using pyproject.toml"
-            python -m build
-          else
+          if [ -f setup.py ]; then
             echo "Building using setup.py"
             python setup.py sdist bdist_wheel
+          else
+            echo "Building using pyproject.toml"
+            python -m build
           fi
          
           conda deactivate
