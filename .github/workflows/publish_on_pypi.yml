@@ -27,6 +27,10 @@ on:
         description: "Folder that contains the __init__.py file with the __version__ attribute. If not given,  `<packagename>/` is used"
         type: string
         default: ""
+      test_stable:
+        description: "Whether to test also the stable version of the package (defined by the '[stable]' extra)."
+        type: boolean
+        default: false
     secrets:
       test_pypi_api_token:
         description: 'PyPI token for the test API'
@@ -96,12 +100,12 @@ jobs:
           repository-url: https://test.pypi.org/legacy/
           user: __token__
           password: ${{ secrets.test_pypi_api_token }}
-      - name: Check Test-PyPI stable installation  # TODO reduce code duplication here
+      - name: Check Test-PyPI installation  # TODO reduce code duplication here
         shell: bash -l {0}
         run: |
-          conda create -n pip_stable_test python=${{ env.PYTHON_VERSION }} -y
-          conda activate pip_stable_test
-          command='pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple "${{ inputs.package_name }}[stable]==${{ steps.get_current_version.outputs.new_version }}"'
+          conda create -n pip_standard_test python=${{ env.PYTHON_VERSION }} -y
+          conda activate pip_standard_test
+          command='pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple "${{ inputs.package_name }}==${{ steps.get_current_version.outputs.new_version }}"'
                    
           # try 3 times to install the package to cover delays on pypi side
           max_attempts=3
@@ -121,19 +125,20 @@ jobs:
           python -c "import ${{ inputs.package_name }}; print(${{ inputs.package_name }}.__version__)"
 
           conda deactivate
-          conda env remove --name pip_stable_test -y
+          conda env remove --name pip_standard_test -y
           conda clean --all -y
-      - name: Check Test-PyPI loose installation
+      - name: Check Test-PyPI stable installation
+        if: ${{ inputs.test_stable  == 'true' }}
         shell: bash -l {0}
         run: |
-          conda create -n pip_loose_test python=${{ env.PYTHON_VERSION }} -y
-          conda activate pip_loose_test
-          pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple "${{ inputs.package_name }}==${{ steps.get_current_version.outputs.new_version }}"
+          conda create -n pip_stable_test python=${{ env.PYTHON_VERSION }} -y
+          conda activate pip_stable_test
+          pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple "${{ inputs.package_name }}[stable]==${{ steps.get_current_version.outputs.new_version }}"
          
           python -c "import ${{ inputs.package_name }}; print(${{ inputs.package_name }}.__version__)"
           
           conda deactivate
-          conda env remove --name pip_loose_test -y
+          conda env remove --name pip_stable_test -y
           conda clean --all -y
       - name: Publish distribution to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
@@ -163,12 +168,12 @@ jobs:
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
-      - name: Check PyPI stable installation
+      - name: Check PyPI installation
         shell: bash -l {0}
         run: |
-          conda create -n pip_stable python=${{ env.PYTHON_VERSION }} -y
-          conda activate pip_stable
-          command='pip install "${{ inputs.package_name }}[stable]==${{ needs.Create_PyPi_Release.outputs.new_version }}"'
+          conda create -n pip_standard python=${{ env.PYTHON_VERSION }} -y
+          conda activate pip_standard
+          command='pip install "${{ inputs.package_name }}==${{ needs.Create_PyPi_Release.outputs.new_version }}"'
           
           # try 3 times to install the package to cover delays on pypi side
           max_attempts=3
@@ -188,17 +193,18 @@ jobs:
           python -c "import ${{ inputs.package_name }}; print(${{ inputs.package_name }}.__version__)"
           
           conda deactivate
-          conda env remove --name pip_stable -y
+          conda env remove --name pip_standard -y
           conda clean --all -y
-      - name: Check PyPI loose installation
+      - name: Check PyPI stable installation
+        if: ${{ inputs.test_stable  == 'true' }}
         shell: bash -l {0}
         run: |
-          conda create -n pip_loose python=${{ env.PYTHON_VERSION }} -y
-          conda activate pip_loose
-          pip install ${{ inputs.package_name }}==${{ needs.Create_PyPi_Release.outputs.new_version }}
+          conda create -n pip_stable python=${{ env.PYTHON_VERSION }} -y
+          conda activate pip_stable
+          pip install ${{ inputs.package_name }}[stable]==${{ needs.Create_PyPi_Release.outputs.new_version }}
           
           python -c "import ${{ inputs.package_name }}; print(${{ inputs.package_name }}.__version__)"
           
           conda deactivate
-          conda env remove --name pip_loose -y
+          conda env remove --name pip_stable -y
           conda clean --all -y
