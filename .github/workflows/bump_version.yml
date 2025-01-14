@@ -55,6 +55,7 @@ jobs:
 
 # bump-my-version needs to be called in a specific order to bump the version correctly:
 # Example:  We have just released 1.9.2, so current version number is 1.9.3-dev0
+# Read '1.9.3-dev0' as 'first dev version of next release, which we guess is 1.9.3'
 #
 # use case 1: bump version to release
 # first PR:
@@ -67,7 +68,7 @@ jobs:
 #
 #
 # use case 2: bump version to pre-release
-#  1.9.3-dev0 -> 1.9.3-dev1: bump pre_n
+#  1.9.3-dev0 -> 1.9.3-dev1: bump pre_n  # Note: just bump dev, not patch etc.
 
       - name: First Bump - Bump version
         id: bump

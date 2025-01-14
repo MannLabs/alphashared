@@ -26,9 +26,13 @@ doing [semantic versioning](https://semver.org/).
 
 After a version `X.Y.Z` is released, the version number in the 
 code should be bumped to `X.Y.(Z+1)-dev0`.
-If a pre-release of `X.Y.(Z+1)-dev0` is done, the next version number should be `X.Y.(Z+1)-dev1`.
 For each release the code will be tagged with `v<version number>`.
 
+### Pre-releases
+A pre-release does not have public release page on GitHub, but is uploaded to pypi (however, it will only be
+installed if the `--pre` flag is passed to `pip`).
+This mechanism is meant to speed up the internal development.
+If a pre-release of `X.Y.(Z+1)-dev0` is done, the next version number should be `X.Y.(Z+1)-dev1`.
 
 
 ### Step-by-step instructions
@@ -42,7 +46,9 @@ When running the workflow you can specify an optional input parameter, which is
 the full commit hash or branch to release (defaults to `main`).
 3. After the workflow ran successfully, it uploads the installer packages as artifacts to the draft
 release page. You can download and test these installers manually (in addition to the tests done by the workflow).
-4. On the GitHub page of the draft release, add release notes and then publish the release.
+4a. (If not a pre-release) on the GitHub page of the draft release, add release notes (diff the last ordinary release 
+to the current release) and then publish the release.
+4b. (If a pre-release) leave the release as draft, click "Set as a pre-release", and continue with the next steps.
 5. Similar to before, run the 'Publish on PyPi' workflow, specifying the release tag (e.g. `vX.Y.Z`) as an input parameter.
 6. TODO not implemented yet (optional, if present) Run the 'Publish Docker Image' workflow, specifying the release tag 
 (e.g. `vX.Y.Z`) as an input parameter.

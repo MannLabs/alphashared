@@ -32,7 +32,7 @@ on:
         description: "Folder that contains the __init__.py file with the __version__ attribute. If not given,  `<packagename>/` is used"
         type: string
         default: ""
-
+# TODO prerelease checkbox?
 
 jobs:
   Create_Release:
@@ -107,7 +107,6 @@ jobs:
           tag_name: ${{ steps.get_release_tag.outputs.release_tag }}
           target_commitish: ${{ inputs.commitish_to_release }}
           draft: True
-
       # for some reason, the above step started failing once
 #      - name: Create release (alternative)
 #        if: ${{ steps.create_release.conclusion == 'failure' }}
