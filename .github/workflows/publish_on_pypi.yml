@@ -110,7 +110,7 @@ jobs:
           conda create -n build_env python=${{ env.PYTHON_VERSION }} -y
           conda activate build_env
           python -m pip install --upgrade pip
-          pip install build twine
+          
           
           if [ -f wheel_name.txt ]; then
               wheel_name=$(cat wheel_name.txt)
@@ -118,7 +118,7 @@ jobs:
               mv ${{ inputs.package_name }}-${{ inputs.tag_to_release }}.whl $wheel_name
           else
               echo "No wheel name found, installing wheel from artifact"
-
+              pip install build
               if [ -f setup.py ]; then
                 echo "Building using setup.py"
                 python setup.py sdist bdist_wheel
@@ -132,7 +132,10 @@ jobs:
           conda env remove --name build_env -y
           conda clean --all -y
       - name: Check package
-        run: twine check --strict dist/*.whl
+        run: |
+          pip install twine
+          twine check --strict dist/*.whl
+        
 
 
       - name: Check installing package
