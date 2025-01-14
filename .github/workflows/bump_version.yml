@@ -28,6 +28,27 @@ on:
 #        type: string
 #        default: ""
 
+#1.9.2 ── bump ─┬─ major ─ 2.0.0-dev0
+#               ├─ minor ─ 1.10.0-dev0
+#               ├─ patch ─ 1.9.3-dev0
+#               ├─ pre_l ─ invalid: The part has already the maximum value among ['dev', 'final'] and cannot be bumped.
+#               ╰─ pre_n ─ 1.9.2-final1
+
+
+#1. after release bump patch -> 1.9.3-dev0
+#1.9.3-dev0 ── bump ─┬─ major ─ 2.0.0-dev0
+#                    ├─ minor ─ 1.10.0-dev0
+#                    ├─ patch ─ 1.9.4-dev0
+#                    ├─ pre_l ─ 1.9.3
+#                    ╰─ pre_n ─ 1.9.3-dev1
+
+#2. final release:
+#  1.9.3-dev0 -> 2.0.0: bump major, bump pre_l
+#  1.9.3-dev0 -> 1.10.0: bump minor, bump pre_l
+#  1.9.3-dev0 -> 1.9.3: bump pre_l
+#
+#2b. pre-release: 1.9.3-dev0 -> 1.9.3-dev1: bump pre_n
+
 jobs:
   build:
     runs-on: ubuntu-latest
