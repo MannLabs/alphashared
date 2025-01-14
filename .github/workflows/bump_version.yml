@@ -20,6 +20,7 @@ on:
 
 jobs:
   bump:
+    name: Bump version
     runs-on: ubuntu-latest
     env:
       BUMP_MY_VERSION_VERSION: 0.29.0
