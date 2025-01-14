@@ -93,6 +93,8 @@ jobs:
           conda deactivate
           conda env remove --name build_env -y
           conda clean --all -y
+#      - name: Check package
+#        run: twine check --strict dist/*.whl
       - name: Publish distribution to Test-PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         continue-on-error: true # this is to cover cases where the upload has already been done but some downstream steps failed
