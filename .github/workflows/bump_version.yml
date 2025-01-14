@@ -1,6 +1,6 @@
 # Bump the version of the project and create a pull request to merge the changes.
 # In case 'prerelease', only the running number (-dev1, -dev2, etc.) is bumped -> 1 PR
-# Otherwise, the version is bumped (first PR) and a second PR is created to bump the running number
+# Otherwise, the version is bumped (first PR) and a second PR is created to prepare the next development version
 name: Bump version
 
 on:
