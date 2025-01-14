@@ -82,13 +82,17 @@ jobs:
       - name: Bump version
         id: bump
         run: |
-          if [ ${{ inputs.bump_type  != 'patch' }} ]; then
-            bump-my-version bump ${{ inputs.bump_type }}
-          fi
-          bump-my-version bump pre_l
+          echo "previous-version=$(bump-my-version show current_version)" >> $GITHUB_OUTPUT
           
-          ([[ $? -gt 0 ]] && echo "bumped=false" || echo "bumped=true") >> $GITHUB_OUTPUT
+          if [ ${{ inputs.bump_type  != 'patch' }} ]; then
+            bump-my-version bump ${{ inputs.bump_type }} -vv
+          fi
+          bump-my-version bump pre_l -vv
+          
           echo "current-version=$(bump-my-version show current_version)" >> $GITHUB_OUTPUT
+          
+
+#          ([[ $? -gt 0 ]] && echo "bumped=false" || echo "bumped=true") >> $GITHUB_OUTPUT
 
       - name: Push changes to GitHub
         uses: ad-m/github-push-action@master
@@ -99,7 +103,7 @@ jobs:
 
       - name: Create a pull request
         id: create-pull-request
-        if: steps.bump.outputs.bumped == 'true'
+        #if: steps.bump.outputs.bumped == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
