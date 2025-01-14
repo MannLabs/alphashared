@@ -82,16 +82,18 @@ jobs:
       - name: Bump version
         id: bump
         run: |
-          echo "previous-version=$(bump-my-version show current_version)" >> $GITHUB_OUTPUT
+          previous_version=$(bump-my-version show current_version)
+          echo "previous-version=$previous_version" >> $GITHUB_OUTPUT
           
           if [ ${{ inputs.bump_type  != 'patch' }} ]; then
-            bump-my-version bump ${{ inputs.bump_type }} -vv
+            bump-my-version bump --no-commit ${{ inputs.bump_type }} -vv
           fi
           bump-my-version bump pre_l -vv
           
-          echo "current-version=$(bump-my-version show current_version)" >> $GITHUB_OUTPUT
+          current_version=$(bump-my-version show current_version)
+          echo "current-version=$current_version" >> $GITHUB_OUTPUT
           
-
+          ([[ "$current_version" -e "$previous_version" ]] && echo "bumped=false" || echo "bumped=true") >> $GITHUB_OUTPUT
 #          ([[ $? -gt 0 ]] && echo "bumped=false" || echo "bumped=true") >> $GITHUB_OUTPUT
 
       - name: Push changes to GitHub
