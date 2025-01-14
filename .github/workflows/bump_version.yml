@@ -63,7 +63,7 @@ jobs:
 
       - name: Bump major or minor
         if: ${{ inputs.bump_type  != 'patch' }}
-        id: bump
+        id: bump_major_minor
         uses: callowayproject/bump-my-version@master
         env:
           BUMPVERSION_TAG: "false"
@@ -73,7 +73,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Bump to release version
-        id: bump
+        id: bump_to_release
         uses: callowayproject/bump-my-version@master
         env:
           BUMPVERSION_TAG: "false"
