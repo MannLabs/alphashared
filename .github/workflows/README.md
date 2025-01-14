@@ -11,18 +11,33 @@ The last part explains how to further develop this pipeline.
 
 ### Prerequisites
 Note: these instructions assume that the release is done from the `main` branch,
-and that the following worklows are present in the repository (cf. [below](#installation-of-the-release-pipeline)):
+and that the following workflows are present in the repository (cf. [below](#installation-of-the-release-pipeline)):
+- 'Bump version' (referencing [this workflow](https://github.com/MannLabs/alphashared/.github/workflows/bump_version.yml))
 - 'Create Draft Release' (referencing [this workflow](https://github.com/MannLabs/alphashared/.github/workflows/create_release.yml))
 - 'Publish on PyPi' (referencing [this workflow](https://github.com/MannLabs/alphashared/.github/workflows/publish_on_pypi.yml))
 - 'Publish Docker Image' (referencing [this workflow](https://github.com/MannLabs/alphashared/.github/workflows/publish_docker_image.yml))
 
+## Versioning
+When a new release is prepared, the version number should be set to `X.Y.(Z+1)`, `X.(Y+1).Z`,
+or `(X+1).Y.Z`, depending on the scope of the release: increment `Z` for bug fixes, `Y` for new features, 
+`X` for breaking changes. Note: only large-scale breaking changes will increment `X`,
+renaming config keys or API parameters will not, so strictly speaking we're not
+doing [semantic versioning](https://semver.org/).
+
+After a version `X.Y.Z` is released, the version number in the 
+code should be bumped to `X.Y.(Z+1)-dev0`.
+If a pre-release of `X.Y.(Z+1)-dev0` is done, the next version number should be `X.Y.(Z+1)-dev1`.
+For each release the code will be tagged with `v<version number>`.
+
+
 
 ### Step-by-step instructions
-1. Bump the version locally to (e.g. to `X.Y.Z`), e.g. using `bumpversion`, and push this change to `main`.
+1. Bump the version (e.g. using the 'Bump version') workflow (e.g. to `X.Y.Z`), and merge the resulting PR to `main`.
 This version will determine the version of the release and the corresponding tag (e.g. `vX.Y.Z`).
 2. Manually run the 'Create Draft Release' workflow 
-in your repository to create a new draft release on GitHub 
-(in GitHub UI: "Actions" -> Workflow "Create Draft Release" -> "Run Workflow").
+in your repository
+(in GitHub UI: "Actions" -> Workflow "Create Draft Release" -> "Run Workflow")
+to create a new draft release on GitHub: this will tag the code, create the draft release page and build the installers. 
 When running the workflow you can specify an optional input parameter, which is
 the full commit hash or branch to release (defaults to `main`).
 3. After the workflow ran successfully, it uploads the installer packages as artifacts to the draft
