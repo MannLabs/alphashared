@@ -63,7 +63,7 @@ which are explained in more detail below:
 - the package must have a version number at a defined location
 - a `release` directory must exist and contain the necessary scripts for building the packages
 - GitHub actions must be created in the `.github/workflows` directory that call the reusable workflows defined in here
-- a valid .bumpversion.toml file in the root of the repository
+- a valid .bumpversion.toml file in the root of the repository (including [support for pre-release versions](https://github.com/callowayproject/bump-my-version?tab=readme-ov-file#add-support-for-pre-release-versions))
 
 #### Version
 The file `<package_name>/__init__.py` must contain the following line:
