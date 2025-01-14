@@ -212,9 +212,6 @@ jobs:
         ls *
         ls dist*/*
 
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-
     - name: Test package
       id: test_package
       shell: bash -el {0}
@@ -239,7 +236,7 @@ jobs:
       if: inputs.os == 'linux'
       shell: bash -el {0}
       run: |
-        ls dist/*.whl > wheel_name.txt
+        cd dist && ls *.whl > wheel_name.txt
 
     - name: Upload wheel info
       uses: actions/upload-artifact@v4
