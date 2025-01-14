@@ -212,6 +212,9 @@ jobs:
         ls *
         ls dist*/*
 
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+
     - name: Test package
       id: test_package
       shell: bash -el {0}
