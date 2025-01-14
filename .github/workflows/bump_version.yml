@@ -1,3 +1,6 @@
+# Bump the version of the project and create a pull request to merge the changes.
+# In case 'prerelease', only the running number (-dev1, -dev2, etc.) is bumped -> 1 PR
+# Otherwise, the version is bumped (first PR) and a second PR is created to bump the running number
 name: Bump version
 
 on:
@@ -15,20 +18,22 @@ on:
 #        - prerelease
 
 
-
 jobs:
   bump:
     runs-on: ubuntu-latest
+    env:
+      BUMP_MY_VERSION_VERSION: 0.29.0
     steps:
       - name: Install Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
+      # The API of the gh action offered by bump-my-version is a bit limited, so we need to use bump-my-version directly
       # cf. https://github.com/callowayproject/bump-my-version/blob/master/action.yml
       - name: Install bump-my-version
         shell: bash
-        run: pip install "bump-my-version==0.29.0"
+        run: pip install "bump-my-version==${{env.BUMP_MY_VERSION_VERSION}}"
 
       - name: Setting up git config
         shell: bash
@@ -41,6 +46,7 @@ jobs:
 
       - name: First Bump - Checkout the code
         uses: actions/checkout@v4
+        # we always bump the version on the main branch
 
       - name: First Bump - Get branch name
         id: get_branch_name
@@ -130,7 +136,7 @@ jobs:
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{steps.get_branch_name.outputs.BRANCH_NAME}}-2
+          branch: ${{steps.get_branch_name.outputs.BRANCH_NAME}}-prepare-next-version
           force: true
 
       - name: Second Bump - Create a pull request
@@ -140,7 +146,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           base: ${{steps.get_branch_name.outputs.BRANCH_NAME}}
-          branch: ${{steps.get_branch_name.outputs.BRANCH_NAME}}-after-release
+          branch: ${{steps.get_branch_name.outputs.BRANCH_NAME}}-prepare-next-version
           title: "[VERSION] Bump version to ${{ steps.bump.outputs.current-version2 }} (merge after release)"
           body: |
             Merge after release of ${{ steps.bump2.outputs.previous-version2 }}! 

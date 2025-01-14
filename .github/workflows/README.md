@@ -63,6 +63,7 @@ which are explained in more detail below:
 - the package must have a version number at a defined location
 - a `release` directory must exist and contain the necessary scripts for building the packages
 - GitHub actions must be created in the `.github/workflows` directory that call the reusable workflows defined in here
+- a valid .bumpversion.toml file in the root of the repository
 
 #### Version
 The file `<package_name>/__init__.py` must contain the following line:
@@ -90,6 +91,38 @@ i.e. the file that is required to install it on the respective platform (linux: 
 
 
 ### Installation
+
+Note that it is not necessary to clone the `alphashared` repository. 
+
+#### 'Bump version' workflow
+1. Create a new github action `bump_version.yml` in `.github/workflows` that references 
+the reusable workflow defined here:
+```yaml
+# Bump the version for releases
+name: bump-version
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: 'Bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+        - prerelease
+        - patch
+        - minor
+        - major
+
+jobs:
+  bump-version:
+    uses: MannLabs/alphashared/.github/workflows/bump_version.yml@v1
+    secrets: inherit
+    with:
+     bump_type: ${{ inputs.bump_type }}
+```
+
 #### 'Create release' workflow
 1. Create a new github action `create_release.yml` in `.github/workflows` that references 
 the reusable workflow defined here:
@@ -118,7 +151,6 @@ jobs:
       test_app: true
       python_version: 3.9
 ```
-Note that it is not necessary to clone the `alphashared` repository. 
 
 
 #### 'Publish on pypi' workflow
