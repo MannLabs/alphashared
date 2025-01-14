@@ -32,7 +32,7 @@ For each release the code will be tagged with `v<version number>`.
 
 
 ### Step-by-step instructions
-1. Bump the version (e.g. using the 'Bump version') workflow (e.g. to `X.Y.Z`), and merge the resulting PR to `main`.
+1. Bump the version (e.g. using the 'Bump version') workflow (e.g. to `X.Y.Z`), and merge the first resulting PR to `main`.
 This version will determine the version of the release and the corresponding tag (e.g. `vX.Y.Z`).
 2. Manually run the 'Create Draft Release' workflow 
 in your repository
@@ -46,7 +46,8 @@ release page. You can download and test these installers manually (in addition t
 5. Similar to before, run the 'Publish on PyPi' workflow, specifying the release tag (e.g. `vX.Y.Z`) as an input parameter.
 6. TODO not implemented yet (optional, if present) Run the 'Publish Docker Image' workflow, specifying the release tag 
 (e.g. `vX.Y.Z`) as an input parameter.
-
+7. If the release was not a pre-release, merge the second PR created by the 'Bump version' workflow, which prepares
+the next development version (i.e. `X.Y.(Z+1)-dev0`).
 
 ## Installation of the release pipeline
 In order to incorporate this pipeline into your repository, it might help to look at
