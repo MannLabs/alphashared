@@ -93,7 +93,7 @@ jobs:
           current_version=$(bump-my-version show current_version)
           echo "current-version=$current_version" >> $GITHUB_OUTPUT
           
-          ([[ "$current_version" -e "$previous_version" ]] && echo "bumped=false" || echo "bumped=true") >> $GITHUB_OUTPUT
+          ([[ "$current_version" == "$previous_version" ]] && echo "bumped=true" || echo "bumped=false") >> $GITHUB_OUTPUT
 #          ([[ $? -gt 0 ]] && echo "bumped=false" || echo "bumped=true") >> $GITHUB_OUTPUT
 
       - name: Push changes to GitHub
