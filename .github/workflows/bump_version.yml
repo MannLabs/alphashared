@@ -90,7 +90,7 @@ jobs:
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ inputs.branch }}
+          branch: ${{steps.get_branch_name.outputs.BRANCH_NAME}}
           force: true
 
       - name: Create a pull request
