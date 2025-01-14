@@ -88,6 +88,22 @@ jobs:
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+
+      - name: Download wheel info
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: ${{ inputs.package_name }}-${{ inputs.release_tag }}-wheel_name.txt
+          path: ./wheel_name.txt
+
+      - name: Download wheel
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: ${{ inputs.package_name }}-${{ inputs.release_tag }}.whl
+          path: ./wheel.whl
+
+
       - name: Prepare distribution
         shell: bash -le {0}
         run: |
@@ -96,19 +112,36 @@ jobs:
           python -m pip install --upgrade pip
           pip install build twine
           
-          if [ -f setup.py ]; then
-            echo "Building using setup.py"
-            python setup.py sdist bdist_wheel
+          if [ -f wheel_name.txt ]; then
+              wheel_name=$(cat wheel_name.txt)
+              echo "Installing wheel $wheel_name"
+              mv ${{ inputs.package_name }}-${{ inputs.release_tag }}.whl $wheel_name
           else
-            echo "Building using pyproject.toml"
-            python -m build
+              echo "No wheel name found, installing wheel from artifact"
+
+              if [ -f setup.py ]; then
+                echo "Building using setup.py"
+                python setup.py sdist bdist_wheel
+              else
+                echo "Building using pyproject.toml"
+                python -m build
+              fi
           fi
-         
+          
           conda deactivate
           conda env remove --name build_env -y
           conda clean --all -y
-#      - name: Check package
-#        run: twine check --strict dist/*.whl
+      - name: Check package
+        run: twine check --strict dist/*.whl
+
+
+      - name: Check installing package
+        run: pip install dist/*.whl
+
+
+      - name: Fail
+        run: exit 1
+
       - name: Publish distribution to Test-PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         continue-on-error: true # this is to cover cases where the upload has already been done but some downstream steps failed

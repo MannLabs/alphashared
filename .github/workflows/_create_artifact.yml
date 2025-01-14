@@ -236,13 +236,13 @@ jobs:
       if: inputs.os == 'linux'
       shell: bash -el {0}
       run: |
-        echo ${{steps.get_artifact.outputs.ARTIFACT_NAME}} > wheel_name.txt
+        ls build/*.whl > wheel_name.txt
 
     - name: Upload wheel info
       uses: actions/upload-artifact@v4
       if: inputs.os == 'linux'
       with:
-        name: ${{ inputs.package_name }}-${{ inputs.release_tag }}_wheel_name.txt
+        name: ${{ inputs.package_name }}-${{ inputs.release_tag }}-wheel_name.txt
         path: ./wheel_name.txt
         if-no-files-found: error
         overwrite: false
