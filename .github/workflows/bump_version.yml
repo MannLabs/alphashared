@@ -80,11 +80,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Bump version
+        id: bump
         run: |
           if [ ${{ inputs.bump_type  != 'patch' }} ]; then
             bump-my-version bump ${{ inputs.bump_type }}
           fi
           bump-my-version bump pre_l
+          
+          ([[ $? -gt 0 ]] && echo "bumped=false" || echo "bumped=true") >> $GITHUB_OUTPUT
+          echo "current-version=$(bump-my-version show current_version)" >> $GITHUB_OUTPUT
 
       - name: Push changes to GitHub
         uses: ad-m/github-push-action@master
