@@ -236,7 +236,7 @@ jobs:
       if: inputs.os == 'linux'
       shell: bash -el {0}
       run: |
-        cd dist && ls *.whl > wheel_name.txt
+        cd dist && ls *.whl > ../wheel_name.txt
 
     - name: Upload wheel info
       uses: actions/upload-artifact@v4
