@@ -50,7 +50,7 @@ on:
 #2b. pre-release: 1.9.3-dev0 -> 1.9.3-dev1: bump pre_n
 
 jobs:
-  build:
+  bump:
     runs-on: ubuntu-latest
     steps:
       - name: Install Python
@@ -98,7 +98,7 @@ jobs:
           
           echo $current_version $current_version
           echo $previous_version $previous_version
-          if [[ "$current_version" != "$previous_version" ]]; then
+          if [[ "$current_version" == "$previous_version" ]]; then
             echo "Version was not bumped!"
             exit 1
           fi
