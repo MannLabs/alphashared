@@ -72,13 +72,13 @@ jobs:
           git config --global user.name "$(gh api /users/${GITHUB_ACTOR} | jq .name -r)"
           git config -l
 
+      - name: Checkout the code
+        uses: actions/checkout@v4
+
       - name: Get branch name
         id: get_branch_name
         run: |
           echo BRANCH_NAME=bump_from_$(bump-my-version show current_version) >> $GITHUB_OUTPUT
-
-      - name: Checkout the code
-        uses: actions/checkout@v4
 
       - name: Bump version
         id: bump
