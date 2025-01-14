@@ -29,8 +29,8 @@ code should be bumped to `X.Y.(Z+1)-dev0`.
 For each release the code will be tagged with `v<version number>`.
 
 ### Pre-releases
-A pre-release does not have public release page on GitHub, but is uploaded to pypi (however, it will only be
-installed if the `--pre` flag is passed to `pip`).
+A pre-release does not have public release page on GitHub, but is uploaded to pypi 
+(however, it will only be installed if the `--pre` flag is passed to `pip`, i.e. `pip install --pre <packagename>`).
 This mechanism is meant to speed up the internal development.
 If a pre-release of `X.Y.(Z+1)-dev0` is done, the next version number should be `X.Y.(Z+1)-dev1`.
 
@@ -69,7 +69,16 @@ which are explained in more detail below:
 - the package must have a version number at a defined location
 - a `release` directory must exist and contain the necessary scripts for building the packages
 - GitHub actions must be created in the `.github/workflows` directory that call the reusable workflows defined in here
-- a valid .bumpversion.toml file in the root of the repository (including [support for pre-release versions](https://github.com/callowayproject/bump-my-version?tab=readme-ov-file#add-support-for-pre-release-versions))
+- a valid `.bumpversion.toml` file in the root of the repository, including
+[support for pre-release versions](https://github.com/callowayproject/bump-my-version?tab=readme-ov-file#add-support-for-pre-release-versions),
+with
+```yaml
+[tool.bumpversion.parts.pre_l]
+# 'final' is just a dummy, but required to have the versioning compatible with the reusable alphashared workflow
+values = ["dev", "final"]
+optional_value = "final"  
+```
+(see [alphadia/.bumpversion.toml](https://github.com/MannLabs/alphadia/blob/main/.bumpversion.toml) for an example)
 
 #### Version
 The file `<package_name>/__init__.py` must contain the following line:
