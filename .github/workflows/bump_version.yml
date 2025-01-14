@@ -56,7 +56,7 @@ jobs:
       - name: Get branch name
         id: get_branch_name
         run: |
-          echo BRANCH_NAME=bump_version-"$(date -u '+%Y-%m-%d_%H:%M:%S')" >> $GITHUB_OUTPUT
+          echo BRANCH_NAME=bump_version-"$(date -u '+%Y-%m-%d_%H-%M-%S')" >> $GITHUB_OUTPUT
 
       - name: Checkout the code
         uses: actions/checkout@v4
