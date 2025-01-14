@@ -12,42 +12,9 @@ on:
 #        - patch
 #        - minor
 #        - major
-#      create_tag:
-#        description: "create tag"
-#        required: false
-#        type: boolean
-#        default: false
-#      labels:
-#        description: "Labels for the PR. Comma or newline-separated list."
-#        required: false
-#        type: string
-#        default: ""
-#      assignees:
-#        description: "Assignees for the PR. Comma or newline-separated list of GitHub usernames."
-#        required: false
-#        type: string
-#        default: ""
-
-#1.9.2 ── bump ─┬─ major ─ 2.0.0-dev0
-#               ├─ minor ─ 1.10.0-dev0
-#               ├─ patch ─ 1.9.3-dev0
-#               ├─ pre_l ─ invalid: The part has already the maximum value among ['dev', 'final'] and cannot be bumped.
-#               ╰─ pre_n ─ 1.9.2-final1
+#        - prerelease
 
 
-#1. after release bump patch -> 1.9.3-dev0
-#1.9.3-dev0 ── bump ─┬─ major ─ 2.0.0-dev0
-#                    ├─ minor ─ 1.10.0-dev0
-#                    ├─ patch ─ 1.9.4-dev0
-#                    ├─ pre_l ─ 1.9.3
-#                    ╰─ pre_n ─ 1.9.3-dev1
-
-#2. final release:
-#  1.9.3-dev0 -> 2.0.0: bump major, bump pre_l
-#  1.9.3-dev0 -> 1.10.0: bump minor, bump pre_l
-#  1.9.3-dev0 -> 1.9.3: bump pre_l
-#
-#2b. pre-release: 1.9.3-dev0 -> 1.9.3-dev1: bump pre_n
 
 jobs:
   bump:
@@ -72,45 +39,63 @@ jobs:
           git config --global user.name "$(gh api /users/${GITHUB_ACTOR} | jq .name -r)"
           git config -l
 
-      - name: Checkout the code
+      - name: First Bump - Checkout the code
         uses: actions/checkout@v4
 
-      - name: Get branch name
+      - name: First Bump - Get branch name
         id: get_branch_name
         run: |
           echo BRANCH_NAME=bump_from_$(bump-my-version show current_version) >> $GITHUB_OUTPUT
 
-      - name: Bump version
+# bump-my-version needs to be called in a specific order to bump the version correctly:
+# Example:  We have just released 1.9.2, so current version number is 1.9.3-dev0
+#
+# use case 1: bump version to release
+# first PR:
+#  desired version: 2.0.0 : 1.9.3-dev0 -> 2.0.0: bump major, bump pre_l
+#  desired version: 1.10.0 : 1.9.3-dev0 -> 1.10.0: bump minor, bump pre_l
+#  desired version: 1.9.3 : 1.9.3-dev0 -> 1.9.3: bump pre_l
+#
+# second PR:
+# 1.10.0 (=resulting version from first PR) -> 1.10.1-dev0: bump pre_n
+#
+#
+# use case 2: bump version to pre-release
+#  1.9.3-dev0 -> 1.9.3-dev1: bump pre_n
+
+      - name: First Bump - Bump version
         id: bump
         run: |
           previous_version=$(bump-my-version show current_version)
           echo "previous-version=$previous_version" >> $GITHUB_OUTPUT
           
-          if [ ${{ inputs.bump_type  != 'patch' }} ]; then
+          if [ ${{ inputs.bump_type  == 'prerelease' }} ]; then
+            bump-my-version bump pre_n -vv
+          elif [ ${{ inputs.bump_type  != 'patch' }} ]; then
+            # for patch, no need to increment, we just need to bump pre_l
             bump-my-version bump ${{ inputs.bump_type }} -vv
           fi
-          if [ ${{ inputs.bump_type  != 'pre_n' }} ]; then
+          
+          if [ ${{ inputs.bump_type  != 'prerelease' }} ]; then
             bump-my-version bump pre_l -vv
           fi
           
           current_version=$(bump-my-version show current_version)
           echo "current-version=$current_version" >> $GITHUB_OUTPUT
           
-          echo $current_version $current_version
-          echo $previous_version $previous_version
           if [[ "$current_version" == "$previous_version" ]]; then
             echo "Version was not bumped!"
             exit 1
           fi
           
-      - name: Push changes to GitHub
+      - name: First Bump - Push changes to GitHub
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{steps.get_branch_name.outputs.BRANCH_NAME}}
           force: true
 
-      - name: Create a pull request
+      - name: First Bump - Create a pull request
         id: create-pull-request
         uses: peter-evans/create-pull-request@v7
         with:
@@ -135,14 +120,15 @@ jobs:
 #              sha: '${{ steps.create-pull-request.outputs.pull-request-head-sha }}'
 #            })
 
-      - name: Next Bump - Checkout the code
-        if: ${{ inputs.bump_type  != 'pre_n' }}
+      - name: Second Bump - Checkout the code
+        if: ${{ inputs.bump_type  != 'prerelease' }}
         uses: actions/checkout@v4
         with:
           ref: ${{steps.get_branch_name.outputs.BRANCH_NAME}}
 
-      - name: Next Bump - bump
-        if: ${{ inputs.bump_type  != 'pre_n' }}
+      - name: Second Bump - bump
+        id: bump2
+        if: ${{ inputs.bump_type  != 'prerelease' }}
         run: |          
           previous_version=$(bump-my-version show current_version)
           echo "previous-version2=$previous_version" >> $GITHUB_OUTPUT
@@ -152,16 +138,16 @@ jobs:
           current_version=$(bump-my-version show current_version)
           echo "current-version2=$current_version" >> $GITHUB_OUTPUT
 
-      - name: Next Bump - Push changes to GitHub
-        if: ${{ inputs.bump_type  != 'pre_n' }}
+      - name: Second Bump - Push changes to GitHub
+        if: ${{ inputs.bump_type  != 'prerelease' }}
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{steps.get_branch_name.outputs.BRANCH_NAME}}-2
           force: true
 
-      - name: Next Bump - Create a pull request
-        if: ${{ inputs.bump_type  != 'pre_n' }}
+      - name: Second Bump - Create a pull request
+        if: ${{ inputs.bump_type  != 'prerelease' }}
         id: create-pull-request2
         uses: peter-evans/create-pull-request@v7
         with:
@@ -170,10 +156,10 @@ jobs:
           branch: ${{steps.get_branch_name.outputs.BRANCH_NAME}}-after-release
           title: "[VERSION] Bump version to ${{ steps.bump.outputs.current-version2 }} (merge after release)"
           body: |
-            Merge after release of ${{ steps.bump.outputs.previous-version2 }}! 
+            Merge after release of ${{ steps.bump2.outputs.previous-version2 }}! 
             
-            Bump the version to ${{ steps.bump.outputs.current-version2 }} 
-            (from previous version ${{ steps.bump.outputs.previous-version2 }}). 
+            Bump the version to ${{ steps.bump2.outputs.current-version2 }} 
+            (from previous version ${{ steps.bump2.outputs.previous-version2 }}). 
             
             Autogenerated by alphashared workflow."
           #          labels: ${{ inputs.labels }}
