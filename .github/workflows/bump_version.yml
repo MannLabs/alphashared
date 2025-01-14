@@ -62,7 +62,7 @@ jobs:
         env:
           BUMPVERSION_TAG: "false"
         with:
-          args: ${{ inputs.bump-type }}
+          args: ${{ inputs.bump_type }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create a pull request
