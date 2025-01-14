@@ -76,14 +76,14 @@ jobs:
           previous_version=$(bump-my-version show current_version)
           echo "previous-version=$previous_version" >> $GITHUB_OUTPUT
           
-          if [ ${{ inputs.bump_type  == 'prerelease' }} ]; then
+          if [ "${{ inputs.bump_type }}" == "prerelease"  ]; then
             bump-my-version bump pre_n --commit -vv
-          elif [ ${{ inputs.bump_type  != 'patch' }} ]; then
+          elif [ "${{ inputs.bump_type }}" != "patch" ]; then
             # for patch, no need to increment, we just need to bump pre_l
             bump-my-version bump ${{ inputs.bump_type }} --commit -vv
           fi
           
-          if [ ${{ inputs.bump_type  != 'prerelease' }} ]; then
+          if [ "${{ inputs.bump_type }}" == "prerelease" ]; then
             bump-my-version bump pre_l --commit -vv
           fi
           
