@@ -93,14 +93,14 @@ jobs:
         uses: actions/download-artifact@v4
         continue-on-error: true
         with:
-          name: ${{ inputs.package_name }}-${{ inputs.release_tag }}-wheel_name.txt
+          name: ${{ inputs.package_name }}-${{ inputs.tag_to_release }}-wheel_name.txt
           path: ./wheel_name.txt
 
       - name: Download wheel
         uses: actions/download-artifact@v4
         continue-on-error: true
         with:
-          name: ${{ inputs.package_name }}-${{ inputs.release_tag }}.whl
+          name: ${{ inputs.package_name }}-${{ inputs.tag_to_release }}.whl
           path: ./wheel.whl
 
 
@@ -115,7 +115,7 @@ jobs:
           if [ -f wheel_name.txt ]; then
               wheel_name=$(cat wheel_name.txt)
               echo "Installing wheel $wheel_name"
-              mv ${{ inputs.package_name }}-${{ inputs.release_tag }}.whl $wheel_name
+              mv ${{ inputs.package_name }}-${{ inputs.tag_to_release }}.whl $wheel_name
           else
               echo "No wheel name found, installing wheel from artifact"
 
