@@ -53,6 +53,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install bump-my-version
+        shell: bash
+        run: pip install "bump-my-version==0.29.0"
+
       - name: Get branch name # TODO could be called bump_from_$(bump-my-version show current_version)
         id: get_branch_name
         run: |
@@ -61,26 +70,19 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v4
 
-      - name: Bump major or minor
-        if: ${{ inputs.bump_type  != 'patch' }}
-        id: bump_major_minor
-        uses: callowayproject/bump-my-version@master
-        env:
-          BUMPVERSION_TAG: "false"
-        with:
-          args: ${{ inputs.bump_type }}
-          branch: ${{steps.get_branch_name.outputs.BRANCH_NAME}}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Bump version
+        run:
+          if [ ${{ inputs.bump_type  != 'patch' }} ]; then
+            bump-my-version bump ${{ inputs.bump_type }}
+          fi
+          bump-my-version bump pre_l
 
-      - name: Bump to release version
-        id: bump_to_release
-        uses: callowayproject/bump-my-version@master
-        env:
-          BUMPVERSION_TAG: "false"
+      - name: Push changes to GitHub
+        uses: ad-m/github-push-action@master
         with:
-          args: pre_l
-          branch: ${{steps.get_branch_name.outputs.BRANCH_NAME}}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ inputs.github-token }}
+          branch: ${{ inputs.branch }}
+          force: true
 
       - name: Create a pull request
         id: create-pull-request
