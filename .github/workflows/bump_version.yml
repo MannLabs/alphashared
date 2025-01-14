@@ -95,6 +95,8 @@ jobs:
           current_version=$(bump-my-version show current_version)
           echo "current-version=$current_version" >> $GITHUB_OUTPUT
           
+          echo $current_version $current_version
+          echo $previous_version $previous_version
           ([[ "$current_version" == "$previous_version" ]] && echo "bumped=true" || echo "bumped=false") >> $GITHUB_OUTPUT
 #          ([[ $? -gt 0 ]] && echo "bumped=false" || echo "bumped=true") >> $GITHUB_OUTPUT
 
@@ -107,7 +109,7 @@ jobs:
 
       - name: Create a pull request
         id: create-pull-request
-        if: steps.bump.outputs.bumped == 'true'
+        # TODO: if: steps.bump.outputs.bumped == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -120,7 +122,7 @@ jobs:
           delete-branch: true
 
       - name: Check
-        if: steps.bump.outputs.bumped == 'true'
+        # TODO if: steps.bump.outputs.bumped == 'true'
         run: |
           echo "Version was bumped from ${{ steps.bump.outputs.previous-version }} to ${{ steps.bump.outputs.current-version }}"
 
@@ -136,7 +138,7 @@ jobs:
 #              sha: '${{ steps.create-pull-request.outputs.pull-request-head-sha }}'
 #            })
 
-
+      # TODO: if: steps.bump.outputs.bumped == 'true'
       - name: Checkout the code
         if: ${{ inputs.bump_type  != 'pre_n' }}
         uses: actions/checkout@v4
@@ -146,7 +148,7 @@ jobs:
       - name: bump again
         if: ${{ inputs.bump_type  != 'pre_n' }}
         run: |
-          bump-my-version bump pre_l -vv
+          bump-my-version bump pre_n -vv
 
       - name: Push changes to GitHub
         if: ${{ inputs.bump_type  != 'pre_n' }}
