@@ -105,7 +105,7 @@ Note that it is not necessary to clone the `alphashared` repository.
 the reusable workflow defined here:
 ```yaml
 # Bump the version for releases
-name: bump-version
+name: Bump version
 
 on:
   workflow_dispatch:
@@ -113,7 +113,7 @@ on:
       bump_type:
         description: 'Bump type'
         required: true
-        default: 'patch'
+        default: 'minor'
         type: choice
         options:
         - prerelease
