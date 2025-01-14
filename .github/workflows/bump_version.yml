@@ -98,7 +98,7 @@ jobs:
           
           echo $current_version $current_version
           echo $previous_version $previous_version
-          if [[ "$current_version" != "$previous_version" ]]; do
+          if [[ "$current_version" != "$previous_version" ]]; then
             echo "Version was not bumped!"
             exit 1
           fi
