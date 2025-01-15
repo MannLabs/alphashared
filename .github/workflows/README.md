@@ -12,10 +12,10 @@ The last part explains how to further develop this pipeline.
 ### Prerequisites
 Note: these instructions assume that the release is done from the `main` branch,
 and that the following workflows are present in the repository (cf. [below](#installation-of-the-release-pipeline)):
-- 'Bump version' (referencing [this workflow](https://github.com/MannLabs/alphashared/.github/workflows/bump_version.yml))
-- 'Create Draft Release' (referencing [this workflow](https://github.com/MannLabs/alphashared/.github/workflows/create_release.yml))
-- 'Publish on PyPi' (referencing [this workflow](https://github.com/MannLabs/alphashared/.github/workflows/publish_on_pypi.yml))
-- 'Publish Docker Image' (referencing [this workflow](https://github.com/MannLabs/alphashared/.github/workflows/publish_docker_image.yml))
+- 'Bump version' (referencing [this workflow](https://github.com/MannLabs/alphashared/blob/main/.github/workflows/bump_version.yml))
+- 'Create Draft Release' (referencing [this workflow](https://github.com/MannLabs/alphashared/blob/main/.github/workflows/create_release.yml))
+- 'Publish on PyPi' (referencing [this workflow](https://github.com/MannLabs/alphashared/blob/main/.github/workflows/publish_on_pypi.yml))
+- 'Publish Docker Image' (referencing [this workflow](https://github.com/MannLabs/alphashared/blob/main/.github/workflows/publish_docker_image.yml))
 
 ## Versioning
 When a new release is prepared, the version number should be set to `X.Y.(Z+1)`, `X.(Y+1).Z`,
