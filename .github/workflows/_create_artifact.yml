@@ -29,7 +29,7 @@ on:
         type: string
         required: true
         description: "The new release tag to release, e.g. v1.2.3"
-      release_id:
+      release_id: # required to access the release as it is not published yet
         type: string
         required: true
         description: "The github id of the release, e.g. 123456"
@@ -101,6 +101,28 @@ jobs:
           exit 1
         fi
 
+#    - name: Retrieve wheel
+#      continue-on-error: true  # the wheel might not exist in the release (if repo does not support it yet)
+#      env:
+#        GH_TOKEN: ${{ github.token }}
+#      run: |
+#        json_response=$(gh api \
+#          --method GET \
+#          -H "Accept: application/vnd.github+json" \
+#          -H "X-GitHub-Api-Version: 2022-11-28" \
+#          repos/$GITHUB_REPOSITORY/releases/${{ inputs.release_id }}/assets)
+#
+#        echo $json_response
+#
+#        asset_url=$(echo $json_response | jq -e '.[] | select(.name | endswith("exe")).url')
+
+    - name: Download wheel
+      uses: robinraju/release-downloader@v1
+      continue-on-error: true # the wheel might not exist in the release
+      with:
+        tag: ${{ inputs.tag_to_release }}
+        fileName: '*.whl'
+        out-file-path: 'wheel_from_release'
 
     - name: Install conda
       uses: conda-incubator/setup-miniconda@v3
@@ -125,6 +147,21 @@ jobs:
         pip install pyinstaller build
         pip freeze
 
+    - name: Handle wheel
+      shell: bash -el {0}
+      run: |
+        # os-specific wheel creating is first choice
+        if [ -f release/${{ inputs.os }}/build_wheel_${{ inputs.os }}.sh ]; then
+            echo "Building os-specific wheel"
+            release/${{ inputs.os }}/build_wheel_${{ inputs.os }}.sh
+        elif [ -d wheel_from_release ]; then
+            echo "Using downloaded wheel"
+            mkdir -p dist
+            mv wheel_from_release/*.whl dist/
+        else
+            echo "No wheel found, assuming it will be built by the installer build step"
+        fi
+
     - name: Build installer (Unix)
       if: inputs.os != 'windows'
       shell: bash -el {0}
@@ -143,14 +180,14 @@ jobs:
         ls *
         ls dist*/*
 
-    - name: Upload wheel
-      if: inputs.os == 'linux' # TODO this should be a dedicated job step
-      shell: bash -el {0}
-      env:
-        GH_TOKEN: ${{ github.token }}
-      run: |
-        WHL_NAME=$(cd dist && ls *.whl && cd ..)
-        gh release upload ${{ inputs.release_tag }} ./dist/$WHL_NAME
+#    - name: Upload wheel
+#      if: inputs.os == 'linux' # TODO this should be a dedicated job step
+#      shell: bash -el {0}
+#      env:
+#        GH_TOKEN: ${{ github.token }}
+#      run: |
+#        WHL_NAME=$(cd dist && ls *.whl && cd ..)
+#        gh release upload ${{ inputs.release_tag }} ./dist/$WHL_NAME
 
     - name: Test app
       if: ${{ inputs.test_app }}
