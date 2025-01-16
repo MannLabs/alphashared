@@ -35,7 +35,7 @@ This mechanism is meant to speed up the internal development.
 If a pre-release of `X.Y.Z-dev0` is done, the next version number should be `X.Y.Z-dev1`.
 
 (Note: if you want to build wheel from such a version, you need to substitute `-dev` with `.dev`,
-to have e.g. `packaname-1.2.3.dev0-py3-none-any.whl`)
+to have e.g. `packagename-1.2.3.dev0-py3-none-any.whl`)
 
 
 ### Step-by-step instructions
@@ -57,10 +57,10 @@ to the current release) and then publish the release. This will tag the code.
 5. Run the 'Publish on PyPi' workflow, specifying the release tag (e.g. `vX.Y.Z`) as an input parameter.
 6. [SR only] Merge the second PR created by the 'Bump version' workflow, which prepares
 the next development version (i.e. `X.Y.(Z+1)-dev0`).
-6. [PR only] Bump the version to `X.Y.Z)-dev(N+1)`
+6. [PR only] Bump the version to the next development version `X.Y.Z-dev(N+1)`
 
 Note the subtle difference: for a prerelease, you bump the version AFTER the release, for a standard release,
-you bump the version BEFORE the release and AFTER.
+you bump the version BEFORE _and_ AFTER the release.
 
 ## Installation of the release pipeline
 In order to incorporate this pipeline into your repository, it might help to look at
