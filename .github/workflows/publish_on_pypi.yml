@@ -53,6 +53,13 @@ jobs:
     outputs:
       new_version: ${{ steps.get_current_version.outputs.new_version }}
     steps:
+      - name: Check if tag exists
+        run: |
+          TAG="${{ inputs.tag_to_release }}"
+          if ! git show-ref --tags --verify --quiet "refs/tags/${TAG}"; then
+            echo "Tag ${TAG} does not exist. Did you forget to publish the release?"
+            exit 1
+          fi
       - name: get import_name
         id: get_import_name
         shell: bash -l {0}
@@ -93,39 +100,21 @@ jobs:
         uses: robinraju/release-downloader@v1
         continue-on-error: true
         with:
-#          # A flag to set the download target as latest release
-#          # The default value is 'false'
-#          latest: true
-#
-#          # A flag to download from prerelease. It should be combined with latest flag.
-#          # The default value is 'false'
-#          preRelease: true
-
-          # The github tag. e.g: v1.0.1
-          # Download assets from a specific tag/version
           tag: ${{ inputs.tag_to_release }}
-
           fileName: '*.whl'
-
-          # Relative path under $GITHUB_WORKSPACE to place the downloaded file(s)
-          # It will create the target directory automatically if not present
-          # eg: out-file-path: "my-downloads" => It will create directory $GITHUB_WORKSPACE/my-downloads
           out-file-path: 'dist'
 
-          # Github access token to download files from private repositories
-          # https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets
-          # eg: token: ${{ secrets.MY_TOKEN }}
-#          token: ''
-
-
-      - name: Prepare distribution
+      - name: Prepare wheel
+        id: prepare_wheel
         shell: bash -le {0}
         run: |
           
-          if [ -d "dist" ] && [ ! -z $(find dist -name "*.whl") ]; then
-              echo "Installing downloaded wheel $(ls dist/*.whl)"
+          WHEEL_FILES=$(find dist -name "*.whl")
+          
+          if [ -d "dist" ] && [ ! -z $WHEEL_FILES ]; then
+              echo "Nothing to prepare: using downloaded wheel $WHEEL_FILES"
           else
-              echo "No wheel name found, installing wheel from artifact"
+              echo "No wheel found, building wheel"
               
               conda create -n build_env python=${{ env.PYTHON_VERSION }} -y
               conda activate build_env
@@ -144,14 +133,22 @@ jobs:
               conda env remove --name build_env -y
               conda clean --all -y
           fi
+          
+          WHEEL_FILES=$(find dist -name "*.whl")
+          if [ $(echo $WHEEL_FILES | wc -w) -ne 1 ]; then
+              echo "More than one wheel found in dist: $WHEEL_FILES"
+              exit 1
+          fi
+          
+          echo WHEEL_FILE=$WHEEL_FILES >> $GITHUB_OUTPUT
 
       - name: Check package
         run: |
           pip install twine
-          twine check --strict dist/*.whl
+          twine check --strict dist/${{steps.prepare_wheel.outputs.WHEEL_FILE}}
 
       - name: Check installing package
-        run: pip install dist/*.whl
+        run: pip install dist/${{steps.prepare_wheel.outputs.WHEEL_FILE}}
 
       - name: Fail
         run: exit 1

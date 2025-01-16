@@ -82,6 +82,7 @@ jobs:
           echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
 
     - name: Check if artifact exists
+      id: check_artifact_exists
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
@@ -251,5 +252,5 @@ jobs:
         if-no-files-found: error
 
     - name: Setup SSH session for debugging
-      if: ${{ failure() }}
+      if: ${{ failure() && steps.check_artifact_exists.conclusion == 'success' }}
       uses: mxschmitt/action-tmate@v3
