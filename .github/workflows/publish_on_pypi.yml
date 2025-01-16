@@ -129,7 +129,7 @@ jobs:
               fi
           done
           
-          python -c "import ${{ inputs.package_name }}; print(${{ inputs.package_name }}.__version__)"
+          python -c "import ${{ inputs.import_name }}; print(${{ inputs.import_name }}.__version__)"
 
           conda deactivate
           conda env remove --name pip_standard_test -y
@@ -142,7 +142,7 @@ jobs:
           conda activate pip_stable_test
           pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple "${{ inputs.package_name }}[stable]==${{ steps.get_current_version.outputs.new_version }}"
          
-          python -c "import ${{ inputs.package_name }}; print(${{ inputs.package_name }}.__version__)"
+          python -c "import ${{ inputs.import_name }}; print(${{ inputs.import_name }}.__version__)"
           
           conda deactivate
           conda env remove --name pip_stable_test -y
@@ -210,7 +210,7 @@ jobs:
           conda activate pip_stable
           pip install ${{ inputs.package_name }}[stable]==${{ needs.Create_PyPi_Release.outputs.new_version }}
           
-          python -c "import ${{ inputs.package_name }}; print(${{ inputs.package_name }}.__version__)"
+          python -c "import ${{ inputs.import_name }}; print(${{ inputs.import_name }}.__version__)"
           
           conda deactivate
           conda env remove --name pip_stable -y
