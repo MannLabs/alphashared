@@ -138,7 +138,7 @@ jobs:
           auto-update-conda: true
           activate-environment: alphax_release
           python-version: "${{ inputs.python_version }}"
-      - name: Create wheel
+      - name: Build common wheel
         id: create_wheel
         shell: bash -el {0}
         run: |
@@ -156,7 +156,7 @@ jobs:
             echo WHEEL_PATH=None >> $GITHUB_OUTPUT
           fi
 
-      - name: Upload wheel
+      - name: Upload common wheel
         if: ${{ steps.create_wheel.outputs.WHEEL_PATH != 'None' }}
         env:
           GH_TOKEN: ${{ github.token }}

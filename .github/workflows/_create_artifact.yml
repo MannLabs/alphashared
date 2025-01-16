@@ -81,7 +81,7 @@ jobs:
           echo "BUILD_NAME=${BUILD_NAME}" >> $GITHUB_ENV
           echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
 
-    - name: Check if artifact exists
+    - name: Check if artifact already exists
       id: check_artifact_exists
       shell: bash
       env:
@@ -123,9 +123,9 @@ jobs:
         fi
         pip install pyinstaller
 
-    - name: Download wheel
+    - name: Download common wheel
       uses: robinraju/release-downloader@v1
-      continue-on-error: true # the wheel might not exist in the release (for packages using older version of workflow)
+      continue-on-error: true # the wheel might not exist in the release (for packages now offering build_wheel.sh)
       with:
         releaseId: ${{ inputs.release_id }}
         fileName: '*.whl'
@@ -133,6 +133,7 @@ jobs:
 
     - name: Prepare wheel
       shell: bash -el {0}
+      # if os-specific wheels are ever used, could upload them after this step
       run: |
         # os-specific wheel creating takes precedence
         if [ -f release/${{ inputs.os }}/build_wheel_${{ inputs.os }}.sh ]; then
@@ -255,7 +256,6 @@ jobs:
         GH_TOKEN: ${{ github.token }}
         GH_REPO: ${{ github.repository }}
       run: gh release upload ${{ inputs.release_tag }} ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
-
 
     # Fallback upload to be able to manually debug the artifact
     - name: Fallback upload installer as job asset

@@ -101,9 +101,9 @@ jobs:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
 
-      - name: Download wheel
+      - name: Download common wheel
         uses: robinraju/release-downloader@v1
-        continue-on-error: true # the wheel might not exist in the release (for packages using older version of workflow)
+        continue-on-error: true # the wheel might not exist in the release (for packages now offering build_wheel.sh)
         with:
           tag: ${{ inputs.tag_to_release }}
           fileName: '*.whl'
@@ -118,7 +118,7 @@ jobs:
           if [ -d "dist" ] && [ ! -z $WHEEL_FILES ]; then
               echo "Nothing to prepare: using downloaded wheel $WHEEL_FILES"
           else
-              echo "No wheel found, building wheel"
+              echo "No wheel found, building it .."
               
               conda create -n build_env python=${{ env.PYTHON_VERSION }} -y
               conda activate build_env
@@ -126,7 +126,7 @@ jobs:
               
               pip install build
               if [ -f setup.py ]; then
-                echo "Building using setup.py"
+                echo "Building using setup.py (DEPRECATED)"
                 python setup.py sdist bdist_wheel
               else
                 echo "Building using pyproject.toml"
@@ -167,7 +167,7 @@ jobs:
         run: |
           conda create -n pip_standard_test python=${{ env.PYTHON_VERSION }} -y
           conda activate pip_standard_test
-          command='pip install --pre --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple "${{ inputs.package_name }}==${{ steps.get_current_version.outputs.new_version }}"'
+          command='pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple "${{ inputs.package_name }}==${{ steps.get_current_version.outputs.new_version }}"'
                    
           # try 3 times to install the package to cover delays on pypi side
           max_attempts=3
@@ -195,7 +195,7 @@ jobs:
         run: |
           conda create -n pip_stable_test python=${{ env.PYTHON_VERSION }} -y
           conda activate pip_stable_test
-          pip install --pre --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple "${{ inputs.package_name }}[stable]==${{ steps.get_current_version.outputs.new_version }}"
+          pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple "${{ inputs.package_name }}[stable]==${{ steps.get_current_version.outputs.new_version }}"
          
           python -c "import ${{ steps.get_import_name.outputs.import_name }}; print(${{ steps.get_import_name.outputs.import_name }}.__version__)"
           
@@ -245,7 +245,7 @@ jobs:
         run: |
           conda create -n pip_standard python=${{ env.PYTHON_VERSION }} -y
           conda activate pip_standard
-          command='pip install --pre "${{ inputs.package_name }}==${{ needs.Create_PyPi_Release.outputs.new_version }}"'
+          command='pip install "${{ inputs.package_name }}==${{ needs.Create_PyPi_Release.outputs.new_version }}"'
           
           # try 3 times to install the package to cover delays on pypi side
           max_attempts=3
@@ -273,7 +273,7 @@ jobs:
         run: |
           conda create -n pip_stable python=${{ env.PYTHON_VERSION }} -y
           conda activate pip_stable
-          pip install --pre ${{ inputs.package_name }}[stable]==${{ needs.Create_PyPi_Release.outputs.new_version }}
+          pip install ${{ inputs.package_name }}[stable]==${{ needs.Create_PyPi_Release.outputs.new_version }}
           
           python -c "import ${{ steps.get_import_name.outputs.import_name }}; print(${{ steps.get_import_name.outputs.import_name }}.__version__)"
           

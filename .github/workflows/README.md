@@ -29,8 +29,8 @@ code should be bumped to `X.Y.(Z+1)-dev0`.
 For each release the code will be tagged with `v<version number>`.
 
 ### Pre-releases
-A pre-release is uploaded to pypi, but it will only be installed if the `--pre` flag is passed to 
-`pip` (i.e. `pip install --pre <packagename>`) or if the version number is explicitly given.
+A pre-release is uploaded to pypi, but it will only be installed if the version number is explicitly given 
+or if the `--pre` flag is passed to `pip` (i.e. `pip install --pre <packagename>`).
 This way, the pre-releases are not pulled by dependent packages, unless explicitly requested.
 We use this mechanism to speed up the development.
 If a pre-release of `X.Y.Z-dev0` is done, the next version number should be `X.Y.Z-dev1`.
@@ -53,12 +53,13 @@ the full commit hash or branch to release (defaults to `main`).
 3. After the workflow ran successfully, it uploads the installer packages as artifacts to the draft
 release page. You can download and test these installers manually (in addition to the tests done by the workflow).
 4. [SR only] on the GitHub page of the draft release, add release notes (all changes from the last standard release 
-to the current release) and then publish the release. This will tag the code.
-4. [PR only] Click "Set as a pre-release", leave the release notes blank and then publish the release. This will tag the code.
-5. Run the 'Publish on PyPi' workflow, specifying the release tag (e.g. `vX.Y.Z`) as an input parameter.
-6. [SR only] Merge the second PR created by the 'Bump version' workflow, which prepares
+to the current release).
+4. [PR only] Click "Set as a pre-release", leave the release notes blank.
+5. Publish the release. This will tag the code, which is required for all downstream workflows.
+6. Run the 'Publish on PyPi' workflow, specifying the release tag (e.g. `vX.Y.Z`) as an input parameter.
+7. [SR only] Merge the second PR created by the 'Bump version' workflow, which prepares
 the next development version (i.e. `X.Y.(Z+1)-dev0`).
-6. [PR only] Bump the version to the next development version `X.Y.Z-dev(N+1)`
+7. [PR only] Bump the version to the next development version `X.Y.Z-dev(N+1)`
 
 Note the subtle difference: for a prerelease, you bump the version AFTER the release, for a standard release,
 you bump the version BEFORE _and_ AFTER the release.
@@ -101,6 +102,7 @@ The workflow looks for platform-specific subdirectories `linux`, `macos`, `windo
 The subdirectories must contain the following scripts:
 
 ```
+release/<platform>/build_wheel_<platform>.sh (optional, see below)
 release/<platform>/build_installer_<platform>.sh
 release/<platform>/build_gui_<platform>.sh (optional)
 release/<platform>/build_package_<platform>.sh
@@ -111,6 +113,17 @@ Here, the `build_installer_<platform>.sh` script is responsible for building the
 the optional `build_gui_<platform>.sh` is to build a GUI (if not already done
 by the first script). Last, the `build_package_<platform>.sh` script is responsible for building the package,
 i.e. the file that is required to install it on the respective platform (linux: `.deb`, macos: `.pkg`, windows: `.exe`).
+
+##### Building the wheel
+If a script
+```
+release/common/build_wheel.sh
+```
+is available (recommended), then the wheel for all os-specific installers and for the pypi upload will be built from this script.
+
+This can be overruled by adding os-specific `release/<platform>/build_wheel_<platform>.sh` scripts,
+which will be then used to build the installers. Currently, the wheel for pypi is always built using the `build_wheel.sh` script
+(or from the code if this script is not available).
 
 
 ### Installation
