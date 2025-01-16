@@ -162,7 +162,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-        run: gh release upload ${{ inputs.release_tag }} ./${{ steps.create_wheel.outputs.WHEEL_PATH }}
+        run: gh release upload ${{ steps.get_release_tag.outputs.release_tag }} ./${{ steps.create_wheel.outputs.WHEEL_PATH }}
         
 #      - name: Upload wheel as release asset
 #        if: ${{ steps.create_wheel.outputs.WHEEL_PATH == 'true' }}
