@@ -53,6 +53,7 @@ jobs:
     outputs:
       new_version: ${{ steps.get_current_version.outputs.new_version }}
     steps:
+      - uses: actions/checkout@v4
       - name: Check if tag exists
         run: |
           TAG="${{ inputs.tag_to_release }}"
