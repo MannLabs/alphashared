@@ -29,9 +29,10 @@ code should be bumped to `X.Y.(Z+1)-dev0`.
 For each release the code will be tagged with `v<version number>`.
 
 ### Pre-releases
-A pre-release does not have public release page on GitHub, but is uploaded to pypi 
-(however, it will only be installed if the `--pre` flag is passed to `pip`, i.e. `pip install --pre <packagename>`).
-This mechanism is meant to speed up the internal development.
+A pre-release is uploaded to pypi, but it will only be installed if the `--pre` flag is passed to 
+`pip` (i.e. `pip install --pre <packagename>`) or if the version number is explicitly given.
+This way, the pre-releases are not pulled by dependent packages, unless explicitly requested.
+We use this mechanism to speed up the development.
 If a pre-release of `X.Y.Z-dev0` is done, the next version number should be `X.Y.Z-dev1`.
 
 (Note: if you want to build wheel from such a version, you need to substitute `-dev` with `.dev`,
