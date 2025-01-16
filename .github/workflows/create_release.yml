@@ -149,15 +149,14 @@ jobs:
             ./release/common/build_wheel.sh 
             ls *
             ls dist*/*
-            cd dist
-            WHEEL_PATH=$(ls *.whl)
+            WHEEL_PATH=$(ls dist/*.whl)
             echo WHEEL_PATH=$WHEEL_PATH >> $GITHUB_OUTPUT
           else
             echo Not creating wheel: release/common/build_wheel.sh not found
             echo WHEEL_PATH=None >> $GITHUB_OUTPUT
           fi
 
-      - name: Upload installer
+      - name: Upload wheel
         if: ${{ steps.create_wheel.outputs.WHEEL_PATH != 'None' }}
         env:
           GH_TOKEN: ${{ github.token }}
