@@ -54,6 +54,8 @@ jobs:
       new_version: ${{ steps.get_current_version.outputs.new_version }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # required to be able to check for existing tags
       - name: Check if tag exists
         run: |
           TAG="${{ inputs.tag_to_release }}"
