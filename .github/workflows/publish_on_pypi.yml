@@ -7,6 +7,11 @@ on:
         description: 'Name of package, e.g. "alphadia", "peptdeep", ..'
         type: string
         required: true
+      import_name:
+        description: "python namespace of package for import statements"
+        type: string
+        required: false
+        default: "${{inputs.package_name}}"
       tag_to_release:
         description: 'Enter tag to release (example: v1.5.5). A tag with the same name must exist in the repository.'
         type: string
