@@ -138,7 +138,7 @@ jobs:
           auto-update-conda: true
           activate-environment: alphax_release
           python-version: "${{ inputs.python_version }}"
-      - name: Build installer (Unix)
+      - name: Create wheel
         shell: bash -el {0}
         run: |
           if [ -f release/common/build_wheel.sh ]; then
@@ -155,7 +155,7 @@ jobs:
           fi
           
       - name: upload wheel as release asset
-        if: ${{ steps.Create_Wheel.outputs.WHEEL_CREATED == 'true' }}
+        if: ${{ steps.create_wheel.Create_Wheel.outputs.WHEEL_CREATED == 'true' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -170,7 +170,7 @@ jobs:
             
 
   Create_Linux_Installer:
-    needs: [ Create_Wheel ]
+    needs: [ Create_Wheel, Create_Release]
     if: ${{ needs.Create_Release.outputs.run_linux == 'true' }}
     uses: ./.github/workflows/_create_artifact.yml
     with:
@@ -186,7 +186,7 @@ jobs:
       commitish_to_release: ${{ inputs.commitish_to_release }}
 
   Create_MacOS_Installer:
-    needs: [Create_Wheel]
+    needs: [ Create_Wheel, Create_Release]
     if: ${{ needs.Create_Release.outputs.run_macos == 'true' }}
     strategy:
       fail-fast: false
@@ -210,7 +210,7 @@ jobs:
       commitish_to_release: ${{ inputs.commitish_to_release }}
 
   Create_Windows_Installer:
-    needs: [Create_Wheel]
+    needs: [ Create_Wheel, Create_Release]
     if: ${{ needs.Create_Release.outputs.run_windows == 'true' }}
     uses: ./.github/workflows/_create_artifact.yml
     with:
