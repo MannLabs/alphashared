@@ -56,7 +56,9 @@ jobs:
       - name: Check if tag exists
         run: |
           TAG="${{ inputs.tag_to_release }}"
-          if ! git show-ref --tags --verify --quiet "refs/tags/${TAG}"; then
+          if git show-ref --tags --verify --quiet "refs/tags/${TAG}"; then
+            echo "Tag ${TAG} exists, continuing .."
+          else
             echo "Tag ${TAG} does not exist. Did you forget to publish the release?"
             exit 1
           fi
