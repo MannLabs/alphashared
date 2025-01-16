@@ -145,6 +145,8 @@ jobs:
     - name: Upload wheel
       if: inputs.os == 'linux' # TODO this should be a dedicated job step
       shell: bash -el {0}
+      env:
+        GH_TOKEN: ${{ github.token }}
       run: |
         WHL_NAME=$(cd dist && ls *.whl && cd ..)
         gh release upload ${{ inputs.release_tag }} ./dist/$WHL_NAME
