@@ -139,6 +139,7 @@ jobs:
           activate-environment: alphax_release
           python-version: "${{ inputs.python_version }}"
       - name: Create wheel
+        id: create_wheel
         shell: bash -el {0}
         run: |
           if [ -f release/common/build_wheel.sh ]; then
@@ -154,8 +155,8 @@ jobs:
             echo WHEEL_CREATED=false >> $GITHUB_OUTPUT
           fi
           
-      - name: upload wheel as release asset
-        if: ${{ steps.create_wheel.Create_Wheel.outputs.WHEEL_CREATED == 'true' }}
+      - name: Upload wheel as release asset
+        if: ${{ steps.create_wheel.outputs.WHEEL_CREATED == 'true' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

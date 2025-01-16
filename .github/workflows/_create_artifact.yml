@@ -120,7 +120,7 @@ jobs:
       uses: robinraju/release-downloader@v1
       continue-on-error: true # the wheel might not exist in the release
       with:
-        tag: ${{ inputs.tag_to_release }}
+        releaseId: ${{ inputs.release_id }}
         fileName: '*.whl'
         out-file-path: 'wheel_from_release'
 
@@ -137,7 +137,7 @@ jobs:
       run: |
         conda info
 
-    - name: Install dependencies
+    - name: Install build dependencies
       shell: bash -el {0}
       run: |
         if [ "${{ inputs.os }}" == "windows" ]; then
