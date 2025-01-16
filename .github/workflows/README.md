@@ -32,28 +32,35 @@ For each release the code will be tagged with `v<version number>`.
 A pre-release does not have public release page on GitHub, but is uploaded to pypi 
 (however, it will only be installed if the `--pre` flag is passed to `pip`, i.e. `pip install --pre <packagename>`).
 This mechanism is meant to speed up the internal development.
-If a pre-release of `X.Y.(Z+1)-dev0` is done, the next version number should be `X.Y.(Z+1)-dev1`.
+If a pre-release of `X.Y.Z-dev0` is done, the next version number should be `X.Y.Z-dev1`.
+
+(Note: if you want to build wheel from such a version, you need to substitute `-dev` with `.dev`,
+to have e.g. `packaname-1.2.3.dev0-py3-none-any.whl`)
 
 
 ### Step-by-step instructions
-1. Bump the version (e.g. using the 'Bump version') workflow (e.g. to `X.Y.Z`), and merge the first resulting PR to `main`.
+SR=standard release, PR=pre-release
+
+1. [SR only] Bump the version (e.g. using the 'Bump version') workflow (e.g. to `X.Y.Z`), 
+and merge the first resulting PR to `main`.
 This version will determine the version of the release and the corresponding tag (e.g. `vX.Y.Z`).
-2. Manually run the 'Create Draft Release' workflow 
-in your repository
+2. Manually run the 'Create Draft Release' workflow in your repository
 (in GitHub UI: "Actions" -> Workflow "Create Draft Release" -> "Run Workflow")
-to create a new draft release on GitHub: this will tag the code, create the draft release page and build the installers. 
+to create a new draft release on GitHub: this will create the draft release page and build the installers. 
 When running the workflow you can specify an optional input parameter, which is
 the full commit hash or branch to release (defaults to `main`).
 3. After the workflow ran successfully, it uploads the installer packages as artifacts to the draft
 release page. You can download and test these installers manually (in addition to the tests done by the workflow).
-4a. (If not a pre-release) on the GitHub page of the draft release, add release notes (diff the last ordinary release 
-to the current release) and then publish the release.
-4b. (If a pre-release) leave the release as draft, click "Set as a pre-release", and continue with the next steps.
-5. Similar to before, run the 'Publish on PyPi' workflow, specifying the release tag (e.g. `vX.Y.Z`) as an input parameter.
-6. TODO not implemented yet (optional, if present) Run the 'Publish Docker Image' workflow, specifying the release tag 
-(e.g. `vX.Y.Z`) as an input parameter.
-7. If the release was not a pre-release, merge the second PR created by the 'Bump version' workflow, which prepares
+4. [SR only] on the GitHub page of the draft release, add release notes (all changes from the last standard release 
+to the current release) and then publish the release. This will tag the code.
+4. [PR only] Click "Set as a pre-release", leave the release notes blank and then publish the release. This will tag the code.
+5. Run the 'Publish on PyPi' workflow, specifying the release tag (e.g. `vX.Y.Z`) as an input parameter.
+6. [SR only] Merge the second PR created by the 'Bump version' workflow, which prepares
 the next development version (i.e. `X.Y.(Z+1)-dev0`).
+6. [PR only] Bump the version to `X.Y.Z)-dev(N+1)`
+
+Note the subtle difference: for a prerelease, you bump the version AFTER the release, for a standard release,
+you bump the version BEFORE the release and AFTER.
 
 ## Installation of the release pipeline
 In order to incorporate this pipeline into your repository, it might help to look at
