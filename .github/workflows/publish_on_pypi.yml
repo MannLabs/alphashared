@@ -103,7 +103,7 @@ jobs:
 
       - name: Download wheel
         uses: robinraju/release-downloader@v1
-        continue-on-error: true
+        continue-on-error: true # the wheel might not exist in the release
         with:
           tag: ${{ inputs.tag_to_release }}
           fileName: '*.whl'
@@ -113,7 +113,6 @@ jobs:
         id: prepare_wheel
         shell: bash -le {0}
         run: |
-          
           WHEEL_FILES=$(find dist -name "*.whl")
           
           if [ -d "dist" ] && [ ! -z $WHEEL_FILES ]; then
@@ -150,13 +149,10 @@ jobs:
       - name: Check package
         run: |
           pip install twine
-          twine check --strict dist/${{steps.prepare_wheel.outputs.WHEEL_FILE}}
+          twine check --strict ${{steps.prepare_wheel.outputs.WHEEL_FILE}}
 
       - name: Check installing package
-        run: pip install dist/${{steps.prepare_wheel.outputs.WHEEL_FILE}}
-
-      - name: Fail
-        run: exit 1
+        run: pip install ${{steps.prepare_wheel.outputs.WHEEL_FILE}}
 
       - name: Publish distribution to Test-PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
@@ -165,12 +161,13 @@ jobs:
           repository-url: https://test.pypi.org/legacy/
           user: __token__
           password: ${{ secrets.test_pypi_api_token }}
+          # assumes wheel to reside in ./dist folder
       - name: Check Test-PyPI installation  # TODO reduce code duplication here
         shell: bash -l {0}
         run: |
           conda create -n pip_standard_test python=${{ env.PYTHON_VERSION }} -y
           conda activate pip_standard_test
-          command='pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple "${{ inputs.package_name }}==${{ steps.get_current_version.outputs.new_version }}"'
+          command='pip install --pre --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple "${{ inputs.package_name }}==${{ steps.get_current_version.outputs.new_version }}"'
                    
           # try 3 times to install the package to cover delays on pypi side
           max_attempts=3
@@ -198,7 +195,7 @@ jobs:
         run: |
           conda create -n pip_stable_test python=${{ env.PYTHON_VERSION }} -y
           conda activate pip_stable_test
-          pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple "${{ inputs.package_name }}[stable]==${{ steps.get_current_version.outputs.new_version }}"
+          pip install --pre --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple "${{ inputs.package_name }}[stable]==${{ steps.get_current_version.outputs.new_version }}"
          
           python -c "import ${{ steps.get_import_name.outputs.import_name }}; print(${{ steps.get_import_name.outputs.import_name }}.__version__)"
           
@@ -248,7 +245,7 @@ jobs:
         run: |
           conda create -n pip_standard python=${{ env.PYTHON_VERSION }} -y
           conda activate pip_standard
-          command='pip install "${{ inputs.package_name }}==${{ needs.Create_PyPi_Release.outputs.new_version }}"'
+          command='pip install --pre "${{ inputs.package_name }}==${{ needs.Create_PyPi_Release.outputs.new_version }}"'
           
           # try 3 times to install the package to cover delays on pypi side
           max_attempts=3
@@ -276,7 +273,7 @@ jobs:
         run: |
           conda create -n pip_stable python=${{ env.PYTHON_VERSION }} -y
           conda activate pip_stable
-          pip install ${{ inputs.package_name }}[stable]==${{ needs.Create_PyPi_Release.outputs.new_version }}
+          pip install --pre ${{ inputs.package_name }}[stable]==${{ needs.Create_PyPi_Release.outputs.new_version }}
           
           python -c "import ${{ steps.get_import_name.outputs.import_name }}; print(${{ steps.get_import_name.outputs.import_name }}.__version__)"
           
