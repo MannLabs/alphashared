@@ -103,7 +103,7 @@ jobs:
 
       - name: Download wheel
         uses: robinraju/release-downloader@v1
-        continue-on-error: true # the wheel might not exist in the release
+        continue-on-error: true # the wheel might not exist in the release (for packages using older version of workflow)
         with:
           tag: ${{ inputs.tag_to_release }}
           fileName: '*.whl'

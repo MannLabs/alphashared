@@ -101,29 +101,6 @@ jobs:
           exit 1
         fi
 
-#    - name: Retrieve wheel
-#      continue-on-error: true  # the wheel might not exist in the release (if repo does not support it yet)
-#      env:
-#        GH_TOKEN: ${{ github.token }}
-#      run: |
-#        json_response=$(gh api \
-#          --method GET \
-#          -H "Accept: application/vnd.github+json" \
-#          -H "X-GitHub-Api-Version: 2022-11-28" \
-#          repos/$GITHUB_REPOSITORY/releases/${{ inputs.release_id }}/assets)
-#
-#        echo $json_response
-#
-#        asset_url=$(echo $json_response | jq -e '.[] | select(.name | endswith("exe")).url')
-
-    - name: Download wheel
-      uses: robinraju/release-downloader@v1
-      continue-on-error: true # the wheel might not exist in the release
-      with:
-        releaseId: ${{ inputs.release_id }}
-        fileName: '*.whl'
-        out-file-path: 'wheel_from_release'
-
     - name: Install conda
       uses: conda-incubator/setup-miniconda@v3
       with:
@@ -137,22 +114,30 @@ jobs:
       run: |
         conda info
 
-    - name: Install build dependencies
+    - name: Install pyinstaller
       shell: bash -el {0}
       run: |
         if [ "${{ inputs.os }}" == "windows" ]; then
           # TODO: pefile==2024.8.26 is super-slow on the 'binary vs. data reclassification' step, cf. https://github.com/erocarrera/pefile/issues/420
           pip install pefile==2023.2.7
         fi
-        pip install pyinstaller build
-        pip freeze
+        pip install pyinstaller
 
-    - name: Handle wheel
+    - name: Download wheel
+      uses: robinraju/release-downloader@v1
+      continue-on-error: true # the wheel might not exist in the release (for packages using older version of workflow)
+      with:
+        releaseId: ${{ inputs.release_id }}
+        fileName: '*.whl'
+        out-file-path: 'wheel_from_release'
+
+    - name: Prepare wheel
       shell: bash -el {0}
       run: |
-        # os-specific wheel creating is first choice
+        # os-specific wheel creating takes precedence
         if [ -f release/${{ inputs.os }}/build_wheel_${{ inputs.os }}.sh ]; then
             echo "Building os-specific wheel"
+            pip install build
             release/${{ inputs.os }}/build_wheel_${{ inputs.os }}.sh
         elif [ -d wheel_from_release ]; then
             echo "Using downloaded wheel"
@@ -160,7 +145,9 @@ jobs:
             mv wheel_from_release/*.whl dist/
         else
             echo "No wheel found, assuming it will be built by the installer build step"
+            pip install build
         fi
+        pip freeze
 
     - name: Build installer (Unix)
       if: inputs.os != 'windows'
@@ -179,15 +166,6 @@ jobs:
         pip freeze
         ls *
         ls dist*/*
-
-#    - name: Upload wheel
-#      if: inputs.os == 'linux' # TODO this should be a dedicated job step
-#      shell: bash -el {0}
-#      env:
-#        GH_TOKEN: ${{ github.token }}
-#      run: |
-#        WHL_NAME=$(cd dist && ls *.whl && cd ..)
-#        gh release upload ${{ inputs.release_tag }} ./dist/$WHL_NAME
 
     - name: Test app
       if: ${{ inputs.test_app }}
@@ -225,17 +203,17 @@ jobs:
         echo "calling ${EXECUTABLE} ${COMMAND}"
         eval ${EXECUTABLE} ${COMMAND}
 
-    - name: Setup Node.js
+    - name: Node.js GUI - Setup
       if: ${{ inputs.build_nodejs_ui }}
       uses: actions/setup-node@v4
 
-    - name: Build Node.js GUI (Unix)
+    - name: Node.js GUI - Build (Unix)
       if: inputs.build_nodejs_ui && inputs.os != 'windows'
       shell: bash
       run: |
         release/${{ inputs.os }}/build_gui_${{ inputs.os }}.sh
 
-    - name: Build Node.js GUI (Windows)
+    - name: Node.js GUI - Build (Windows)
       if: inputs.build_nodejs_ui && inputs.os == 'windows'
       shell: pwsh
       run: |
@@ -288,6 +266,6 @@ jobs:
         path: ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
         if-no-files-found: error
 
-    - name: Setup SSH session for debugging
-      if: ${{ failure() && steps.check_artifact_exists.conclusion == 'success' }}
-      uses: mxschmitt/action-tmate@v3
+#    - name: Setup SSH session for debugging
+#      if: ${{ failure() && steps.check_artifact_exists.conclusion == 'success' }}
+#      uses: mxschmitt/action-tmate@v3

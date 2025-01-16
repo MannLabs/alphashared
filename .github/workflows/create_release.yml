@@ -162,21 +162,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: gh release upload ${{ needs.Create_Release.outputs.release_tag }} ./${{ steps.create_wheel.outputs.WHEEL_PATH }}
-        
-#      - name: Upload wheel as release asset
-#        if: ${{ steps.create_wheel.outputs.WHEEL_PATH == 'true' }}
-#        env:
-#          GH_TOKEN: ${{ github.token }}
-#        run: |
-#          cd dist
-#          WHL_NAME=$(ls *.whl)
-#          gh api \
-#            --method POST \
-#            -H "Accept: application/vnd.github+json" \
-#            -H "X-GitHub-Api-Version: 2022-11-28" \
-#            /repos${{ github.repository }}/releases/${{ needs.Create_Release.create_release.outputs.release_id }}/assets?name=$WHL_NAME \
-#             -f "@$WHL_NAME"
-#            
 
   Create_Linux_Installer:
     needs: [ Create_Wheel, Create_Release]
