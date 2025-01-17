@@ -11,7 +11,7 @@ on:
         description: "python namespace of package for import statements"
         type: string
         required: false
-        default: "${{inputs.package_name}}"
+        default: ""
       tag_to_release:
         description: 'Enter tag to release (example: v1.5.5). A tag with the same name must exist in the repository.'
         type: string
@@ -53,6 +53,14 @@ jobs:
     outputs:
       new_version: ${{ steps.get_current_version.outputs.new_version }}
     steps:
+      - name: get import_name
+        id: get_import_name
+        run: |
+          if [ -z "${{ inputs.import_name }}" ]; then
+            echo "import_name=${{ inputs.package_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "import_name=${{ inputs.import_name }}" >> $GITHUB_OUTPUT
+          fi
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.tag_to_release }}
@@ -129,7 +137,7 @@ jobs:
               fi
           done
           
-          python -c "import ${{ inputs.import_name }}; print(${{ inputs.import_name }}.__version__)"
+          python -c "import ${{ steps.get_import_name.outputs.import_name}}; print(${{ steps.get_import_name.outputs.import_name }}.__version__)"
 
           conda deactivate
           conda env remove --name pip_standard_test -y
@@ -142,7 +150,7 @@ jobs:
           conda activate pip_stable_test
           pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple "${{ inputs.package_name }}[stable]==${{ steps.get_current_version.outputs.new_version }}"
          
-          python -c "import ${{ inputs.import_name }}; print(${{ inputs.import_name }}.__version__)"
+          python -c "import ${{ steps.get_import_name.outputs.import_name }}; print(${{ steps.get_import_name.outputs.import_name }}.__version__)"
           
           conda deactivate
           conda env remove --name pip_stable_test -y
@@ -197,7 +205,7 @@ jobs:
               fi
           done
                     
-          python -c "import ${{ inputs.package_name }}; print(${{ inputs.package_name }}.__version__)"
+          python -c "import ${{ steps.get_import_name.outputs.import_name }}; print(${{ steps.get_import_name.outputs.import_name }}.__version__)"
           
           conda deactivate
           conda env remove --name pip_standard -y
@@ -210,7 +218,7 @@ jobs:
           conda activate pip_stable
           pip install ${{ inputs.package_name }}[stable]==${{ needs.Create_PyPi_Release.outputs.new_version }}
           
-          python -c "import ${{ inputs.import_name }}; print(${{ inputs.import_name }}.__version__)"
+          python -c "import ${{ steps.get_import_name.outputs.import_name }}; print(${{ steps.get_import_name.outputs.import_name }}.__version__)"
           
           conda deactivate
           conda env remove --name pip_stable -y
