@@ -211,18 +211,20 @@ jobs:
 ## Developing the reusable release pipeline
 If you need to make changes to the reusable workflow 
 (e.g. include some extra steps), clone this repository, and commit your changes to
-a branch. After merging to `main`, create a new `TAG`
+a branch. After merging to `main`, create a new `TAG`.
+Make sure to bump the major version if you introduce breaking changes that make the workflow incompatible with the previous version,
+as most of the dependent repositories only use the major tag: `uses: .../create_release.yml@v1`.
+
 ```bash
 TAG=v1.1.0
+MAJOR_TAG=${TAG%%.*}
 git tag $TAG -f ; git push origin --tags
+git push --delete origin $MAJOR_TAG; git tag $MAJOR_TAG -f ; git push origin --tags
 ```
-and update it in the calling repositories (-> `uses: .../create_release.yml@v1` -> `uses: .../create_release.yml@v1`)
 
-If the change is non-breaking, you can overwrite an existing tag:
-```bash
-TAG=v1.0.0
-git push --delete origin $TAG; git tag $TAG -f ; git push origin --tags
-```
+Then, you may update it in the calling repositories (-> `uses: .../create_release.yml@v1.0.0` -> `uses: .../create_release.yml@v1.1.0`)
+
+
 
 ### Test runs
 In order to test the release pipeline, you need to use a 'fresh' release tag, otherwise the pipeline will fail.
