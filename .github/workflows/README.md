@@ -213,14 +213,14 @@ If you need to make changes to the reusable workflow
 (e.g. include some extra steps), clone this repository, and commit your changes to
 a branch. After merging to `main`, create a new `TAG`
 ```bash
-TAG=v2
+TAG=v1.1.0
 git tag $TAG -f ; git push origin --tags
 ```
 and update it in the calling repositories (-> `uses: .../create_release.yml@v1` -> `uses: .../create_release.yml@v1`)
 
 If the change is non-breaking, you can overwrite an existing tag:
 ```bash
-TAG=v1
+TAG=v1.0.0
 git push --delete origin $TAG; git tag $TAG -f ; git push origin --tags
 ```
 
