@@ -137,7 +137,7 @@ jobs:
       run: |
         # os-specific wheel creating takes precedence
         if [ -f release/${{ inputs.os }}/build_wheel_${{ inputs.os }}.sh ]; then
-            echo "Building os-specific wheel"
+            echo "Building os-specific wheel. Will ignore the wheel stored in release (if any)."
             pip install build
             release/${{ inputs.os }}/build_wheel_${{ inputs.os }}.sh
         elif [ -d wheel_from_release ]; then

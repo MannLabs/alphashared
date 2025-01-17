@@ -40,7 +40,10 @@ to have e.g. `packagename-1.2.3.dev0-py3-none-any.whl`)
 
 
 ### Step-by-step instructions
-SR=standard release, PR=pre-release
+For a standard release (SR), the version number is bumped to the release version, the release is done, then
+the version is bumped again to the next development version.
+For a prerelease (PR), the current development version is used, and the version is bumped to the next
+development version after the release.
 
 1. [SR only] Bump the version (e.g. using the 'Bump version') workflow (e.g. to `X.Y.Z`), 
 and merge the first resulting PR to `main`.
@@ -61,8 +64,7 @@ to the current release).
 the next development version (i.e. `X.Y.(Z+1)-dev0`).
 7. [PR only] Bump the version to the next development version `X.Y.Z-dev(N+1)`
 
-Note the subtle difference: for a prerelease, you bump the version AFTER the release, for a standard release,
-you bump the version BEFORE _and_ AFTER the release.
+
 
 ## Installation of the release pipeline
 In order to incorporate this pipeline into your repository, it might help to look at
