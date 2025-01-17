@@ -52,7 +52,7 @@ jobs:
       - name: First Bump - Get branch name
         id: get_branch_name
         run: |
-          echo BRANCH_NAME=bump_$${ inputs.bump_type }}_from_$(bump-my-version show current_version) >> $GITHUB_OUTPUT
+          echo BRANCH_NAME=bump_${{ inputs.bump_type }}_from_$(bump-my-version show current_version) >> $GITHUB_OUTPUT
 
 # bump-my-version needs to be called in a specific order to bump the version correctly:
 # Example:  We have just released 1.9.2, so current version number is 1.9.3-dev0
