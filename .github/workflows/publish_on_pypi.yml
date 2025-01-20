@@ -170,6 +170,14 @@ jobs:
         os: [ubuntu-latest, macOS-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
+      - name: get import_name
+        id: get_import_name
+        run: |
+          if [ -z "${{ inputs.import_name }}" ]; then
+            echo "import_name=${{ inputs.package_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "import_name=${{ inputs.import_name }}" >> $GITHUB_OUTPUT
+          fi
       - uses: actions/checkout@v4
       - uses: conda-incubator/setup-miniconda@v3
         with:
