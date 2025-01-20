@@ -77,9 +77,8 @@ the following pull requests and the respective workflow files in these repositor
 ### Requirements on the caller repository
 In order to be compatible with this workflow, the calling repository must meet the following requirements,
 which are explained in more detail below:
-- the package must have a version number at a defined location
-- a `release` directory must exist and contain the necessary scripts for building the packages
 - GitHub actions must be created in the `.github/workflows` directory that call the reusable workflows defined in here
+- the package must have a version number in `__init__.py`
 - a valid `.bumpversion.toml` file in the root of the repository, including
 [support for pre-release versions](https://github.com/callowayproject/bump-my-version?tab=readme-ov-file#add-support-for-pre-release-versions),
 with
@@ -90,6 +89,7 @@ values = ["dev", "final"]
 optional_value = "final"  
 ```
 (see [alphadia/.bumpversion.toml](https://github.com/MannLabs/alphadia/blob/main/.bumpversion.toml) for an example)
+- (optional, for building installers) a `release` directory must exist and contain the necessary scripts for building the packages
 
 #### Version
 The file `<package_name>/__init__.py` must contain the following line:
@@ -160,6 +160,8 @@ jobs:
     with:
      bump_type: ${{ inputs.bump_type }}
 ```
+Note: this workflow assumes that the repositoty is currently on a `dev` version (e.g. `X.Y.Z-dev0`). If this is not
+the case, update it manually by running `bump-my-version bump patch`.
 
 #### 'Create release' workflow
 1. Create a new github action `create_release.yml` in `.github/workflows` that references 
