@@ -112,11 +112,10 @@ jobs:
       - name: Prepare wheel
         id: prepare_wheel
         shell: bash -le {0}
-        run: |
-          WHEEL_FILES=$(find dist -name "*.whl")
+        run: |          
           
-          if [ -d "dist" ] && [ ! -z $WHEEL_FILES ]; then
-              echo "Nothing to prepare: using downloaded wheel $WHEEL_FILES"
+          if [ -d "dist" ] && [ ! -z $(find dist -name "*.whl") ]; then
+              echo "Nothing to prepare: using downloaded wheel $(find dist -name "*.whl")"
           else
               echo "No wheel found, building it .."
               
