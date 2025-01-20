@@ -55,6 +55,7 @@ jobs:
     steps:
       - name: get import_name
         id: get_import_name
+        shell: bash -l {0}
         run: |
           if [ -z "${{ inputs.import_name }}" ]; then
             echo "import_name=${{ inputs.package_name }}" >> $GITHUB_OUTPUT
@@ -156,6 +157,7 @@ jobs:
           conda env remove --name pip_stable_test -y
           conda clean --all -y
       - name: Publish distribution to PyPI
+        if: ${{ inputs.only_testpypi_release  != 'true' }}
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
@@ -170,6 +172,15 @@ jobs:
         os: [ubuntu-latest, macOS-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
+      - name: get import_name
+        id: get_import_name
+        shell: bash -l {0}
+        run: |
+          if [ -z "${{ inputs.import_name }}" ]; then
+            echo "import_name=${{ inputs.package_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "import_name=${{ inputs.import_name }}" >> $GITHUB_OUTPUT
+          fi
       - uses: actions/checkout@v4
       - uses: conda-incubator/setup-miniconda@v3
         with:
