@@ -55,6 +55,7 @@ jobs:
     steps:
       - name: get import_name
         id: get_import_name
+        shell: bash -l {0}
         run: |
           if [ -z "${{ inputs.import_name }}" ]; then
             echo "import_name=${{ inputs.package_name }}" >> $GITHUB_OUTPUT
@@ -173,6 +174,7 @@ jobs:
     steps:
       - name: get import_name
         id: get_import_name
+        shell: bash -l {0}
         run: |
           if [ -z "${{ inputs.import_name }}" ]; then
             echo "import_name=${{ inputs.package_name }}" >> $GITHUB_OUTPUT
