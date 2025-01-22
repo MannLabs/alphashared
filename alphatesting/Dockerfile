@@ -19,7 +19,7 @@ COPY replace_alphax.sh .
 COPY pip.conf /etc/pip.conf
 
 ############################################################################
-ARG ALPHABASE_REF="development"
+ARG ALPHABASE_REF="latest"
 RUN git clone https://github.com/MannLabs/alphabase.git \
     && cd alphabase \
     && git checkout $(../get_ref.sh $ALPHABASE_REF) \
@@ -30,7 +30,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 
 ############################################################################
-ARG ALPHATIMS_REF="develop"
+ARG ALPHATIMS_REF="latest"
 RUN git clone https://github.com/MannLabs/alphatims.git \
     && cd alphatims \
     && git checkout $(../get_ref.sh $ALPHATIMS_REF) \
@@ -41,6 +41,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 
 ############################################################################
+# TODO: change to latest once properly tagged release is out
 ARG ALPHARAW_REF="development"
 RUN git clone https://github.com/MannLabs/alpharaw.git \
     && cd alpharaw \
@@ -53,7 +54,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 
 ############################################################################
-ARG ALPHAVIZ_REF="development"
+ARG ALPHAVIZ_REF="latest"
 RUN git clone https://github.com/MannLabs/alphaviz.git \
     && cd alphaviz \
     && git checkout $(../get_ref.sh $ALPHAVIZ_REF) \
@@ -64,9 +65,8 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     cd alphaviz && pip install "."
 
 
-
 ############################################################################
-ARG ALPHAPEPTDEEP_REF="development"
+ARG ALPHAPEPTDEEP_REF="latest"
 RUN git clone https://github.com/MannLabs/alphapeptdeep.git \
     && cd alphapeptdeep \
     && git checkout $(../get_ref.sh $ALPHAPEPTDEEP_REF) \
@@ -78,7 +78,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 
 ############################################################################
-ARG DIRECTLFQ_REF="development"
+ARG DIRECTLFQ_REF="latest"
 RUN git clone https://github.com/MannLabs/directlfq.git \
     && cd directlfq \
     && git checkout $(../get_ref.sh $DIRECTLFQ_REF) \
@@ -88,7 +88,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     cd directlfq && pip install "."
 
 ############################################################################
-ARG ALPHADIA_REF="development"
+ARG ALPHADIA_REF="latest"
 RUN git clone https://github.com/MannLabs/alphadia.git \
     && cd alphadia \
     && git checkout $(../get_ref.sh $ALPHADIA_REF) \
@@ -108,8 +108,13 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install pytest nbmake
 
+# TODO remove this once https://github.com/MannLabs/alphabase/pull/288 is released
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip uninstall progressbar -y
+
 # build:
-# docker build -f Dockerfile.e2e  --build-arg="ALPHABASE_REF=latest" --build-arg="ALPHATIMS_REF=latest" --build-arg="ALPHARAW_REF=f8a355a" --build-arg="ALPHAPEPTDEEP_REF=latest" --build-arg="DIRECTLFQ_REF=latest" -t alphax_e2e .
+# docker build -f Dockerfile  --build-arg="ALPHABASE_REF=latest" --build-arg="ALPHATIMS_REF=latest" --build-arg="ALPHARAW_REF=f8a355a" --build-arg="ALPHAPEPTDEEP_REF=latest" --build-arg="DIRECTLFQ_REF=latest" -t alphax_e2e .
 
 # run bash:
-# docker run -v $DATA_FOLDER:/app/data/ -it alphax_e2e bashx
+# DATA_FOLDER=.
+# docker run -v $DATA_FOLDER:/app/data/ -it alphax_e2e bash
