@@ -22,8 +22,8 @@ fi
 
 echo using $REQUIREMENTS_FILE
 
-# add any alphaX packages that others depend on here
-for a in alphabase alphatims alpharaw alphapeptdeep alphatims alphaviz; do
+# Add any alphaX packages that others depend on here. Use the name like it is given in the requirements file!
+for a in alphabase alphatims alpharaw peptdeep alphatims alphaviz; do
   sed -i "s/$a/### $a/" $REQUIREMENTS_FILE
 done
 
