@@ -145,6 +145,9 @@ jobs:
           
           echo WHEEL_FILE=$WHEEL_FILES >> $GITHUB_OUTPUT
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+
       - name: Check package
         run: |
           pip install twine
