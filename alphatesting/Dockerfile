@@ -108,9 +108,9 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install pytest nbmake
 
-# TODO remove this once https://github.com/MannLabs/alphabase/pull/288 is released
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip uninstall progressbar -y
+## TODO remove this once https://github.com/MannLabs/alphabase/pull/288 is released
+#RUN --mount=type=cache,target=/root/.cache/pip \
+#    pip uninstall progressbar -y
 
 # build:
 # docker build -f Dockerfile  --build-arg="ALPHABASE_REF=latest" --build-arg="ALPHATIMS_REF=latest" --build-arg="ALPHARAW_REF=f8a355a" --build-arg="ALPHAPEPTDEEP_REF=latest" --build-arg="DIRECTLFQ_REF=latest" -t alphax_e2e .
