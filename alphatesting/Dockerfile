@@ -88,7 +88,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     cd directlfq && pip install "."
 
 ############################################################################
-ARG ALPHADIA_REF="development"
+ARG ALPHADIA_REF="main"
 RUN git clone https://github.com/MannLabs/alphadia.git \
     && cd alphadia \
     && git checkout $(../get_ref.sh $ALPHADIA_REF) \
@@ -107,6 +107,11 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 # additional dependencies for testing
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install pytest nbmake
+
+# TODO remove this once https://github.com/MannLabs/alphabase/pull/288 is released
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip uninstall progressbar
+
 
 # build:
 # docker build -f Dockerfile.e2e  --build-arg="ALPHABASE_REF=latest" --build-arg="ALPHATIMS_REF=latest" --build-arg="ALPHARAW_REF=f8a355a" --build-arg="ALPHAPEPTDEEP_REF=latest" --build-arg="DIRECTLFQ_REF=latest" -t alphax_e2e .
