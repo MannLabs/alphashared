@@ -189,7 +189,7 @@ jobs:
       # optional parameters
       build_nodejs_ui: true
       test_app: true
-      python_version: 3.9
+      python_version: "3.9" # make sure there are quotes!
 ```
 
 
@@ -218,7 +218,7 @@ jobs:
       package_name: <Name of package, e.g. "alphadia", "peptdeep", ..>
       tag_to_release: ${{ inputs.tag_to_release }}
       # optional parameters:
-      # python_version: 3.9
+      # python_version: "3.9" # make sure there are quotes!
       # test_stable: true
       # only_testpypi_release: false
       # skip_macos_arm64_build: false
