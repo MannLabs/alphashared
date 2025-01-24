@@ -116,6 +116,9 @@ i.e. the file that is required to install it on the respective platform (linux: 
 
 Note that it is not necessary to clone the `alphashared` repository. 
 
+The examples here use the `@v1` tag, which always points to the latest compatible `v1` version of the workflow.
+If you want to freeze the version, you can replace `@v1` with a specific tag, e.g. `@v1.0.0`.
+
 #### 'Bump version' workflow
 1. Create a new github action `bump_version.yml` in `.github/workflows` that references 
 the reusable workflow defined here:
@@ -212,9 +215,12 @@ jobs:
 If you need to make changes to the reusable workflow 
 (e.g. include some extra steps), clone this repository, and commit your changes to
 a branch. After merging to `main`, create a new `TAG`.
+
 Make sure to bump the major version if you introduce breaking changes that make the workflow incompatible with the previous version,
 as most of the dependent repositories only use the major tag: `uses: .../create_release.yml@v1`.
+This major tag gets updated to always point to the latest release of the workflow (cf. e.g. [here](https://github.com/actions/checkout/tags)).
 
+To create a new release (incl. updating the tag), use
 ```bash
 TAG=v1.1.0
 MAJOR_TAG=${TAG%%.*}
