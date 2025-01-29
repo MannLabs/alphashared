@@ -240,6 +240,7 @@ a branch. After merging to `main`, create a new `TAG`.
 Make sure to bump the major version if you introduce breaking changes that make the workflow incompatible with the previous version,
 as most of the dependent repositories only use the major tag: `uses: .../create_release.yml@v1`.
 This major tag gets updated to always point to the latest release of the workflow (cf. e.g. [here](https://github.com/actions/checkout/tags)).
+You can look up the current tags [here](https://github.com/MannLabs/alphadia/tags).
 
 To create a new release (incl. updating the tag), use
 ```bash
@@ -249,7 +250,7 @@ git tag $TAG -f ; git push origin --tags
 git push --delete origin $MAJOR_TAG; git tag $MAJOR_TAG -f ; git push origin --tags
 ```
 
-Then, you may update it in the calling repositories (-> `uses: .../create_release.yml@v1.0.0` -> `uses: .../create_release.yml@v1.1.0`)
+Then, you may update it in the calling repositories (-> `uses: .../create_release.yml@v1.0.0` -> `uses: .../create_release.yml@v1.1.0`).
 
 
 
