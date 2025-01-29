@@ -79,7 +79,7 @@ In order to be compatible with this workflow, the calling repository must meet t
 which are explained in more detail below:
 - GitHub actions must be created in the `.github/workflows` directory that call the reusable workflows defined in here
 - the package must have a version number in `__init__.py`
-- a valid `.bumpversion.toml` file in the root of the repository, including
+- (optional, for bump version workflow) a valid `.bumpversion.toml` file in the root of the repository, including
 [support for pre-release versions](https://github.com/callowayproject/bump-my-version?tab=readme-ov-file#add-support-for-pre-release-versions),
 with
 ```yaml
@@ -117,16 +117,20 @@ by the first script). Last, the `build_package_<platform>.sh` script is responsi
 i.e. the file that is required to install it on the respective platform (linux: `.deb`, macos: `.pkg`, windows: `.exe`).
 
 ##### Building the wheel
-If a script
+There are three different ways to build the wheel for the pypi release: 
+
+1) If a script
 ```
 release/common/build_wheel.sh
 ```
-is available (recommended), then the wheel for all os-specific installers and for the pypi upload will be built from this script.
+is available (recommended), then the wheel for all os-specific installers and for the pypi upload will be built from this script,
+ensuring that they all have the same dependencies.
 
-This can be overruled by adding os-specific `release/<platform>/build_wheel_<platform>.sh` scripts,
+2) This can be overruled by adding os-specific `release/<platform>/build_wheel_<platform>.sh` scripts,
 which will be then used to build the installers. Currently, the wheel for pypi is always built using the `build_wheel.sh` script
 (or from the code if this script is not available).
 
+3) If none of these files are provided, the wheel will be built from the code during the pypi release.
 
 ### Installation
 
@@ -189,7 +193,7 @@ jobs:
       # optional parameters
       build_nodejs_ui: true
       test_app: true
-      python_version: 3.9
+      python_version: "3.9" # make sure there are quotes!
 ```
 
 
@@ -218,7 +222,7 @@ jobs:
       package_name: <Name of package, e.g. "alphadia", "peptdeep", ..>
       tag_to_release: ${{ inputs.tag_to_release }}
       # optional parameters:
-      # python_version: 3.9
+      # python_version: "3.9" # make sure there are quotes!
       # test_stable: true
       # only_testpypi_release: false
       # skip_macos_arm64_build: false
