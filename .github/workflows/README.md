@@ -29,17 +29,21 @@ code should be bumped to `X.Y.(Z+1)-dev0`.
 For each release the code will be tagged with `v<version number>`.
 
 ### Pre-releases
-A pre-release does not have public release page on GitHub, but is uploaded to pypi 
-(however, it will only be installed if the `--pre` flag is passed to `pip`, i.e. `pip install --pre <packagename>`).
-This mechanism is meant to speed up the internal development.
+A pre-release is uploaded to pypi, but it will only be installed if the version number is explicitly given 
+or if the `--pre` flag is passed to `pip` (i.e. `pip install --pre <packagename>`).
+This way, the pre-releases are not pulled by dependent packages, unless explicitly requested.
+We use this mechanism to speed up the development.
 If a pre-release of `X.Y.Z-dev0` is done, the next version number should be `X.Y.Z-dev1`.
 
 (Note: if you want to build wheel from such a version, you need to substitute `-dev` with `.dev`,
-to have e.g. `packaname-1.2.3.dev0-py3-none-any.whl`)
+to have e.g. `packagename-1.2.3.dev0-py3-none-any.whl`)
 
 
 ### Step-by-step instructions
-SR=standard release, PR=pre-release
+For a standard release (SR), the version number is bumped to the release version, the release is done, then
+the version is bumped again to the next development version.
+For a prerelease (PR), the current development version is used, and the version is bumped to the next
+development version after the release.
 
 1. [SR only] Bump the version (e.g. using the 'Bump version') workflow (e.g. to `X.Y.Z`), 
 and merge the first resulting PR to `main`.
@@ -52,15 +56,15 @@ the full commit hash or branch to release (defaults to `main`).
 3. After the workflow ran successfully, it uploads the installer packages as artifacts to the draft
 release page. You can download and test these installers manually (in addition to the tests done by the workflow).
 4. [SR only] on the GitHub page of the draft release, add release notes (all changes from the last standard release 
-to the current release) and then publish the release. This will tag the code.
-4. [PR only] Click "Set as a pre-release", leave the release notes blank and then publish the release. This will tag the code.
-5. Run the 'Publish on PyPi' workflow, specifying the release tag (e.g. `vX.Y.Z`) as an input parameter.
-6. [SR only] Merge the second PR created by the 'Bump version' workflow, which prepares
+to the current release).
+4. [PR only] Click "Set as a pre-release", leave the release notes blank.
+5. Publish the release. This will tag the code, which is required for all downstream workflows.
+6. Run the 'Publish on PyPi' workflow, specifying the release tag (e.g. `vX.Y.Z`) as an input parameter.
+7. [SR only] Merge the second PR created by the 'Bump version' workflow, which prepares
 the next development version (i.e. `X.Y.(Z+1)-dev0`).
-6. [PR only] Bump the version to `X.Y.Z)-dev(N+1)`
+7. [PR only] Bump the version to the next development version `X.Y.Z-dev(N+1)`
 
-Note the subtle difference: for a prerelease, you bump the version AFTER the release, for a standard release,
-you bump the version BEFORE the release and AFTER.
+
 
 ## Installation of the release pipeline
 In order to incorporate this pipeline into your repository, it might help to look at
@@ -73,9 +77,8 @@ the following pull requests and the respective workflow files in these repositor
 ### Requirements on the caller repository
 In order to be compatible with this workflow, the calling repository must meet the following requirements,
 which are explained in more detail below:
-- the package must have a version number at a defined location
-- a `release` directory must exist and contain the necessary scripts for building the packages
 - GitHub actions must be created in the `.github/workflows` directory that call the reusable workflows defined in here
+- the package must have a version number in `__init__.py`
 - a valid `.bumpversion.toml` file in the root of the repository, including
 [support for pre-release versions](https://github.com/callowayproject/bump-my-version?tab=readme-ov-file#add-support-for-pre-release-versions),
 with
@@ -86,6 +89,7 @@ values = ["dev", "final"]
 optional_value = "final"  
 ```
 (see [alphadia/.bumpversion.toml](https://github.com/MannLabs/alphadia/blob/main/.bumpversion.toml) for an example)
+- (optional, for building installers) a `release` directory must exist and contain the necessary scripts for building the packages
 
 #### Version
 The file `<package_name>/__init__.py` must contain the following line:
@@ -100,6 +104,7 @@ The workflow looks for platform-specific subdirectories `linux`, `macos`, `windo
 The subdirectories must contain the following scripts:
 
 ```
+release/<platform>/build_wheel_<platform>.sh (optional, see below)
 release/<platform>/build_installer_<platform>.sh
 release/<platform>/build_gui_<platform>.sh (optional)
 release/<platform>/build_package_<platform>.sh
@@ -110,6 +115,17 @@ Here, the `build_installer_<platform>.sh` script is responsible for building the
 the optional `build_gui_<platform>.sh` is to build a GUI (if not already done
 by the first script). Last, the `build_package_<platform>.sh` script is responsible for building the package,
 i.e. the file that is required to install it on the respective platform (linux: `.deb`, macos: `.pkg`, windows: `.exe`).
+
+##### Building the wheel
+If a script
+```
+release/common/build_wheel.sh
+```
+is available (recommended), then the wheel for all os-specific installers and for the pypi upload will be built from this script.
+
+This can be overruled by adding os-specific `release/<platform>/build_wheel_<platform>.sh` scripts,
+which will be then used to build the installers. Currently, the wheel for pypi is always built using the `build_wheel.sh` script
+(or from the code if this script is not available).
 
 
 ### Installation
@@ -144,6 +160,8 @@ jobs:
     with:
      bump_type: ${{ inputs.bump_type }}
 ```
+Note: this workflow assumes that the repositoty is currently on a `dev` version (e.g. `X.Y.Z-dev0`). If this is not
+the case, update it manually by running `bump-my-version bump patch`.
 
 #### 'Create release' workflow
 1. Create a new github action `create_release.yml` in `.github/workflows` that references 

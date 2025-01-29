@@ -29,7 +29,7 @@ on:
         type: string
         required: true
         description: "The new release tag to release, e.g. v1.2.3"
-      release_id:
+      release_id: # required to access the release as it is not published yet
         type: string
         required: true
         description: "The github id of the release, e.g. 123456"
@@ -81,7 +81,8 @@ jobs:
           echo "BUILD_NAME=${BUILD_NAME}" >> $GITHUB_ENV
           echo "ARTIFACT_NAME=${ARTIFACT_NAME}" >> $GITHUB_OUTPUT
 
-    - name: Check if artifact exists
+    - name: Check if artifact already exists
+      id: check_artifact_exists
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
@@ -100,7 +101,6 @@ jobs:
           exit 1
         fi
 
-
     - name: Install conda
       uses: conda-incubator/setup-miniconda@v3
       with:
@@ -114,14 +114,40 @@ jobs:
       run: |
         conda info
 
-    - name: Install dependencies
+    - name: Install pyinstaller
       shell: bash -el {0}
       run: |
         if [ "${{ inputs.os }}" == "windows" ]; then
           # TODO: pefile==2024.8.26 is super-slow on the 'binary vs. data reclassification' step, cf. https://github.com/erocarrera/pefile/issues/420
           pip install pefile==2023.2.7
         fi
-        pip install pyinstaller build
+        pip install pyinstaller
+
+    - name: Download common wheel
+      uses: robinraju/release-downloader@v1
+      continue-on-error: true # the wheel might not exist in the release (for packages now offering build_wheel.sh)
+      with:
+        releaseId: ${{ inputs.release_id }}
+        fileName: '*.whl'
+        out-file-path: 'wheel_from_release'
+
+    - name: Prepare wheel
+      shell: bash -el {0}
+      # if os-specific wheels are ever used, could upload them after this step
+      run: |
+        # os-specific wheel creating takes precedence
+        if [ -f release/${{ inputs.os }}/build_wheel_${{ inputs.os }}.sh ]; then
+            echo "Building os-specific wheel. Will ignore the wheel stored in release (if any)."
+            pip install build
+            release/${{ inputs.os }}/build_wheel_${{ inputs.os }}.sh
+        elif [ -d wheel_from_release ]; then
+            echo "Using downloaded wheel"
+            mkdir -p dist
+            mv wheel_from_release/*.whl dist/
+        else
+            echo "No wheel found, assuming it will be built by the installer build step"
+            pip install build
+        fi
         pip freeze
 
     - name: Build installer (Unix)
@@ -178,17 +204,17 @@ jobs:
         echo "calling ${EXECUTABLE} ${COMMAND}"
         eval ${EXECUTABLE} ${COMMAND}
 
-    - name: Setup Node.js
+    - name: Node.js GUI - Setup
       if: ${{ inputs.build_nodejs_ui }}
       uses: actions/setup-node@v4
 
-    - name: Build Node.js GUI (Unix)
+    - name: Node.js GUI - Build (Unix)
       if: inputs.build_nodejs_ui && inputs.os != 'windows'
       shell: bash
       run: |
         release/${{ inputs.os }}/build_gui_${{ inputs.os }}.sh
 
-    - name: Build Node.js GUI (Windows)
+    - name: Node.js GUI - Build (Windows)
       if: inputs.build_nodejs_ui && inputs.os == 'windows'
       shell: pwsh
       run: |
@@ -239,3 +265,7 @@ jobs:
         name: ${{steps.get_artifact.outputs.ARTIFACT_NAME}}
         path: ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
         if-no-files-found: error
+
+#    - name: Setup SSH session for debugging
+#      if: ${{ failure() && steps.check_artifact_exists.conclusion == 'success' }}
+#      uses: mxschmitt/action-tmate@v3

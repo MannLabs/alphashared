@@ -123,8 +123,48 @@ jobs:
 #            -f "target_commitish=${{ inputs.commitish_to_release }}" \
 #            -F "draft=true"
 
-  Create_Linux_Installer:
+  Create_Wheel:
     needs: [ Create_Release ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commitish_to_release }}
+      - name: Install conda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniconda-version: "latest"
+          auto-update-conda: true
+          activate-environment: alphax_release
+          python-version: "${{ inputs.python_version }}"
+      - name: Build common wheel
+        id: create_wheel
+        shell: bash -el {0}
+        run: |
+          if [ -f release/common/build_wheel.sh ]; then
+            conda info
+            pip install build
+            pip freeze
+            ./release/common/build_wheel.sh 
+            ls *
+            ls dist*/*
+            WHEEL_PATH=$(ls dist/*.whl)
+            echo WHEEL_PATH=$WHEEL_PATH >> $GITHUB_OUTPUT
+          else
+            echo Not creating wheel: release/common/build_wheel.sh not found
+            echo WHEEL_PATH=None >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload common wheel
+        if: ${{ steps.create_wheel.outputs.WHEEL_PATH != 'None' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release upload ${{ needs.Create_Release.outputs.release_tag }} ./${{ steps.create_wheel.outputs.WHEEL_PATH }}
+
+  Create_Linux_Installer:
+    needs: [ Create_Wheel, Create_Release]
     if: ${{ needs.Create_Release.outputs.run_linux == 'true' }}
     uses: ./.github/workflows/_create_artifact.yml
     with:
@@ -140,7 +180,7 @@ jobs:
       commitish_to_release: ${{ inputs.commitish_to_release }}
 
   Create_MacOS_Installer:
-    needs: [Create_Release]
+    needs: [ Create_Wheel, Create_Release]
     if: ${{ needs.Create_Release.outputs.run_macos == 'true' }}
     strategy:
       fail-fast: false
@@ -164,7 +204,7 @@ jobs:
       commitish_to_release: ${{ inputs.commitish_to_release }}
 
   Create_Windows_Installer:
-    needs: [Create_Release]
+    needs: [ Create_Wheel, Create_Release]
     if: ${{ needs.Create_Release.outputs.run_windows == 'true' }}
     uses: ./.github/workflows/_create_artifact.yml
     with:

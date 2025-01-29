@@ -53,6 +53,18 @@ jobs:
     outputs:
       new_version: ${{ steps.get_current_version.outputs.new_version }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # required to be able to check for existing tags
+      - name: Check if tag exists
+        run: |
+          TAG="${{ inputs.tag_to_release }}"
+          if git show-ref --tags --verify --quiet "refs/tags/${TAG}"; then
+            echo "Tag ${TAG} exists, continuing .."
+          else
+            echo "Tag ${TAG} does not exist. Did you forget to publish the release?"
+            exit 1
+          fi
       - name: get import_name
         id: get_import_name
         shell: bash -l {0}
@@ -88,27 +100,61 @@ jobs:
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
-      - name: Prepare distribution
+
+      - name: Download common wheel
+        uses: robinraju/release-downloader@v1
+        continue-on-error: true # the wheel might not exist in the release (for packages now offering build_wheel.sh)
+        with:
+          tag: ${{ inputs.tag_to_release }}
+          fileName: '*.whl'
+          out-file-path: 'dist'
+
+      - name: Prepare wheel
+        id: prepare_wheel
         shell: bash -le {0}
-        run: |
-          conda create -n build_env python=${{ env.PYTHON_VERSION }} -y
-          conda activate build_env
-          python -m pip install --upgrade pip
-          pip install build twine
+        run: |          
           
-          if [ -f setup.py ]; then
-            echo "Building using setup.py"
-            python setup.py sdist bdist_wheel
+          if [ -d "dist" ] && [ ! -z $(find dist -name "*.whl") ]; then
+              echo "Nothing to prepare: using downloaded wheel $(find dist -name "*.whl")"
           else
-            echo "Building using pyproject.toml"
-            python -m build
+              echo "No wheel found, building it .."
+              
+              conda create -n build_env python=${{ env.PYTHON_VERSION }} -y
+              conda activate build_env
+              python -m pip install --upgrade pip
+              
+              pip install build
+              if [ -f setup.py ]; then
+                echo "Building using setup.py (DEPRECATED)"
+                python setup.py sdist bdist_wheel
+              else
+                echo "Building using pyproject.toml"
+                python -m build
+              fi
+          
+              conda deactivate
+              conda env remove --name build_env -y
+              conda clean --all -y
           fi
-         
-          conda deactivate
-          conda env remove --name build_env -y
-          conda clean --all -y
-#      - name: Check package
-#        run: twine check --strict dist/*.whl
+          
+          WHEEL_FILES=$(find dist -name "*.whl")
+          if [ $(echo $WHEEL_FILES | wc -w) -ne 1 ]; then
+              echo "More than one wheel found in dist: $WHEEL_FILES"
+              exit 1
+          fi
+          
+          echo WHEEL_FILE=$WHEEL_FILES >> $GITHUB_OUTPUT
+
+      - name: Check package
+        # twine==6.1.0 yields "ERROR    InvalidDistribution: Invalid distribution metadata: unrecognized or malformed field 'license-file'"
+        # cf. https://github.com/pypa/twine/issues/1216
+        run: |
+          pip install twine==6.0.1 
+          twine check --strict ${{steps.prepare_wheel.outputs.WHEEL_FILE}}
+
+      - name: Check installing package
+        run: pip install ${{steps.prepare_wheel.outputs.WHEEL_FILE}}
+
       - name: Publish distribution to Test-PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         continue-on-error: true # this is to cover cases where the upload has already been done but some downstream steps failed
@@ -116,6 +162,7 @@ jobs:
           repository-url: https://test.pypi.org/legacy/
           user: __token__
           password: ${{ secrets.test_pypi_api_token }}
+          # assumes wheel to reside in ./dist folder
       - name: Check Test-PyPI installation  # TODO reduce code duplication here
         shell: bash -l {0}
         run: |
