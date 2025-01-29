@@ -50,17 +50,16 @@ and merge the first resulting PR to `main`.
 This version will determine the version of the release and the corresponding tag (e.g. `vX.Y.Z`).
 2. Manually run the 'Create Draft Release' workflow in your repository
 (in GitHub UI: "Actions" -> Workflow "Create Draft Release" -> "Run Workflow")
-to create a new draft release on GitHub: this will create the draft release page and build the installers. 
+to create a new draft release on GitHub: this will tag the code, create the draft release page and build the installers. 
 When running the workflow you can specify an optional input parameter, which is
 the full commit hash or branch to release (defaults to `main`).
 3. After the workflow ran successfully, it uploads the installer packages as artifacts to the draft
 release page. You can download and test these installers manually (in addition to the tests done by the workflow).
 4. [SR only] on the GitHub page of the draft release, add release notes (all changes from the last standard release 
-to the current release).
-4. [PR only] Click "Set as a pre-release", leave the release notes blank.
-5. Publish the release. This will tag the code, which is required for all downstream workflows.
-6. Run the 'Publish on PyPi' workflow, specifying the release tag (e.g. `vX.Y.Z`) as an input parameter.
-7. [SR only] Merge the second PR created by the 'Bump version' workflow, which prepares
+to the current release) and then publish the release.
+4. [PR only] In case you want to publish this release, click "Set as a pre-release". Release notes can be given or not.
+5. Run the 'Publish on PyPi' workflow, specifying the release tag (e.g. `vX.Y.Z`) as an input parameter.
+6. [SR only] Merge the second PR created by the 'Bump version' workflow, which prepares
 the next development version (i.e. `X.Y.(Z+1)-dev0`).
 7. [PR only] Bump the version to the next development version `X.Y.Z-dev(N+1)`
 
