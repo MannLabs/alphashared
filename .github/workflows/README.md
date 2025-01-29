@@ -136,6 +136,9 @@ which will be then used to build the installers. Currently, the wheel for pypi i
 
 Note that it is not necessary to clone the `alphashared` repository. 
 
+The examples here use the `@v1` tag, which always points to the latest compatible `v1` version of the workflow.
+If you want to freeze the version, you can replace `@v1` with a specific tag, e.g. `@v1.0.0`.
+
 #### 'Bump version' workflow
 1. Create a new github action `bump_version.yml` in `.github/workflows` that references 
 the reusable workflow defined here:
@@ -233,18 +236,23 @@ jobs:
 ## Developing the reusable release pipeline
 If you need to make changes to the reusable workflow 
 (e.g. include some extra steps), clone this repository, and commit your changes to
-a branch. After merging to `main`, create a new `TAG`
-```bash
-TAG=v2
-git tag $TAG -f ; git push origin --tags
-```
-and update it in the calling repositories (-> `uses: .../create_release.yml@v1` -> `uses: .../create_release.yml@v1`)
+a branch. After merging to `main`, create a new `TAG`.
 
-If the change is non-breaking, you can overwrite an existing tag:
+Make sure to bump the major version if you introduce breaking changes that make the workflow incompatible with the previous version,
+as most of the dependent repositories only use the major tag: `uses: .../create_release.yml@v1`.
+This major tag gets updated to always point to the latest release of the workflow (cf. e.g. [here](https://github.com/actions/checkout/tags)).
+
+To create a new release (incl. updating the tag), use
 ```bash
-TAG=v1
-git push --delete origin $TAG; git tag $TAG -f ; git push origin --tags
+TAG=v1.1.0
+MAJOR_TAG=${TAG%%.*}
+git tag $TAG -f ; git push origin --tags
+git push --delete origin $MAJOR_TAG; git tag $MAJOR_TAG -f ; git push origin --tags
 ```
+
+Then, you may update it in the calling repositories (-> `uses: .../create_release.yml@v1.0.0` -> `uses: .../create_release.yml@v1.1.0`)
+
+
 
 ### Test runs
 In order to test the release pipeline, you need to use a 'fresh' release tag, otherwise the pipeline will fail.
