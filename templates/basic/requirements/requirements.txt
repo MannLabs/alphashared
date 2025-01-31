@@ -1,0 +1,2 @@
+# dependencies required for developing
+numpy==2.2.2
