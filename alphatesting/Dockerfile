@@ -92,12 +92,8 @@ ARG ALPHADIA_REF="latest"
 RUN git clone https://github.com/MannLabs/alphadia.git \
     && cd alphadia \
     && git checkout $(../get_ref.sh $ALPHADIA_REF) \
+    && ../replace_alphax.sh \
     && git status
-
-# need to delete requirements in two files, otherwise the test comparing them will fail
-RUN cd alphadia \
-    && ../replace_alphax.sh ./requirements/requirements.txt \
-    && ../replace_alphax.sh ./requirements/requirements_loose.txt
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     cd alphadia && pip install ".[stable]"
