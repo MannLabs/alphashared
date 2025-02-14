@@ -50,17 +50,16 @@ and merge the first resulting PR to `main`.
 This version will determine the version of the release and the corresponding tag (e.g. `vX.Y.Z`).
 2. Manually run the 'Create Draft Release' workflow in your repository
 (in GitHub UI: "Actions" -> Workflow "Create Draft Release" -> "Run Workflow")
-to create a new draft release on GitHub: this will create the draft release page and build the installers. 
+to create a new draft release on GitHub: this will tag the code, create the draft release page and build the installers. 
 When running the workflow you can specify an optional input parameter, which is
 the full commit hash or branch to release (defaults to `main`).
 3. After the workflow ran successfully, it uploads the installer packages as artifacts to the draft
 release page. You can download and test these installers manually (in addition to the tests done by the workflow).
 4. [SR only] on the GitHub page of the draft release, add release notes (all changes from the last standard release 
-to the current release).
-4. [PR only] Click "Set as a pre-release", leave the release notes blank.
-5. Publish the release. This will tag the code, which is required for all downstream workflows.
-6. Run the 'Publish on PyPi' workflow, specifying the release tag (e.g. `vX.Y.Z`) as an input parameter.
-7. [SR only] Merge the second PR created by the 'Bump version' workflow, which prepares
+to the current release) and then publish the release.
+4. [PR only] In case you want to publish this release, click "Set as a pre-release". Release notes can be given or not.
+5. Run the 'Publish on PyPi' workflow, specifying the release tag (e.g. `vX.Y.Z`) as an input parameter.
+6. [SR only] Merge the second PR created by the 'Bump version' workflow, which prepares
 the next development version (i.e. `X.Y.(Z+1)-dev0`).
 7. [PR only] Bump the version to the next development version `X.Y.Z-dev(N+1)`
 
@@ -241,6 +240,7 @@ a branch. After merging to `main`, create a new `TAG`.
 Make sure to bump the major version if you introduce breaking changes that make the workflow incompatible with the previous version,
 as most of the dependent repositories only use the major tag: `uses: .../create_release.yml@v1`.
 This major tag gets updated to always point to the latest release of the workflow (cf. e.g. [here](https://github.com/actions/checkout/tags)).
+You can look up the current tags [here](https://github.com/MannLabs/alphadia/tags).
 
 To create a new release (incl. updating the tag), use
 ```bash
@@ -250,7 +250,7 @@ git tag $TAG -f ; git push origin --tags
 git push --delete origin $MAJOR_TAG; git tag $MAJOR_TAG -f ; git push origin --tags
 ```
 
-Then, you may update it in the calling repositories (-> `uses: .../create_release.yml@v1.0.0` -> `uses: .../create_release.yml@v1.1.0`)
+Then, you may update it in the calling repositories (-> `uses: .../create_release.yml@v1.0.0` -> `uses: .../create_release.yml@v1.1.0`).
 
 
 
