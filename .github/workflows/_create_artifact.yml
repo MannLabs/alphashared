@@ -266,6 +266,6 @@ jobs:
         path: ./${{steps.get_artifact.outputs.ARTIFACT_NAME}}
         if-no-files-found: error
 
-#    - name: Setup SSH session for debugging
-#      if: ${{ failure() && steps.check_artifact_exists.conclusion == 'success' }}
-#      uses: mxschmitt/action-tmate@v3
+    - name: Setup SSH session for debugging
+      if: ${{vars.DEBUG_START_SSH_SESSION}}
+      uses: mxschmitt/action-tmate@v3

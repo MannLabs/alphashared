@@ -139,6 +139,3 @@ runs:
         name: answer
         path: ${{ github.workspace }}/answer.txt
         if-no-files-found: warn
-
-#    - name: Setup tmate session
-#      uses: mxschmitt/action-tmate@v3
