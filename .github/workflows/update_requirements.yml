@@ -47,7 +47,7 @@ jobs:
           cd requirements
           FILE_NAME=requirements
           uv venv --python 3.11
-          uv pip install -r $FILE_NAME
+          uv pip install -r $FILE_NAME.txt
           uv pip freeze > _${FILE_NAME}.freeze.txt
          
           git add _${FILE_NAME}.freeze.txt
