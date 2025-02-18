@@ -1,13 +1,18 @@
 # syntax=docker/dockerfile:1
 
+# Dockerfile to update requirements.
+# build and run:
+# put this Dockerfile next to the requirements folder
+# docker build -f Dockerfile --progress=plain --build-arg="REQUIREMENTS_FILE_NAME=requirements.txt" -t update_requirements .
+# docker run -v ./requirements/:/app/output -t update_requirements
+
 ARG PYTHON_VERSION=3.11
-FROM python:${PYTHON_VERSION}
-
-
 ARG UV_VERSION=0.5.31
 ARG REQUIREMENTS_FILE_NAME=requirements.txt
 ARG FREEZE_FILE_NAME=_requirements.freeze.txt
 ARG CURRENT_DATE=n/a
+
+FROM python:${PYTHON_VERSION}
 
 # Prevents Python from writing pyc files.
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -31,7 +36,3 @@ RUN /root/.local/bin/uv pip freeze >> /app/${FREEZE_FILE_NAME}
 
 CMD cp *.txt /app/output/
 
-# build and run:
-# put this Dockerfile next to the requirements folder
-# docker build -f Dockerfile --progress=plain --build-arg="REQUIREMENTS_FILE_NAME=requirements.txt" -t update_requirements .
-# docker run -v ./requirements/:/app/output -t update_requirements
