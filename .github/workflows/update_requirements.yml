@@ -38,6 +38,7 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v4
         with:
+          path: ./main
           fetch-depth: 0
           ref: ${{inputs.branch_name}}
 
@@ -87,9 +88,11 @@ jobs:
           docker image ls -a
       - name: Update requirements
         run: |
-          docker run -v ./requirements/:/app/output -t update_requirements
-          
+          cd main
           cd requirements
+          
+          docker run -v ./:/app/output -t update_requirements
+          
           git add $FREEZE_FILE_NAME
           git commit -m "Updating ${FREEZE_FILE_NAME}"
 
