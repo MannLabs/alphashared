@@ -4,8 +4,11 @@ The basic idea is to have two flavours of installation of AlphaX packages: one "
 dependencies, and one "stable" versions, with all dependencies pinned. 
 The former is useful for integration an AlphaX package into an existing python environment, while the latter 
 should be used whenever reproducibility is key (e.g. to build installers or for production versions).
+Also, this approach allows that the highest-level package (e.g. AlphaDIA) can conveniently freeze its dependencies,
+without too much risks of conflicts.
+
 The dependencies are defined in files
-`requirements[_extra].txt` and `_requirements[_extra].freeze.txt`, respectively, which are expected to be in the
+`requirements(_some-extra).txt` and `_requirements(_some-extra).freeze.txt`, respectively, which are expected to be in the
 `requirements` folder of a package.
 
 ## Updating requirements
