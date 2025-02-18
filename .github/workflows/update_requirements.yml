@@ -33,6 +33,14 @@ jobs:
           fetch-depth: 0
           ref: ${{inputs.branch_name}}
 
+      - name: Checkout alphashared
+        uses: actions/checkout@v4
+        with:
+          repository: MannLabs/alphashared
+          path: ./alphashared
+          fetch-depth: 0
+          ref: update_requirements_workflow
+
       - name: Set up git config
         shell: bash
         env:
@@ -55,13 +63,6 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
-      - uses: actions/checkout@v4
-        with:
-          repository: MannLabs/alphashared
-          path: ./alphashared
-          fetch-depth: 0
-          ref: update_requirements_workflow
 
       - name: Build and export
         uses: docker/build-push-action@v6
