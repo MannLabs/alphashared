@@ -70,7 +70,7 @@ jobs:
           git commit -m "Updating ${FREEZE_FILE_NAME}"
           
           echo CURRENT_DATE=$CURRENT_DATE >> $GITHUB_OUTPUT
-          echo NEW_BRANCH_NAME=update_${{inputs.requirements_file_name}}_${{steps.update_requirements.outputs.CURRENT_DATE}} >> $GITHUB_OUTPUT
+          echo NEW_BRANCH_NAME=update_${{inputs.requirements_file_name}}_${CURRENT_DATE} >> $GITHUB_OUTPUT
 
       - name: Push changes to GitHub
         uses: ad-m/github-push-action@master
