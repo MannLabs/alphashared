@@ -37,10 +37,18 @@ jobs:
       - name: Get branch name
         id: get_branch_name
         run: |
-          echo BRANCH_NAME=update_requirements_$(date | tr " " "-") >> $GITHUB_OUTPUT
+          echo BRANCH_NAME=update_requirements_$(date | tr " :" "-") >> $GITHUB_OUTPUT
 
       - name: Checkout the code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pip cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/uv
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
 
       - name: Update requirements
         run: |
@@ -49,9 +57,8 @@ jobs:
           uv venv --python 3.11
           uv pip install -r $FILE_NAME.txt
           uv pip freeze > _${FILE_NAME}.freeze.txt
-         
           git add _${FILE_NAME}.freeze.txt
-          git commit -a -m "Updating _${FILE_NAME}.freeze.txt" _${FILE_NAME}.freeze.txt
+          git commit -m "Updating _${FILE_NAME}.freeze.txt"
 
 
       - name: Push changes to GitHub
