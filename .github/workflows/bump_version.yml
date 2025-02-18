@@ -96,6 +96,7 @@ jobs:
             # simple bump w/out prerelease
             bump-my-version bump ${{ inputs.bump_type }} --commit --no-tag -vv
             workflow_type="simple"
+          fi
           
           current_version=$(bump-my-version show current_version)
           echo "current-version=$current_version" >> $GITHUB_OUTPUT

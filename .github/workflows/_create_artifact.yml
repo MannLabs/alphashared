@@ -267,5 +267,5 @@ jobs:
         if-no-files-found: error
 
     - name: Setup SSH session for debugging
-      if: ${{vars.DEBUG_START_SSH_SESSION}}
+      if: ${{ always() && vars.DEBUG_START_SSH_SESSION == '1'}}
       uses: mxschmitt/action-tmate@v3
