@@ -79,7 +79,7 @@ jobs:
 
           # semi-hacky way to check if bumpversion.toml contains pre_n (i.e. we need the pre-release flow)          
           if [ $(grep -c \<pre_n\> .bumpversion.toml) -gt 0 ]; then
-            
+            echo Advanced workflow..
             if [ "${{ inputs.bump_type }}" == "prerelease"  ]; then
               bump-my-version bump pre_n --commit --no-tag -vv
             elif [ "${{ inputs.bump_type }}" != "patch" ]; then
@@ -92,8 +92,9 @@ jobs:
               bump-my-version bump pre_l --commit --no-tag -vv
             fi
             workflow_type="advanced"
-          else:
+          else
             # simple bump w/out prerelease
+            echo Simple workflow..
             bump-my-version bump ${{ inputs.bump_type }} --commit --no-tag -vv
             workflow_type="simple"
           fi
@@ -103,7 +104,7 @@ jobs:
           echo "workflow-type=$workflow_type" >> $GITHUB_OUTPUT
           
           if [[ "$current_version" == "$previous_version" ]]; then
-            echo "Version was not bumped!"
+            echo "Version was not bumped: $current_version == $previous_version"
             exit 1
           fi
           
