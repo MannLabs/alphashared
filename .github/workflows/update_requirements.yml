@@ -54,6 +54,8 @@ jobs:
       - name: Set up env
         id: setup_env
         run: |
+          cp alphashared/update_requirements/Dockerfile main/Dockerfile
+          
           CURRENT_DATE=$(date '+%Y-%m-%d_%H-%M-%S')
           FILE_NAME=${{inputs.requirements_file_name}}
           FREEZE_FILE_NAME=_${FILE_NAME/.txt/.freeze.txt}
@@ -72,7 +74,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           tags: update_requirements:latest
-          context: alphashared/update_requirements
+          context: ./main
           outputs: type=docker,dest=/tmp/update_requirements.tar
           build-args: |
             PYTHON_VERISON=${{ inputs.python_version }}
