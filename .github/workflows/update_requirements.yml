@@ -27,12 +27,6 @@ jobs:
     env:
       UV_VERSION: 0.5.31
     steps:
-      - name: Checkout the code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{inputs.branch_name}}
-
       - name: Checkout alphashared
         uses: actions/checkout@v4
         with:
@@ -40,6 +34,12 @@ jobs:
           path: ./alphashared
           fetch-depth: 0
           ref: update_requirements_workflow
+
+      - name: Checkout the code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{inputs.branch_name}}
 
       - name: Set up git config
         shell: bash
@@ -63,6 +63,9 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
+      - name: Setup SSH session for debugging
+        uses: mxschmitt/action-tmate@v3
 
       - name: Build and export
         uses: docker/build-push-action@v6
