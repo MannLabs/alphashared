@@ -45,12 +45,13 @@ jobs:
       - name: Update requirements
         run: |
           cd requirements
-          FILE_NAME=requirements.txt
+          FILE_NAME=requirements
           uv venv --python 3.11
           uv pip install -r $FILE_NAME
-          uv pip freeze > _${FILE_NAME}.txt
+          uv pip freeze > _${FILE_NAME}.freeze.txt
          
-          git commit -a -m "Updating _${FILE_NAME}.txt" _${FILE_NAME}.txt
+          git add _${FILE_NAME}.freeze.txt
+          git commit -a -m "Updating _${FILE_NAME}.freeze.txt" _${FILE_NAME}.freeze.txt
 
 
       - name: Push changes to GitHub
