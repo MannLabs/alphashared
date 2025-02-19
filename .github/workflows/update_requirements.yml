@@ -78,6 +78,11 @@ jobs:
           CONSTRAINTS_FILE_NAME=${FILE_NAME/.txt/.constraints.txt}
           if [ -f $CONSTRAINTS_FILE_NAME ]; then
             while IFS= read -r line; do
+              # skip comment lines
+              if [[ "$line" =~ ^\ *# ]]; then
+                continue
+              fi
+
               # Extract the part before and after the `-->`
               before=$(echo "$line" | cut -d'-->' -f1)
               after=$(echo "$line" | cut -d'-->' -f2)
