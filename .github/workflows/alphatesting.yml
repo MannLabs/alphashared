@@ -73,6 +73,7 @@ jobs:
 
     - name: get requirements
       run: |
+        docker load --input /tmp/alphax.tar
         TARGET_FOLDER=${{ github.workspace }}/requirements
         mkdir -p $TARGET_FOLDER
         docker run -v $TARGET_FOLDER:/app/data alphax bash -c "cp /app/requirements*.txt /app/data"
