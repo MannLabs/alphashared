@@ -84,8 +84,8 @@ jobs:
               fi
 
               # Extract the part before and after the `-->`
-              before=$(echo "$line" | cut -d'-->' -f1)
-              after=$(echo "$line" | cut -d'-->' -f2)
+              before=$(echo "$line" | awk -F'-->' '{print $1}')
+              after=$(echo "$line" | awk -F'-->' '{print $2}')
             
               # Search for the part before `-->` in the search file
               if grep -q "$before" "$FREEZE_FILE_NAME"; then
