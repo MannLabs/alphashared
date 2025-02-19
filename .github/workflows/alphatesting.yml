@@ -71,6 +71,20 @@ jobs:
         name: alphax
         path: /tmp/alphax.tar
 
+    - name: get requirements
+      run: |
+        TARGET_FOLDER=${{ github.workspace }}/requirements
+        mkdir -p $TARGET_FOLDER
+        docker run -v $TARGET_FOLDER:/app/data alphax bash -c "cp /app/requirements*.txt /app/data"
+        cd $TARGET_FOLDER
+        zip requirements.zip requirements*.txt
+
+    - name: upload requirements
+      uses: actions/upload-artifact@v4
+      with:
+        name: requirements.zip
+        path: ${{ github.workspace }}/requirements/requirements.zip
+        if-no-files-found: warn
 
   alphabase_tests:
     runs-on: AlphaDIA
