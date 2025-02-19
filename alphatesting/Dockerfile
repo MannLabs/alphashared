@@ -18,7 +18,7 @@ COPY get_ref.sh .
 COPY replace_alphax.sh .
 COPY pip.conf /etc/pip.conf
 
-RUN pip freeze > requirements_0.txt
+RUN pip freeze > /app/requirements_0.txt
 
 ############################################################################
 ARG ALPHABASE_REF="latest"
@@ -30,7 +30,7 @@ RUN git clone https://github.com/MannLabs/alphabase.git \
 RUN --mount=type=cache,target=/root/.cache/pip \
     cd alphabase && pip install "."
 
-RUN pip freeze > requirements_1_alphabase.txt
+RUN pip freeze > /app/requirements_1_alphabase.txt
 
 ############################################################################
 ARG ALPHATIMS_REF="latest"
@@ -42,7 +42,7 @@ RUN git clone https://github.com/MannLabs/alphatims.git \
 RUN --mount=type=cache,target=/root/.cache/pip \
     cd alphatims && pip install "."
 
-RUN pip freeze > requirements_2_alphatims.txt
+RUN pip freeze > /app/requirements_2_alphatims.txt
 
 ############################################################################
 # TODO: change to latest once properly tagged release is out
@@ -56,7 +56,7 @@ RUN git clone https://github.com/MannLabs/alpharaw.git \
 RUN --mount=type=cache,target=/root/.cache/pip \
     cd alpharaw && pip install "."
 
-RUN pip freeze > requirements_3_alpharaw.txt
+RUN pip freeze > /app/requirements_3_alpharaw.txt
 
 ############################################################################
 ARG ALPHAVIZ_REF="latest"
@@ -69,7 +69,7 @@ RUN git clone https://github.com/MannLabs/alphaviz.git \
 RUN --mount=type=cache,target=/root/.cache/pip \
     cd alphaviz && pip install "."
 
-RUN pip freeze > requirements_4_alphaviz.txt
+RUN pip freeze > /app/requirements_4_alphaviz.txt
 
 ############################################################################
 ARG ALPHAPEPTDEEP_REF="latest"
@@ -82,7 +82,7 @@ RUN git clone https://github.com/MannLabs/alphapeptdeep.git \
 RUN --mount=type=cache,target=/root/.cache/pip \
     cd alphapeptdeep && pip install "."
 
-RUN pip freeze > requirements_5_alphapeptdeep.txt
+RUN pip freeze > /app/requirements_5_alphapeptdeep.txt
 
 ############################################################################
 ARG DIRECTLFQ_REF="latest"
@@ -94,7 +94,7 @@ RUN git clone https://github.com/MannLabs/directlfq.git \
 RUN --mount=type=cache,target=/root/.cache/pip \
     cd directlfq && pip install "."
 
-RUN pip freeze > requirements_6_directlfq.txt
+RUN pip freeze > /app/requirements_6_directlfq.txt
 ############################################################################
 ARG ALPHADIA_REF="latest"
 RUN git clone https://github.com/MannLabs/alphadia.git \
@@ -106,14 +106,14 @@ RUN git clone https://github.com/MannLabs/alphadia.git \
 RUN --mount=type=cache,target=/root/.cache/pip \
     cd alphadia && pip install ".[stable]"
 
-RUN pip freeze > requirements_7_alphadia.txt
+RUN pip freeze > /app/requirements_7_alphadia.txt
 
 ############################################################################
 # additional dependencies for testing
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install pytest nbmake
 
-RUN pip freeze > requirements_8_final.txt
+RUN pip freeze > /app/requirements_8_final.txt
 
 ## TODO remove this once https://github.com/MannLabs/alphabase/pull/288 is released
 #RUN --mount=type=cache,target=/root/.cache/pip \
