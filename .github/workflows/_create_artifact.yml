@@ -237,6 +237,10 @@ jobs:
         release/${{ inputs.os }}/build_package_${{ inputs.os }}.ps1
         ls *
         ls dist*/*
+        ls build*/*
+
+#    - name: Setup tmate session
+#      uses: mxschmitt/action-tmate@v3
 
     - name: Test package
       id: test_package
