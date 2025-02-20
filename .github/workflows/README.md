@@ -59,6 +59,7 @@ release page. You can download and test these installers manually (in addition t
 to the current release) and then publish the release.
 4. [PR only] In case you want to publish this release, click "Set as a pre-release". Release notes can be given or not.
 5. Run the 'Publish on PyPi' workflow, specifying the release tag (e.g. `vX.Y.Z`) as an input parameter.
+Note that this requires the release to be published on GitHub to retrieve the wheel from the release assets.
 6. [SR only] Merge the second PR created by the 'Bump version' workflow, which prepares
 the next development version (i.e. `X.Y.(Z+1)-dev0`).
 7. [PR only] Bump the version to the next development version `X.Y.Z-dev(N+1)`
