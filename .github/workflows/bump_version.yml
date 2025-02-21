@@ -36,7 +36,7 @@ jobs:
         shell: bash
         run: pip install "bump-my-version==${{env.BUMP_MY_VERSION_VERSION}}"
 
-      - name: Setting up git config
+      - name: Set up git config
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
