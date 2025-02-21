@@ -48,8 +48,9 @@ jobs:
           python-version: ${{inputs.python_version}}
 
       - name: Install uv
-        run: |
-          curl -LsSf https://astral.sh/uv/${{env.UV_VERSION}}/install.sh | sh
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{env.UV_VERSION}}
 
       - name: Update requirements
         id: update_requirements
