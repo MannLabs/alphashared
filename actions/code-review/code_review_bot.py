@@ -43,6 +43,7 @@ class CodeReviewBot:
 
     def extract_review_instructions(self, pr_description):
         """Extract review instructions from PR description if present."""
+        print("pr_description", pr_description)
         if not pr_description:
             return None
 
@@ -53,7 +54,7 @@ class CodeReviewBot:
         #     return section_match.group(1).strip()
 
         # Method 2: Look for fenced code block with code-review
-        block_match = re.search(r"```code-review\n(.*?)```", pr_description, re.DOTALL)
+        block_match = re.search(r"```code-review\n(.*?)\n```", pr_description, re.DOTALL)
         if block_match:
             return block_match.group(1).strip()
 
