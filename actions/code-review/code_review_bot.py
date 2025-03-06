@@ -55,11 +55,16 @@ class CodeReviewBot:
         #     return section_match.group(1).strip()
 
         # Method 2: Look for fenced code block with code-review
-        block_match = re.search(r"\`\`\`code\-review\n(.*?)\`\`\`", pr_description)
+        block_match = re.search(r"```code-review\n(.*?)\n```", pr_description)
         print("X2", block_match)
 
         if block_match:
             print("X2a")
+            return block_match.group(1).strip()
+
+        block_match = re.search(r"```code-review\s*\n(.*?)\n```", pr_description, re.DOTALL)
+        if block_match:
+            print("X3a")
             return block_match.group(1).strip()
 
         block_match = re.search(r"xxxcode-review\n(.*?)\nxxx", pr_description)
