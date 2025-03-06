@@ -41,20 +41,49 @@ class CodeReviewBot:
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
 
-    def get_review_feedback(self, changed_files_str, patches_str: str) -> str:
+    def extract_review_instructions(self, pr_description):
+        """Extract review instructions from PR description if present."""
+        if not pr_description:
+            return None
+
+        # # Method 1: Look for review instructions section with markdown heading
+        # section_match = re.search(r'#+\s*(?:Code\s*Review\s*Instructions|Review\s*Instructions):(.*?)(?:#+|$)',
+        #                           pr_description, re.DOTALL | re.IGNORECASE)
+        # if section_match:
+        #     return section_match.group(1).strip()
+
+        # Method 2: Look for fenced code block with code-review
+        block_match = re.search(r"```code-review\n(.*?)```", pr_description, re.DOTALL)
+        if block_match:
+            return block_match.group(1).strip()
+
+        return None
+
+    def get_review_feedback(self, changed_files_str, patches_str, pr_instructions=None):
         """
         Sends the content to Claude and gets the review feedback.
+        Now includes PR instructions if provided.
         """
         try:
+            messages = [
+                {"role": "user", "content": f"{self.review_prompt}"},
+                {"role": "user", "content": f"{changed_files_str}"},
+                {"role": "user", "content": f"{patches_str}"},
+            ]
+
+            # Add PR instructions if available
+            if pr_instructions:
+                instructions_message = {
+                    "role": "user",
+                    "content": f"Additional review instructions from the PR description:\n\n{pr_instructions}",
+                }
+                messages.append(instructions_message)
+
             message = self.anthropic_client.messages.create(
                 model=MODEL_NAME,
                 max_tokens=MAX_NUM_OUTPUT_TOKENS,
                 system=self.system_message,
-                messages=[
-                    {"role": "user", "content": f"{self.review_prompt}"},
-                    {"role": "user", "content": f"{changed_files_str}"},
-                    {"role": "user", "content": f"{patches_str}"},
-                ],
+                messages=messages,
             )
             return message
 
@@ -219,8 +248,22 @@ class CodeReviewBot:
         Main method to process a pull request.
         """
         try:
+            repo = self.github_client.get_repo(repo_name)
+            pull_request = repo.get_pull(pr_number)
+
+            # Extract PR description and get review instructions if any
+            pr_description = pull_request.body
+            review_instructions = self.extract_review_instructions(pr_description)
+
+            if review_instructions:
+                print(
+                    f"Found review instructions in PR description: {review_instructions}"
+                )
+
             # Get answer from Claude
-            answer = self.get_review_feedback(changed_files_str, patches_str)
+            answer = self.get_review_feedback(
+                changed_files_str, patches_str, review_instructions
+            )
 
             answer_pretty = self._replace(str(answer))
             print(f"Answer: {answer_pretty}")
@@ -231,14 +274,14 @@ class CodeReviewBot:
                 f.write(answer_pretty)
                 print(f"wrote answer to file {self.github_workspace_path}/answer.txt")
 
-            repo = self.github_client.get_repo(repo_name)
-            pull_request = repo.get_pull(pr_number)
-
             self.post_review_comments(pull_request, text)
 
             input_tokens = answer.usage.input_tokens
             output_tokens = answer.usage.output_tokens
-            general_text = f"Number of tokens: {input_tokens=} {output_tokens=} {MAX_NUM_OUTPUT_TOKENS=}"
+            general_text = (
+                f"Number of tokens: {input_tokens=} {output_tokens=} {MAX_NUM_OUTPUT_TOKENS=}"
+                f"\n{review_instructions=}"
+            )
             if (stop_reason := answer.stop_reason) != "end_turn":
                 general_text += f"\nPremature stop because: {stop_reason}."
             pull_request.create_issue_comment(general_text)

@@ -39,3 +39,14 @@ The action should run and after a while (~2 minutes) add the feedback to your co
 
 Beware: each code review costs money (order of 0.5 EUR), so use it wisely. Also, it will not perform
 well on huge, unfocused PRs (token window and API response token limit).
+
+3. (optional) Providing Custom Review Instructions
+You can provide specific instructions to the AI reviewer by adding them to your PR description in 
+a fenced code block with the tag code-review:
+
+```code-review
+focus: performance
+ignore: style
+check_for: security vulnerabilities, race conditions
+```
+These instructions will be passed to the AI along with the code changes to provide more tailored review feedback.
