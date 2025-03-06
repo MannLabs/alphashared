@@ -9,7 +9,7 @@ import untruncate_json
 from github import Github
 from github.PullRequest import PullRequest
 
-MODEL_NAME = "claude-3-5-sonnet-20241022"
+MODEL_NAME = "claude-3-7-sonnet-20250219"
 MAX_NUM_OUTPUT_TOKENS = 4096
 
 
