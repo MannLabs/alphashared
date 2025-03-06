@@ -80,7 +80,7 @@ jobs:
           if [ -f $CONSTRAINTS_FILE_NAME ]; then
             while IFS= read -r line; do
               # skip comment lines
-              if [[ "$line" =~ ^\ *# ]]; then
+              if [[ "$line" =~ ^# ]] || [[ -z "$line" ]]; then
                 continue
               fi
 
