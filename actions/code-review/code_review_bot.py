@@ -45,6 +45,7 @@ class CodeReviewBot:
         """Extract review instructions from PR description if present."""
         print(f"pr_description '{pr_description}'")
         if not pr_description:
+            print("X")
             return None
 
         # # Method 1: Look for review instructions section with markdown heading
@@ -54,14 +55,20 @@ class CodeReviewBot:
         #     return section_match.group(1).strip()
 
         # Method 2: Look for fenced code block with code-review
-        block_match = re.search(r"```code-review\n(.*?)\n```", pr_description)
+        block_match = re.search(r"\`\`\`code\-review\n(.*?)\`\`\`", pr_description)
+        print("X2", block_match)
+
         if block_match:
+            print("X2a")
             return block_match.group(1).strip()
 
         block_match = re.search(r"xxxcode-review\n(.*?)\nxxx", pr_description)
+        print("X3", block_match)
         if block_match:
+            print("X3a")
             return block_match.group(1).strip()
 
+        print("Y")
         return None
 
     def get_review_feedback(self, changed_files_str, patches_str, pr_instructions=None):
