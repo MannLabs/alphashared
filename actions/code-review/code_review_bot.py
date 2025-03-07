@@ -17,6 +17,7 @@ THINKING_TOKENS = 'thinking_tokens'
 DEFAULT_MODEL_NAME = "claude-3-7-sonnet-20250219"
 MAX_NUM_OUTPUT_TOKENS = 20000
 DEFAULT_NUM_OUTPUT_TOKENS = 4096
+MIN_NUM_THINKING_TOKENS = 1024  # https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking#important-considerations-when-using-extended-thinking
 
 class CodeReviewBot:
     def __init__(self):
@@ -96,7 +97,7 @@ class CodeReviewBot:
             if thinking_tokens := config.get(THINKING_TOKENS) is not None:
                 thinking_params = {"thinking" : {
                     "type": "enabled",
-                    "budget_tokens": thinking_tokens
+                    "budget_tokens": max(thinking_tokens, MIN_NUM_THINKING_TOKENS)
                 }}
                 print("thinking_params", thinking_params)
             else:
@@ -304,9 +305,11 @@ class CodeReviewBot:
 
             input_tokens = answer.usage.input_tokens
             output_tokens = answer.usage.output_tokens
+            max_tokens = config.get(OUTPUT_TOKENS, DEFAULT_NUM_OUTPUT_TOKENS)
             general_text = (
-                f"Number of tokens: {input_tokens=} {output_tokens=} {MAX_NUM_OUTPUT_TOKENS=}"
+                f"Number of tokens: {input_tokens=} {output_tokens=} {max_tokens=}"
                 f"\n{review_instructions=}"
+                f"\n{config=}"
             )
             if (stop_reason := answer.stop_reason) != "end_turn":
                 general_text += f"\nPremature stop because: {stop_reason}."
