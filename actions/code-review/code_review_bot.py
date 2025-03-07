@@ -9,14 +9,14 @@ import untruncate_json
 from github import Github
 from github.PullRequest import PullRequest
 
-OUTPUT_TOKENS = 'output_tokens'
+MAX_TOKENS = 'max_tokens'
 MODEL = 'model'
 THINKING_TOKENS = 'thinking_tokens'
 
 
 DEFAULT_MODEL_NAME = "claude-3-7-sonnet-latest"
-MAX_NUM_OUTPUT_TOKENS = 20000
-DEFAULT_NUM_OUTPUT_TOKENS = 4096
+UPPER_MAX_TOKEN_LIMIT = 20000
+DEFAULT_NUM_MAX_TOKENS = 4096
 MIN_NUM_THINKING_TOKENS = 1024  # https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking#important-considerations-when-using-extended-thinking
 
 class CodeReviewBot:
@@ -60,7 +60,7 @@ class CodeReviewBot:
             return self.extract_dict_from_instructions(instructions)
         return None, None
 
-    def extract_dict_from_instructions(self, input_string: str, keys=[MODEL, THINKING_TOKENS, OUTPUT_TOKENS]):
+    def extract_dict_from_instructions(self, input_string: str, keys=[MODEL, THINKING_TOKENS, MAX_TOKENS]):
         """Extract a dictionary with special keys from the instructions."""
         extracted_dict = {}
         remaining_lines = []
@@ -103,7 +103,7 @@ class CodeReviewBot:
             else:
                 thinking_params = {}
 
-            max_tokens = int(config.get(OUTPUT_TOKENS, DEFAULT_NUM_OUTPUT_TOKENS))
+            max_tokens = int(config.get(MAX_TOKENS, DEFAULT_NUM_MAX_TOKENS))
 
             message = self.anthropic_client.messages.create(
                 model=config.get(MODEL, DEFAULT_MODEL_NAME),
@@ -311,7 +311,7 @@ class CodeReviewBot:
 
             input_tokens = raw_answer.usage.input_tokens
             output_tokens = raw_answer.usage.output_tokens
-            max_tokens = config.get(OUTPUT_TOKENS, DEFAULT_NUM_OUTPUT_TOKENS)
+            max_tokens = config.get(MAX_TOKENS, DEFAULT_NUM_MAX_TOKENS)
             general_text = (
                 f"Number of tokens: {input_tokens=} {output_tokens=} {max_tokens=}"
                 f"\n{review_instructions=}"

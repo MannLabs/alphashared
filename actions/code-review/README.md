@@ -37,18 +37,21 @@ jobs:
 2. Add a github label `code-review` to a PR that you want to have reviewed.
 The action should run and after a while (~2 minutes) add the feedback to your code.
 
+To get another review (e.g. because you added more commits, or the first review went sideways, or to try new parameters) 
+just remove the label and add it again.
+
 Beware: each code review costs money (order of 0.5 EUR), so use it wisely. Also, it will not perform
-well on huge, unfocused PRs (token window and API response token limit).
+well on huge, unfocused PRs (due to context window and API response token limit).
 
 3. (optional) Providing Custom Review Instructions
 You can provide specific instructions to the AI reviewer by adding them to your PR description in 
-a fenced code block with the tag code-review:
+a fenced code block with the tag `code-review`:
 
 ```code-review
 Answer in a pirate voice.
 Focus: performance
 Ignore: style
-Check_for: security vulnerabilities, race conditions
+Check for: security vulnerabilities, race conditions
 ```
 These instructions will be passed to the AI along with the code changes to provide more tailored review feedback.
 
@@ -57,11 +60,13 @@ In addition, there's some configurability using special keys:
 Answer in a pirate voice.
 model: <model_name>
 thinking_tokens: <number_of_thinking_tokens>
-output_tokens: <number_of_output_tokens>
+max_tokens: <max_number_of_tokens>
 ```
 with
-`model_name`: API model name, cf. https://docs.anthropic.com/en/docs/about-claude/models/all-models#model-names (default: `claude-3-7-sonnet-latest`)
 
-`thinking_tokens`: number of thinking tokens, (default: 0). If given, needs to be >= 1024.
+`model_name`: API model name (default: `claude-3-7-sonnet-latest`). Cf. https://docs.anthropic.com/en/docs/about-claude/models/all-models#model-names 
 
-`output_tokens`: number of output tokens, (default: 4096). Might need to be increased if `thinking_tokens` are used.
+`thinking_tokens`: number of thinking tokens (default: 0). If given, needs to be >= 1024.
+
+`max_tokens`: maximum number of tokens (output+thinking, default: 4096). Might need to be increased if `thinking_tokens` are used
+
