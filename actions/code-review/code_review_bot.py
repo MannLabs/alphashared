@@ -298,7 +298,7 @@ class CodeReviewBot:
             answer_pretty = self._replace(str(answer))
             print(f"{answer_pretty=}")
 
-            text = answer.content[0].text
+            text = answer[0].text
 
             with open(f"{self.github_workspace_path}/answer.txt", "w") as f:
                 f.write(answer_pretty)
