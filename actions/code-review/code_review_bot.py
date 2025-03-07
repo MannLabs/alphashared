@@ -293,7 +293,7 @@ class CodeReviewBot:
             )
             print(f"{raw_answer=}")
             with open(f"{self.github_workspace_path}/raw_answer.txt", "w") as f:
-                f.write(raw_answer)
+                f.write(str(raw_answer))
                 print(f"wrote answer to file {self.github_workspace_path}/raw_answer.txt")
 
             answer, thinking = self.parse_answer(raw_answer)
