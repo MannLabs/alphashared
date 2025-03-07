@@ -94,7 +94,7 @@ class CodeReviewBot:
                 }
                 messages.append(instructions_message)
 
-            if thinking_tokens := config.get(THINKING_TOKENS) is not None:
+            if (thinking_tokens := int(config.get(THINKING_TOKENS))) is not None:
                 thinking_params = {"thinking" : {
                     "type": "enabled",
                     "budget_tokens": max(thinking_tokens, MIN_NUM_THINKING_TOKENS)
@@ -103,7 +103,7 @@ class CodeReviewBot:
             else:
                 thinking_params = {}
 
-            max_tokens = config.get(OUTPUT_TOKENS, DEFAULT_NUM_OUTPUT_TOKENS)
+            max_tokens = int(config.get(OUTPUT_TOKENS, DEFAULT_NUM_OUTPUT_TOKENS))
 
             message = self.anthropic_client.messages.create(
                 model=config.get(MODEL, DEFAULT_MODEL_NAME),
