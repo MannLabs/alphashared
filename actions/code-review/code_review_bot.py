@@ -291,9 +291,9 @@ class CodeReviewBot:
             answer = self.get_review_feedback(
                 changed_files_str, patches_str, review_instructions, config
             )
-
+            print(f"{answer=}")
             answer_pretty = self._replace(str(answer))
-            print(f"Answer: {answer_pretty}")
+            print(f"{answer_pretty=}")
 
             text = answer.content[0].text
 
