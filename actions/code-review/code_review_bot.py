@@ -14,7 +14,7 @@ MODEL = 'model'
 THINKING_TOKENS = 'thinking_tokens'
 
 
-DEFAULT_MODEL_NAME = "claude-3-7-sonnet-20250219"
+DEFAULT_MODEL_NAME = "claude-3-7-sonnet-latest"
 MAX_NUM_OUTPUT_TOKENS = 20000
 DEFAULT_NUM_OUTPUT_TOKENS = 4096
 MIN_NUM_THINKING_TOKENS = 1024  # https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking#important-considerations-when-using-extended-thinking
@@ -288,10 +288,13 @@ class CodeReviewBot:
                 )
 
             # Get answer from Claude
-            answer = self.get_review_feedback(
-                changed_files_str, patches_str, review_instructions, config
+            raw_answer = self.get_review_feedback(
+                changed_files_str, patches_str, config, review_instructions
             )
+            print(f"{raw_answer=}")
+            answer, thinking = self.parse_answer(raw_answer)
             print(f"{answer=}")
+            print(f"{thinking=}")
             answer_pretty = self._replace(str(answer))
             print(f"{answer_pretty=}")
 
@@ -310,6 +313,7 @@ class CodeReviewBot:
                 f"Number of tokens: {input_tokens=} {output_tokens=} {max_tokens=}"
                 f"\n{review_instructions=}"
                 f"\n{config=}"
+                f"\nthinking: ```\n{thinking}\n```"
             )
             if (stop_reason := answer.stop_reason) != "end_turn":
                 general_text += f"\nPremature stop because: {stop_reason}."
@@ -318,6 +322,19 @@ class CodeReviewBot:
         except Exception as e:
             self.logger.error(f"Error processing pull request: {str(e)}")
             raise
+
+    def parse_answer(self, raw_answer):
+        """Parse the answer from Anthropic API, which may include thinking tokens."""
+        answer = []
+        thinking = []
+        for item in raw_answer.content:
+            if item.type == "thinking" or item.type == "redacted_thinking":
+                thinking.append(item)
+            else:
+                answer.append(item)
+
+        return answer, thinking
+
 
 
 def read_file(file_path: str) -> str:
