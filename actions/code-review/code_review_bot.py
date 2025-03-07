@@ -292,22 +292,25 @@ class CodeReviewBot:
                 changed_files_str, patches_str, config, review_instructions
             )
             print(f"{raw_answer=}")
+            with open(f"{self.github_workspace_path}/raw_answer.txt", "w") as f:
+                f.write(raw_answer)
+                print(f"wrote answer to file {self.github_workspace_path}/raw_answer.txt")
+
             answer, thinking = self.parse_answer(raw_answer)
             print(f"{answer=}")
             print(f"{thinking=}")
+
             answer_pretty = self._replace(str(answer))
             print(f"{answer_pretty=}")
-
-            text = answer[0].text
-
             with open(f"{self.github_workspace_path}/answer.txt", "w") as f:
                 f.write(answer_pretty)
                 print(f"wrote answer to file {self.github_workspace_path}/answer.txt")
 
+            text = answer[0].text
             self.post_review_comments(pull_request, text)
 
-            input_tokens = answer.usage.input_tokens
-            output_tokens = answer.usage.output_tokens
+            input_tokens = raw_answer.usage.input_tokens
+            output_tokens = raw_answer.usage.output_tokens
             max_tokens = config.get(OUTPUT_TOKENS, DEFAULT_NUM_OUTPUT_TOKENS)
             general_text = (
                 f"Number of tokens: {input_tokens=} {output_tokens=} {max_tokens=}"
@@ -315,7 +318,7 @@ class CodeReviewBot:
                 f"\n{config=}"
                 f"\nthinking: ```\n{thinking}\n```"
             )
-            if (stop_reason := answer.stop_reason) != "end_turn":
+            if (stop_reason := raw_answer.stop_reason) != "end_turn":
                 general_text += f"\nPremature stop because: {stop_reason}."
             pull_request.create_issue_comment(general_text)
 
