@@ -45,8 +45,23 @@ You can provide specific instructions to the AI reviewer by adding them to your 
 a fenced code block with the tag code-review:
 
 ```code-review
-focus: performance
-ignore: style
-check_for: security vulnerabilities, race conditions
+Answer in a pirate voice.
+Focus: performance
+Ignore: style
+Check_for: security vulnerabilities, race conditions
 ```
 These instructions will be passed to the AI along with the code changes to provide more tailored review feedback.
+
+In addition, there's some configurability using special keys:
+```code-review
+Answer in a pirate voice.
+model: <model_name>
+thinking_tokens: <number_of_thinking_tokens>
+output_tokens: <number_of_output_tokens>
+```
+with
+`model_name`: API model name, cf. https://docs.anthropic.com/en/docs/about-claude/models/all-models#model-names (default: `claude-3-7-sonnet-latest`)
+
+`thinking_tokens`: number of thinking tokens, (default: 0). If given, needs to be >= 1024.
+
+`output_tokens`: number of output tokens, (default: 4096). Might need to be increased if `thinking_tokens` are used.
