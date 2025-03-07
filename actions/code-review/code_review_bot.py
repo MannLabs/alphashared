@@ -9,9 +9,14 @@ import untruncate_json
 from github import Github
 from github.PullRequest import PullRequest
 
-MODEL_NAME = "claude-3-7-sonnet-20250219"
-MAX_NUM_OUTPUT_TOKENS = 4096
+OUTPUT_TOKENS = 'output_tokens'
+MODEL = 'model'
+THINKING_TOKENS = 'thinking_tokens'
 
+
+DEFAULT_MODEL_NAME = "claude-3-7-sonnet-20250219"
+MAX_NUM_OUTPUT_TOKENS = 20000
+DEFAULT_NUM_OUTPUT_TOKENS = 4096
 
 class CodeReviewBot:
     def __init__(self):
@@ -45,38 +50,30 @@ class CodeReviewBot:
         """Extract review instructions from PR description if present."""
         print(f"pr_description '{pr_description}'")
         if not pr_description:
-            print("X")
-            return None
+            return None,  None
 
-        # # Method 1: Look for review instructions section with markdown heading
-        # section_match = re.search(r'#+\s*(?:Code\s*Review\s*Instructions|Review\s*Instructions):(.*?)(?:#+|$)',
-        #                           pr_description, re.DOTALL | re.IGNORECASE)
-        # if section_match:
-        #     return section_match.group(1).strip()
-
-        # Method 2: Look for fenced code block with code-review
-        block_match = re.search(r"```code-review\n(.*?)\n```", pr_description)
-        print("X2", block_match)
-
-        if block_match:
-            print("X2a")
-            return block_match.group(1).strip()
-
+        # Look for fenced code block with code-review
         block_match = re.search(r"```code-review\s*\n(.*?)\n```", pr_description, re.DOTALL)
         if block_match:
-            print("X3a")
-            return block_match.group(1).strip()
+            instructions = block_match.group(1).strip()
+            return self.extract_dict_from_instructions(instructions)
+        return None, None
 
-        block_match = re.search(r"xxxcode-review\n(.*?)\nxxx", pr_description)
-        print("X3", block_match)
-        if block_match:
-            print("X3a")
-            return block_match.group(1).strip()
-
-        print("Y")
-        return None
-
-    def get_review_feedback(self, changed_files_str, patches_str, pr_instructions=None):
+    def extract_dict_from_instructions(self, input_string: str, keys=[MODEL, THINKING_TOKENS, OUTPUT_TOKENS]):
+        """Extract a dictionary with special keys from the instructions."""
+        extracted_dict = {}
+        remaining_lines = []
+        for line in input_string.split('\n'):
+            found = False
+            for key in keys:
+                if f"{key}:" in line:
+                    extracted_dict[key] = line.split(":", maxsplit=1)[1].strip()
+                    found = True
+            if not found:
+                remaining_lines.append(line)
+        return "\n".join(remaining_lines), extracted_dict
+    
+    def get_review_feedback(self, changed_files_str, patches_str, config, pr_instructions=None):
         """
         Sends the content to Claude and gets the review feedback.
         Now includes PR instructions if provided.
@@ -96,11 +93,23 @@ class CodeReviewBot:
                 }
                 messages.append(instructions_message)
 
+            if thinking_tokens := config.get(THINKING_TOKENS) is not None:
+                thinking_params = {"thinking" : {
+                    "type": "enabled",
+                    "budget_tokens": thinking_tokens
+                }}
+                print("thinking_params", thinking_params)
+            else:
+                thinking_params = {}
+
+            max_tokens = config.get(OUTPUT_TOKENS, DEFAULT_NUM_OUTPUT_TOKENS)
+
             message = self.anthropic_client.messages.create(
-                model=MODEL_NAME,
-                max_tokens=MAX_NUM_OUTPUT_TOKENS,
+                model=config.get(MODEL, DEFAULT_MODEL_NAME),
+                max_tokens=max_tokens,
                 system=self.system_message,
                 messages=messages,
+                **thinking_params
             )
             return message
 
@@ -270,16 +279,16 @@ class CodeReviewBot:
 
             # Extract PR description and get review instructions if any
             pr_description = pull_request.body
-            review_instructions = self.extract_review_instructions(pr_description)
+            review_instructions, config = self.extract_review_instructions(pr_description)
 
             if review_instructions:
                 print(
-                    f"Found review instructions in PR description: {review_instructions}"
+                    f"Found review instructions in PR description: {review_instructions} {config=}"
                 )
 
             # Get answer from Claude
             answer = self.get_review_feedback(
-                changed_files_str, patches_str, review_instructions
+                changed_files_str, patches_str, review_instructions, config
             )
 
             answer_pretty = self._replace(str(answer))
