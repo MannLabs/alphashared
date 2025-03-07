@@ -9,15 +9,17 @@ import untruncate_json
 from github import Github
 from github.PullRequest import PullRequest
 
-MAX_TOKENS = 'max_tokens'
-MODEL = 'model'
-THINKING_TOKENS = 'thinking_tokens'
-
-
 DEFAULT_MODEL_NAME = "claude-3-7-sonnet-latest"
 UPPER_MAX_TOKEN_LIMIT = 20000
 DEFAULT_NUM_MAX_TOKENS = 4096
 MIN_NUM_THINKING_TOKENS = 1024  # https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking#important-considerations-when-using-extended-thinking
+
+
+# special keys to extract from the instructions block
+MAX_TOKENS = 'max_tokens'
+MODEL = 'model'
+THINKING_TOKENS = 'thinking_tokens'
+SPECIAL_KEYS = [MODEL, THINKING_TOKENS, MAX_TOKENS]
 
 class CodeReviewBot:
     def __init__(self):
@@ -47,26 +49,27 @@ class CodeReviewBot:
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
 
-    def extract_review_instructions(self, pr_description):
+    def extract_review_instructions(self, pr_description: str) -> tuple[str | None, dict | None]:
         """Extract review instructions from PR description if present."""
         print(f"pr_description '{pr_description}'")
         if not pr_description:
             return None,  None
 
-        # Look for fenced code block with code-review
+        # extract fenced code block with 'code-review' tag
         block_match = re.search(r"```code-review\s*\n(.*?)\n```", pr_description, re.DOTALL)
         if block_match:
             instructions = block_match.group(1).strip()
             return self.extract_dict_from_instructions(instructions)
+
         return None, None
 
-    def extract_dict_from_instructions(self, input_string: str, keys=[MODEL, THINKING_TOKENS, MAX_TOKENS]):
+    def extract_dict_from_instructions(self, input_string: str) -> tuple[str, dict]:
         """Extract a dictionary with special keys from the instructions."""
         extracted_dict = {}
         remaining_lines = []
         for line in input_string.split('\n'):
             found = False
-            for key in keys:
+            for key in SPECIAL_KEYS:
                 if f"{key}:" in line:
                     extracted_dict[key] = line.split(":", maxsplit=1)[1].strip()
                     found = True
@@ -80,20 +83,6 @@ class CodeReviewBot:
         Now includes PR instructions if provided.
         """
         try:
-            messages = [
-                {"role": "user", "content": f"{self.review_prompt}"},
-                {"role": "user", "content": f"{changed_files_str}"},
-                {"role": "user", "content": f"{patches_str}"},
-            ]
-
-            # Add PR instructions if available
-            if pr_instructions:
-                instructions_message = {
-                    "role": "user",
-                    "content": f"Additional review instructions from the PR description:\n\n{pr_instructions}",
-                }
-                messages.append(instructions_message)
-
             if (thinking_tokens := int(config.get(THINKING_TOKENS))) is not None:
                 thinking_params = {"thinking" : {
                     "type": "enabled",
@@ -105,18 +94,31 @@ class CodeReviewBot:
 
             max_tokens = int(config.get(MAX_TOKENS, DEFAULT_NUM_MAX_TOKENS))
 
-            message = self.anthropic_client.messages.create(
+            messages = [
+                {"role": "user", "content": f"{self.review_prompt}"},
+            ]
+            if pr_instructions:
+                messages.append({
+                    "role": "user",
+                    "content": f"Additional instructions given by the code author:\n\n{pr_instructions}",
+                })
+            messages.extend([
+                {"role": "user", "content": f"{changed_files_str}"},
+                {"role": "user", "content": f"{patches_str}"},
+            ])
+
+            answer = self.anthropic_client.messages.create(
                 model=config.get(MODEL, DEFAULT_MODEL_NAME),
                 max_tokens=max_tokens,
                 system=self.system_message,
                 messages=messages,
                 **thinking_params
             )
-            return message
+            return answer
 
         except Exception as e:
-            self.logger.error(f"Error getting review feedback: {str(e)}")
-            return f"Error during code review: {str(e)}"
+            msg = f"Error in get_review_feedback(): {str(e)}"
+            raise ValueError(msg)
 
     def _extract_json(self, text: str) -> str:
         """Extract the JSON string from the answer."""
@@ -190,7 +192,7 @@ class CodeReviewBot:
 
                     line = int(json_item["start_line"])
 
-                    # Claude is not good at providing the exact line
+                    # Claude is not good at providing the exact line so we brute force
                     done = False
                     count = 0
                     line_offsets = [0, -1, 1, -2, 2, -3, 3, -4, 4, -5, 5, -6, 6, -7, 7, -8, 8, -9, 9, -10, 10] # ruff: noqa
@@ -207,7 +209,7 @@ class CodeReviewBot:
                         except Exception:
                             count += 1
                             if count >= len(line_offsets):
-                                done = True
+                                raise ValueError("Could not create review comment for any line offset.")
                             print(
                                 f"Could not create review comment for line offset {line_offsets[count]}"
                             )
@@ -267,7 +269,6 @@ class CodeReviewBot:
         except Exception as e:
             self.logger.error(f"Error posting review comments: {str(e)}")
 
-    # async \
     def process_pull_request(
         self, changed_files_str: str, patches_str: str, repo_name: str, pr_number: int
     ):
@@ -279,9 +280,7 @@ class CodeReviewBot:
             pull_request = repo.get_pull(pr_number)
 
             # Extract PR description and get review instructions if any
-            pr_description = pull_request.body
-            review_instructions, config = self.extract_review_instructions(pr_description)
-
+            review_instructions, config = self.extract_review_instructions(pull_request.body)
             if review_instructions:
                 print(
                     f"Found review instructions in PR description: {review_instructions} {config=}"
