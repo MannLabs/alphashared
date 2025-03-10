@@ -49,11 +49,11 @@ class CodeReviewBot:
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
 
-    def extract_review_instructions(self, pr_description: str) -> tuple[str | None, dict | None]:
+    def extract_review_instructions(self, pr_description: str) -> tuple[str | None, dict]:
         """Extract review instructions from PR description if present."""
         print(f"pr_description '{pr_description}'")
         if not pr_description:
-            return None,  None
+            return "",  {}
 
         # extract fenced code block with 'code-review' tag
         block_match = re.search(r"```code-review\s*\n(.*?)\n```", pr_description, re.DOTALL)
@@ -61,7 +61,7 @@ class CodeReviewBot:
             instructions = block_match.group(1).strip()
             return self.extract_dict_from_instructions(instructions)
 
-        return None, None
+        return "", {}
 
     def extract_dict_from_instructions(self, input_string: str) -> tuple[str, dict]:
         """Extract a dictionary with special keys from the instructions."""
