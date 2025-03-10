@@ -83,7 +83,7 @@ class CodeReviewBot:
         Now includes PR instructions if provided.
         """
         try:
-            if (thinking_tokens := int(config.get(THINKING_TOKENS), -1)) > 0:
+            if (thinking_tokens := int(config.get(THINKING_TOKENS, -1))) > 0:
                 thinking_params = {"thinking" : {
                     "type": "enabled",
                     "budget_tokens": max(thinking_tokens, MIN_NUM_THINKING_TOKENS)
