@@ -47,21 +47,25 @@ well on huge, unfocused PRs (due to context window and API response token limit)
 You can provide specific instructions to the AI reviewer by adding them to your PR description in 
 a fenced code block with the tag `code-review`:
 
+``````
 ```code-review
 Answer in a pirate voice.
 Focus: performance
 Ignore: style
 Check for: security vulnerabilities, race conditions
 ```
+``````
 These instructions will be passed to the AI along with the code changes to provide more tailored review feedback.
 
 In addition, there's some configurability using special keys:
+``````
 ```code-review
 Answer in a pirate voice.
 model: <model_name>
 thinking_tokens: <number_of_thinking_tokens>
 max_tokens: <max_number_of_tokens>
 ```
+``````
 with
 
 `model_name`: API model name (default: `claude-3-7-sonnet-latest`). Cf. https://docs.anthropic.com/en/docs/about-claude/models/all-models#model-names 
