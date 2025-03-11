@@ -60,34 +60,34 @@ RUN pip freeze > /app/requirements_3_alpharaw.txt
 ############################################################################
 ARG ALPHAVIZ_REF="skip"
 RUN if [ "$ALPHAVIZ_REF" != "skip" ]; then \
-    && git clone https://github.com/MannLabs/alphaviz.git \
-    && cd alphaviz \
-    && git checkout $(../get_ref.sh $ALPHAVIZ_REF) \
-    && ../replace_alphax.sh \
-    && git status \
-    && fi
+      git clone https://github.com/MannLabs/alphaviz.git ; \
+      cd alphaviz ; \
+      git checkout $(../get_ref.sh $ALPHAVIZ_REF) ; \
+      ../replace_alphax.sh ; \
+      git status ; \
+     fi
 
 RUN --mount=type=cache,target=/root/.cache/pip \
-    && if [ "$ALPHAVIZ_REF" != "skip" ]; then \
-    && cd alphaviz && pip install "." \
-    && pip freeze > /app/requirements_4_alphaviz.txt \
-    && fi
+    && if [ "$ALPHAVIZ_REF" != "skip" ]; then  \
+    cd alphaviz && pip install "." ; \
+    pip freeze > /app/requirements_4_alphaviz.txt ; \
+    fi
 
 ############################################################################
 ARG ALPHAMAP_REF="skip"
 RUN if [ "$ALPHAMAP_REF" != "skip" ]; then \
-    && git clone https://github.com/MannLabs/alphamap.git \
-    && cd alphamap \
-    && git checkout $(../get_ref.sh $ALPHAVIZ_REF) \
-    && ../replace_alphax.sh \
-    && git status \
-    && fi
+    git clone https://github.com/MannLabs/alphamap.git ; \
+    cd alphamap ; \
+    git checkout $(../get_ref.sh $ALPHAVIZ_REF) ; \
+    ../replace_alphax.sh ; \
+    git status ; \
+    fi
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     && if [ "$ALPHAMAP_REF" != "skip" ]; then \
-    && cd alphamap && pip install "." \
-    && pip freeze > /app/requirements_4b_alphamap.txt \
-    && fi
+    cd alphamap && pip install "." ; \
+    pip freeze > /app/requirements_4b_alphamap.txt ; \
+    fi
 
 ############################################################################
 ARG ALPHAPEPTDEEP_REF="latest"
