@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       alphabase_ref:
-        description: "alphabase version: version of alphabase to use. Can be a commit hash, branch name or 'latest' for the latest release."
+        description: "alphabase version: version of alphabase to use. Can be a commit hash, branch name or 'latest' for the latest release. If the default is 'skip', the project will be skipped unless a version is given."
         default: latest
       alphatims_ref:
         description: "alphatims version"
@@ -14,7 +14,10 @@ on:
         default: development  # TODO: change to latest once properly tagged release is out
       alphaviz_ref:
         description: "alphaviz version"
-        default: latest
+        default: skip
+      alphamap_ref:
+        description: "alphamap version"
+        default: skip
       alphapeptdeep_ref:
         description: "alphapeptdeep version"
         default: latest
@@ -62,6 +65,7 @@ jobs:
           ALPHATIMS_REF=${{ inputs.alphatims_ref }}
           ALPHARAW_REF=${{ inputs.alpharaw_ref }}
           ALPHAVIZ_REF=${{ inputs.alphaviz_ref }}
+          ALPHAMAP_REF=${{ inputs.alphamap_ref }}
           ALPHAPEPTDEEP_REF=${{ inputs.alphapeptdeep_ref }}
           DIRECTLFQ_REF=${{ inputs.directlfq_ref }}
           ALPHADIA_REF=${{ inputs.alphadia_ref }}
@@ -130,6 +134,7 @@ jobs:
         docker run alphax bash -c "cd alpharaw/tests && ls && python -m download_test_data && chmod +x run_tests.sh && ./run_tests.sh"
 
   alphaviz_tests:
+    if: ${{ inputs.alphaviz_ref != 'skip' }}
     runs-on: AlphaDIA
     needs: [ build_image ]
     steps:
@@ -150,6 +155,7 @@ jobs:
       run: |
         docker run alphax bash -c "cd alphaviz/tests && ls && python -m pytest test_io.py && python -m pytest test_preprocessing.py"
 
+  # currently no tests in alphamap
 
   alphapeptdeep_tests:
     runs-on: AlphaDIA
