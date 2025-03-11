@@ -68,10 +68,10 @@ RUN if [ "$ALPHAVIZ_REF" != "skip" ]; then \
     && fi
 
 RUN --mount=type=cache,target=/root/.cache/pip \
-    if [ "$ALPHAVIZ_REF" != "skip" ]; then \
+    && if [ "$ALPHAVIZ_REF" != "skip" ]; then \
       && cd alphaviz && pip install "." \
       && pip freeze > /app/requirements_4_alphaviz.txt \
-    fi
+    && fi
 
 ############################################################################
 ARG ALPHAMAP_REF="skip"
