@@ -45,8 +45,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 RUN pip freeze > /app/requirements_2_alphatims.txt
 
 ############################################################################
-# TODO: change to latest once properly tagged release is out
-ARG ALPHARAW_REF="development"
+ARG ALPHARAW_REF="latest"
 RUN git clone https://github.com/MannLabs/alpharaw.git \
     && cd alpharaw \
     && git checkout $(../get_ref.sh $ALPHARAW_REF) \

@@ -4,14 +4,14 @@ on:
   workflow_dispatch:
     inputs:
       alphabase_ref:
-        description: "alphabase version: version of alphabase to use. Can be a commit hash, branch name or 'latest' for the latest release. If the default is 'skip', the project will be skipped unless a version is given."
-        default: latest
+        description: "alphabase version: version of alphabase to use. Can be branch name, commit hash, or 'latest' for the latest release. If the default is 'skip', the project will be skipped unless a version is given."
+        default: main
       alphatims_ref:
         description: "alphatims version"
-        default: latest
+        default: main
       alpharaw_ref:
         description: "alpharaw version"
-        default: development  # TODO: change to latest once properly tagged release is out
+        default: main
       alphaviz_ref:
         description: "alphaviz version"
         default: skip
@@ -20,13 +20,13 @@ on:
         default: skip
       alphapeptdeep_ref:
         description: "alphapeptdeep version"
-        default: latest
+        default: main
       directlfq_ref:
         description: "directlfq version"
-        default: latest
+        default: main
       alphadia_ref:
         description: "alphadia version"
-        default: latest
+        default: main
 
 jobs:
   build_image:
