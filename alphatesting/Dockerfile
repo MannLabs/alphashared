@@ -21,7 +21,7 @@ COPY pip.conf /etc/pip.conf
 RUN pip freeze > /app/requirements_0.txt
 
 ############################################################################
-ARG ALPHABASE_REF="latest"
+ARG ALPHABASE_REF="main"
 RUN git clone https://github.com/MannLabs/alphabase.git \
     && cd alphabase \
     && git checkout $(../get_ref.sh $ALPHABASE_REF) \
@@ -33,7 +33,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 RUN pip freeze > /app/requirements_1_alphabase.txt
 
 ############################################################################
-ARG ALPHATIMS_REF="latest"
+ARG ALPHATIMS_REF="main"
 RUN git clone https://github.com/MannLabs/alphatims.git \
     && cd alphatims \
     && git checkout $(../get_ref.sh $ALPHATIMS_REF) \
@@ -45,7 +45,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 RUN pip freeze > /app/requirements_2_alphatims.txt
 
 ############################################################################
-ARG ALPHARAW_REF="latest"
+ARG ALPHARAW_REF="main"
 RUN git clone https://github.com/MannLabs/alpharaw.git \
     && cd alpharaw \
     && git checkout $(../get_ref.sh $ALPHARAW_REF) \
@@ -60,37 +60,37 @@ RUN pip freeze > /app/requirements_3_alpharaw.txt
 ############################################################################
 ARG ALPHAVIZ_REF="skip"
 RUN if [ "$ALPHAVIZ_REF" != "skip" ]; then \
-      git clone https://github.com/MannLabs/alphaviz.git ; \
-      cd alphaviz ; \
-      git checkout $(../get_ref.sh $ALPHAVIZ_REF) ; \
-      ../replace_alphax.sh ; \
-      git status ; \
-     fi
+      git clone https://github.com/MannLabs/alphaviz.git; \
+      cd alphaviz; \
+      git checkout $(../get_ref.sh $ALPHAVIZ_REF); \
+      ../replace_alphax.sh; \
+      git status; \
+    fi
 
 RUN --mount=type=cache,target=/root/.cache/pip \
-    && if [ "$ALPHAVIZ_REF" != "skip" ]; then  \
-    cd alphaviz && pip install "." ; \
-    pip freeze > /app/requirements_4_alphaviz.txt ; \
+    if [ "$ALPHAVIZ_REF" != "skip" ]; then  \
+    cd alphaviz && pip install "."; \
+    pip freeze > /app/requirements_4_alphaviz.txt; \
     fi
 
 ############################################################################
 ARG ALPHAMAP_REF="skip"
 RUN if [ "$ALPHAMAP_REF" != "skip" ]; then \
-    git clone https://github.com/MannLabs/alphamap.git ; \
-    cd alphamap ; \
-    git checkout $(../get_ref.sh $ALPHAVIZ_REF) ; \
-    ../replace_alphax.sh ; \
-    git status ; \
+      git clone https://github.com/MannLabs/alphamap.git; \
+      cd alphamap; \
+      git checkout $(../get_ref.sh $ALPHAMAP_REF); \
+      ../replace_alphax.sh; \
+      git status; \
     fi
 
 RUN --mount=type=cache,target=/root/.cache/pip \
-    && if [ "$ALPHAMAP_REF" != "skip" ]; then \
-    cd alphamap && pip install "." ; \
-    pip freeze > /app/requirements_4b_alphamap.txt ; \
+    if [ "$ALPHAMAP_REF" != "skip" ]; then \
+    cd alphamap && pip install "."; \
+    pip freeze > /app/requirements_4b_alphamap.txt; \
     fi
 
 ############################################################################
-ARG ALPHAPEPTDEEP_REF="latest"
+ARG ALPHAPEPTDEEP_REF="main"
 RUN git clone https://github.com/MannLabs/alphapeptdeep.git \
     && cd alphapeptdeep \
     && git checkout $(../get_ref.sh $ALPHAPEPTDEEP_REF) \
@@ -103,7 +103,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 RUN pip freeze > /app/requirements_5_alphapeptdeep.txt
 
 ############################################################################
-ARG DIRECTLFQ_REF="latest"
+ARG DIRECTLFQ_REF="main"
 RUN git clone https://github.com/MannLabs/directlfq.git \
     && cd directlfq \
     && git checkout $(../get_ref.sh $DIRECTLFQ_REF) \
@@ -114,7 +114,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 RUN pip freeze > /app/requirements_6_directlfq.txt
 ############################################################################
-ARG ALPHADIA_REF="latest"
+ARG ALPHADIA_REF="main"
 RUN git clone https://github.com/MannLabs/alphadia.git \
     && cd alphadia \
     && git checkout $(../get_ref.sh $ALPHADIA_REF) \
