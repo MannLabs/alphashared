@@ -1,0 +1,91 @@
+#https://docs.github.com/en/actions/publishing-packages/publishing-docker-images
+name: Publish Docker image
+
+on:
+  workflow_call:
+    inputs:
+      package_name:
+        description: 'Name of package, e.g. "alphadia", "peptdeep", ..'
+        type: string
+        required: true
+      tag_to_release:
+        description: 'Enter tag to release (example: v1.5.5)'
+        type: string
+        required: true  
+      src_folder:
+        description: "Folder that contains the __init__.py file with the __version__ attribute. If not given, `<package_name>/` is used"
+        type: string
+        default: ""
+      dockerfile_path:
+        description: "Path to the Dockerfile. Defualts to './Dockerfile'"
+        type: string
+        default: "./Dockerfile"
+      
+    secrets:
+      docker_username:
+        description: 'Username for Docker Hub'
+        required: true
+      docker_access_token:
+        description: 'Access token for Docker Hub'
+        required: true
+
+jobs:
+  push_to_registry:
+    name: Push Docker image to Docker Hub
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+      attestations: write
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag_to_release }}
+      - name: Get current version
+        id: get_current_version
+        shell: bash -l {0}
+        run: |
+          if [ ! -z "${{ inputs.src_folder }}" ]; then  
+            init_file=${{ inputs.src_folder }}/__init__.py  
+          else
+            init_file=${{ inputs.package_name }}/__init__.py  
+          fi  
+          CURRENT_VERSION=$(grep "__version__" $init_file | cut -f3 -d ' ' | sed 's/"//g')
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+      - name: Log in to Docker Hub
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+        with:
+          username: ${{ secrets.docker_username }}
+          password: ${{ secrets.docker_access_token }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: mannlabs/${{ inputs.package_name }}
+
+      - name: show metadata
+        run: |
+          echo "${{ steps.meta.outputs.tags }}"
+          echo "${{ steps.meta.outputs.labels }}"
+          echo "${{ steps.meta.outputs }}"
+      - name: Build and push Docker image
+        id: push
+        uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
+        with:
+          context: .
+          file: ${{ inputs.dockerfile_path }}
+          push: true
+          tags: |
+            ${{ secrets.docker_username }}/${{ inputs.package_name }}:latest,
+            ${{ secrets.docker_username }}/${{ inputs.package_name }}:${{ steps.get_current_version.outputs.current_version }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+
+#      - name: Generate artifact attestation
+#        uses: actions/attest-build-provenance@v1
+#        with:
+#          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
+#          subject-digest: ${{ steps.push.outputs.digest }}
+#          push-to-registry: true
