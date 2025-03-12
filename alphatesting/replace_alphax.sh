@@ -25,7 +25,7 @@ LOOSE_REQUIREMENTS_FILE=${REQUIREMENTS_FILE/.txt/_loose.txt}
 echo using $REQUIREMENTS_FILE $LOOSE_REQUIREMENTS_FILE
 
 # Add any alphaX packages that others depend on here. Use the name like it is given in the requirements file!
-for a in alphabase alphatims alpharaw peptdeep alphatims alphaviz; do
+for a in alphabase alphatims alpharaw peptdeep alphatims alphaviz directlfq; do
   sed -i "s/$a/### $a/" $REQUIREMENTS_FILE
 
   if [ -f $LOOSE_REQUIREMENTS_FILE ]; then
