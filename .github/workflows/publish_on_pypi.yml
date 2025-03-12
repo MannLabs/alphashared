@@ -162,6 +162,9 @@ jobs:
           repository-url: https://test.pypi.org/legacy/
           user: __token__
           password: ${{ secrets.test_pypi_api_token }}
+          skip-existing: true
+          print-hash: true
+          verbose: true
           # assumes wheel to reside in ./dist folder
       - name: Check Test-PyPI installation  # TODO reduce code duplication here
         shell: bash -l {0}
@@ -181,6 +184,7 @@ jobs:
                   break
               else  
                   attempt=$((attempt + 1))
+                  if [ $attempt -gt $max_attempts ]; then exit 1; fi
                   failed=0
               fi
           done
@@ -209,6 +213,8 @@ jobs:
         with:
           user: __token__
           password: ${{ secrets.pypi_api_token }}
+          print-hash: true
+          verbose: true
   Test_PyPi_Release:
     name: Test_PyPi_version_on_${{ matrix.os }}
     needs: Create_PyPi_Release
@@ -259,6 +265,7 @@ jobs:
                   break
               else  
                   attempt=$((attempt + 1))
+                  if [ $attempt -gt $max_attempts ]; then exit 1; fi
                   failed=0
               fi
           done
