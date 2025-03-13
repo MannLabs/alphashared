@@ -17,7 +17,7 @@ on:
         type: string
         default: ""
       dockerfile_path:
-        description: "Path to the Dockerfile. Defualts to './Dockerfile'"
+        description: "Path to the Dockerfile. Defaults to './Dockerfile'"
         type: string
         default: "./Dockerfile"
       
