@@ -109,7 +109,7 @@ jobs:
           fi
           
       - name: First Bump - Push changes to GitHub
-        uses: ad-m/github-push-action@master
+        uses: ad-m/github-push-action@d91a481090679876dfc4178fef17f286781251df #v0.8.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{steps.get_branch_name.outputs.BRANCH_NAME}}
@@ -117,7 +117,7 @@ jobs:
 
       - name: First Bump - Create a pull request
         id: create-pull-request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e #v7.0.8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           base: main
@@ -147,7 +147,7 @@ jobs:
 
       - name: Second Bump - Push changes to GitHub
         if: ${{ inputs.bump_type  != 'prerelease' && steps.bump.outputs.workflow-type == 'advanced'  }}
-        uses: ad-m/github-push-action@master
+        uses: ad-m/github-push-action@d91a481090679876dfc4178fef17f286781251df #v0.8.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{steps.get_branch_name.outputs.BRANCH_NAME}}-prepare-next-version
@@ -156,7 +156,7 @@ jobs:
       - name: Second Bump - Create a pull request
         if: ${{ inputs.bump_type  != 'prerelease' && steps.bump.outputs.workflow-type == 'advanced'  }}
         id: create-pull-request2
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e #v7.0.8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           base: ${{steps.get_branch_name.outputs.BRANCH_NAME}}
