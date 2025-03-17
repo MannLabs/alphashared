@@ -54,14 +54,14 @@ jobs:
           CURRENT_VERSION=$(grep "__version__" $init_file | cut -f3 -d ' ' | sed 's/"//g')
           echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
       - name: Log in to Docker Hub
-        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772  # v3.4.0
         with:
           username: ${{ secrets.docker_username }}
           password: ${{ secrets.docker_access_token }}
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 #v7.7.1
         with:
           images: mannlabs/${{ inputs.package_name }}
 
@@ -72,7 +72,7 @@ jobs:
           echo "${{ steps.meta.outputs }}"
       - name: Build and push Docker image
         id: push
-        uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
+        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # 6.15.0
         with:
           context: .
           file: ${{ inputs.dockerfile_path }}

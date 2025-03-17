@@ -124,7 +124,7 @@ jobs:
         pip install pyinstaller
 
     - name: Download common wheel
-      uses: robinraju/release-downloader@v1
+      uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 #v1.12
       continue-on-error: true # the wheel might not exist in the release (for packages now offering build_wheel.sh)
       with:
         releaseId: ${{ inputs.release_id }}
@@ -239,9 +239,6 @@ jobs:
         ls dist*/*
         ls build*/*
 
-#    - name: Setup tmate session
-#      uses: mxschmitt/action-tmate@v3
-
     - name: Test package
       id: test_package
       shell: bash -el {0}
@@ -272,4 +269,4 @@ jobs:
 
     - name: Setup SSH session for debugging
       if: ${{ always() && vars.DEBUG_START_SSH_SESSION == '1'}}
-      uses: mxschmitt/action-tmate@v3
+      uses: mxschmitt/action-tmate@e5c7151931ca95bad1c6f4190c730ecf8c7dde48 #v3.19

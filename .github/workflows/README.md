@@ -292,3 +292,11 @@ be appended to the release tag thus making it unique.
 Don't forget to remove this variable after your tests finished.
 
 Repository variables can be set in the GiHub Repository "Settings" ->  "Secrets and Variables" ->  "Actions" -> "Variables" Tab -> "Repository variables"
+
+### Pinned vs. loose versions of third-party actions
+To adhere the [best practises](https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions#using-third-party-actions)
+regarding third party actions, we pin the versions of most actions used in the workflows to specific commit SHAs.
+This command defines the 'whitelist', i.e. the third-party actions that are allowed to use a loose version (i.e. tag):
+```bash
+grep -R "uses:" . | grep -Ev "MannLabs/alphashared|actions/checkout|actions/upload-artifact|actions/download-artifact|actions/setup-python|actions/upload-release-asset|actions/create-release|actions/cache|conda-incubator/setup-miniconda|./.github/workflows/_run_tests.yml|./.github/workflows/_create_artifact.yml|pre-commit/action"
+```
