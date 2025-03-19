@@ -73,6 +73,9 @@ class CodeReviewBot:
                 if f"{key}:" in line:
                     extracted_dict[key] = line.split(":", maxsplit=1)[1].strip()
                     found = True
+                elif f"{key}=" in line:
+                    extracted_dict[key] = line.split("=", maxsplit=1)[1].strip()
+                    found = True
             if not found:
                 remaining_lines.append(line)
         return "\n".join(remaining_lines), extracted_dict
