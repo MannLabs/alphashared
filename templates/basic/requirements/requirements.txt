@@ -1,0 +1,2 @@
+# dependencies required for running
+notebook==7.3.3
