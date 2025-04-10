@@ -1,3 +1,20 @@
+[project]
+classifiers = ["Private :: Do Not Upload"]
+name = "my_package"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dynamic = ["dependencies", "optional-dependencies"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.setuptools.dynamic]
+# https://stackoverflow.com/a/73600610
+dependencies = {file = ["requirements/requirements.txt"]}
+optional-dependencies.development = { file = ["requirements/requirements_development.txt" ]}
 
 [tool.ruff.lint]
 select =  [ "ALL" ]

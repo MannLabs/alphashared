@@ -1,2 +1,2 @@
-# dependencies required for developing
-numpy==2.2.2
+# dependencies required for running
+notebook==7.3.3

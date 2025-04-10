@@ -1,6 +1,6 @@
 """Analysis code for my_notebook.ipynb."""
 
 
-def my_analysis() -> None:
+def some_analysis() -> None:
     """An example analysis."""
-    print("Hello world")
+    print("Hello world from utils!")

@@ -1,27 +1,58 @@
-# my_package
+# Basic template for small-size python project
+
+(!) Work in progress
 
 A basic template for a Python package.
 
-Set up a new GitHub repository and download this template:
+1a. Set up a new GitHub repository and `git clone` it to `/path/to/new/repo`
+
+OR
+
+1b. Create a local repository:
+```
+mkdir /path/to/new/repo
+cd /path/to/new/repo
+git init
+```
+
+2. Download this template:
 ```bash
+cd /path/to/new/repo
+
 curl -L https://github.com/MannLabs/alphashared/archive/add_template.zip -o template.zip
 unzip template.zip
-cp -r alphashared-add_template/templates/basic /PATH_TO_NEW_REPO
-rm -r template.zip alphashared-add_template template.zip
-```
-Rename `my_package` -> `<your_project_name>` and commit it.
-
----
-
-### Installation
-
-```bash
-conda create --name my_package python=3.11 -y
-conda activate my_package
+cp -r alphashared-add_template/templates/basic/. .
+rm -r template.zip alphashared-add_template
 ```
 
+3. Create the initial commit:
 ```bash
-pip install -r requirements/requirements.txt
+git add * .*
+git commit -a -m "initialize from template"
+```
+
+4. Remove everything above and including this line.
+
+
+# my_package
+A python package that does <nothing>.
+
+## Python setup
+
+### Using uv (preferred)
+If not available on your system, [install uv](https://docs.astral.sh/uv/getting-started/installation/)
+first.
+```bash
+uv sync
+source .venv/bin/activate
+uv pip install -e .
+````
+
+### Using conda
+```bash
+conda create --name my_package_env python=3.11 -y
+conda activate my_package_env
+uv pip install -e .
 ```
 
 ---
@@ -29,6 +60,11 @@ pip install -r requirements/requirements.txt
 
 ```bash
 python src/hello_world.py
+```
+or
+
+```bash
+uv run src/hello_world.py
 ```
 
 
