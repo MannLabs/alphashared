@@ -31,8 +31,9 @@ git add * .*
 git commit -a -m "initialize from template"
 ```
 
-4. Remove everything above and including this line.
+4. Rename all occurrences (including folders) of `my_package` to the name of your package.
 
+5. Remove everything above and including this line.
 
 # my_package
 A python package that does `<nothing>`.
@@ -69,12 +70,11 @@ results/ -> output data
 ## Usage
 
 ```bash
-python src/hello_world.py
+python my_package/hello_world.py
 ```
 or
-
 ```bash
-uv run src/hello_world.py
+uv run my_package/hello_world.py
 ```
 
 
