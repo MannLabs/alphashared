@@ -35,7 +35,7 @@ git commit -a -m "initialize from template"
 
 
 # my_package
-A python package that does <nothing>.
+A python package that does `<nothing>`.
 
 ## Python setup
 
@@ -53,6 +53,16 @@ uv pip install -e .
 conda create --name my_package_env python=3.11 -y
 conda activate my_package_env
 uv pip install -e .
+```
+
+
+## Basic structure
+Suggested file structure:
+```
+my_package/ -> analysis code
+nbs/ -> notebooks (calls to analysis code)
+data/ -> input data
+results/ -> output data
 ```
 
 ---
