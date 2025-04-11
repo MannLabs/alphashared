@@ -29,7 +29,7 @@ on:
         type: boolean
         default: false
       src_folder:
-        description: "Folder that contains the __init__.py file with the __version__ attribute. If not given,  `<packagename>/` is used"
+        description: "Folder that contains the __init__.py file with the __version__ attribute. If not given, `<package_name>/` is used"
         type: string
         default: ""
       test_stable:
