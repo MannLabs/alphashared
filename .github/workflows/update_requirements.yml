@@ -89,7 +89,10 @@ jobs:
               after=$(echo "$line" | awk -F'-->' '{print $2}')
             
               # Search for the part before `-->` in the search file
-              if grep -q "$before" "$FREEZE_FILE_NAME"; then
+              if [ "$before" = "ADD_DEPENDENCY" ] ; then
+                # Append the part after `-->` to the end of the search file
+                echo $after >> $FREEZE_FILE_NAME
+              elif grep -q "$before" "$FREEZE_FILE_NAME"; then
                 # Append the part after `-->` to the matching line in the search file
                 sed -i "/$before==/ s/$/ $after/" "$FREEZE_FILE_NAME"
               fi

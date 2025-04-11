@@ -19,5 +19,29 @@ versions (e.g. due to security updates).
 In both cases, running the `update_requirements` action will update the "frozen" dependencies and create a PR with the changes.
 Note that currently, it needs to be run for different file names (e.g. `requirements.txt` and `requirements_extra.txt`) separately.
 
+## Special cases
+Sometimes, dependencies are only available for certain platforms. In the case of e.g. CUDA dependencies, 
+they will be added to the "freeze" file as the container used to determine the dependencies is a linux container.
+
+Another special case is the restriction of a dependency version for a certain platform, which requires
+multiple lines per dependency.
+
+This can be resolved by adding a file `requirements[_extra].constraints.txt`, e.g.
+```
+# Constraints file to "requirements.txt" for the `update requirements` workflow in alphashared.
+# Use this to resolve cross-os dependency issues.
+# For any dependency that is listed before the '-->',
+# the part that comes after the '-->' will be appended to the respective line
+# in the _requirements.freeze.txt file
+
+# example 1: impose linux-only constraint on nvidia-cublas-cu12 
+nvidia-cublas-cu12--> ; sys_platform == 'linux'
+
+# example 2: restrict torch version for darwin-x86_64 only
+torch--> ; sys_platform != 'darwin' or platform_machine != 'x86_64'
+ADD_DEPENDENCY--> torch==2.2.2; sys_platform == 'darwin' and platform_machine == 'x86_64'
+```
+
+
 ## Dockerized version
 For local runs, there's a dockerize version: see `Dockerfile` and instructions therein.  
