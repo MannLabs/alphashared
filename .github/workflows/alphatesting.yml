@@ -131,6 +131,7 @@ jobs:
     - name: alpharaw tests
       id: alpharaw_tests
       run: |
+        docker run alphax bash -c "cd alpharaw/alpharaw && ls && cat ms_data_base.py || exit 0"
         docker run alphax bash -c "cd alpharaw/tests && ls && python -m download_test_data && chmod +x run_tests.sh && ./run_tests.sh"
 
   alphaviz_tests:
