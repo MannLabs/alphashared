@@ -73,6 +73,9 @@ class CodeReviewBot:
                 if f"{key}:" in line:
                     extracted_dict[key] = line.split(":", maxsplit=1)[1].strip()
                     found = True
+                elif f"{key}=" in line:
+                    extracted_dict[key] = line.split("=", maxsplit=1)[1].strip()
+                    found = True
             if not found:
                 remaining_lines.append(line)
         return "\n".join(remaining_lines), extracted_dict
@@ -138,18 +141,21 @@ class CodeReviewBot:
         return ""  # Return empty string if no brackets found
 
     def _get_valid_json(self, json_string: str) -> list[dict[str, str]]:
-        """Get valid JSON from the string."""
+        """Get valid JSON from the string.
+
+        This uses a series of heuristics to extract valid JSON from the string.
+        """
         try:
             json_string = self._extract_json(json_string)
 
             json_items = json.loads(json_string)
         except json.JSONDecodeError as e:
             print(f"Error (1) decoding JSON: {e}")
-
             self._print_json_context(e, json_string)
 
+            # Replace backticks
             json_string = (
-                json_string.replace("`", "")  # Replace backticks
+                json_string.replace("`", "")
             )
             # json could be truncated due to token limit
             json_string = untruncate_json.complete(json_string)
@@ -161,7 +167,17 @@ class CodeReviewBot:
                 print(f"Error (2) decoding JSON: {e}")
                 self._print_json_context(e, json_string)
 
-                raise e from e
+                # sometimes the list items are not properly comma-separated
+                json_string = (
+                    json_string.replace(" ]\n\n[", ",")
+                )
+                try:
+                    json_items = json.loads(json_string)
+                except json.JSONDecodeError as e:
+                    print(f"Error (3) decoding JSON: {e}")
+                    self._print_json_context(e, json_string)
+                    raise e from e
+
         return json_items
 
     def process_answer(self, json_string, pr, last_commit):
@@ -169,7 +185,7 @@ class CodeReviewBot:
         try:
             json_items = self._get_valid_json(json_string)
         except Exception as e:
-            print(f"Error (3) decoding JSON: {e}")
+            print(f"Error decoding JSON: {e}")
             return json_string
 
         unprocessed_items = []
