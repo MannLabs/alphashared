@@ -53,7 +53,7 @@ RUN git clone https://github.com/MannLabs/alpharaw.git \
     && git status
 
 RUN --mount=type=cache,target=/root/.cache/pip \
-    cd alpharaw && pip install "."
+    cd alpharaw && pip install ".[viz]"
 
 RUN pip freeze > /app/requirements_3_alpharaw.txt
 
