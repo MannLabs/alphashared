@@ -129,7 +129,7 @@ RUN pip freeze > /app/requirements_7_alphadia.txt
 ############################################################################
 # additional dependencies for testing
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install pytest nbmake
+    pip install pytest nbmake neptune
 
 RUN pip freeze > /app/requirements_8_final.txt
 
