@@ -102,7 +102,7 @@ jobs:
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
 
       - name: Download common wheel
-        uses: robinraju/release-downloader@v1
+        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 #v1.12
         continue-on-error: true # the wheel might not exist in the release (for packages now offering build_wheel.sh)
         with:
           tag: ${{ inputs.tag_to_release }}
