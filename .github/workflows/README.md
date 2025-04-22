@@ -15,7 +15,7 @@ and that the following workflows are present in the repository (cf. [below](#ins
 - 'Bump version' (referencing [this workflow](https://github.com/MannLabs/alphashared/blob/main/.github/workflows/bump_version.yml))
 - 'Create Draft Release' (referencing [this workflow](https://github.com/MannLabs/alphashared/blob/main/.github/workflows/create_release.yml))
 - 'Publish on PyPi' (referencing [this workflow](https://github.com/MannLabs/alphashared/blob/main/.github/workflows/publish_on_pypi.yml))
-- 'Publish Docker Image' (referencing [this workflow](https://github.com/MannLabs/alphashared/blob/main/.github/workflows/publish_docker_image.yml))
+- 'Publish Docker Image' (referencing [this workflow](https://github.com/MannLabs/alphashared/blob/main/.github/workflows/publish_docker.yml))
 
 ## Versioning
 When a new release is prepared, the version number should be set to `X.Y.(Z+1)`, `X.(Y+1).Z`,
@@ -232,6 +232,35 @@ jobs:
       # src_folder: src      
 ```
 
+#### 'Publish Docker image' workflow
+1. Create a new github action `publish_docker.yml` in `.github/workflows` like this:
+```yaml
+# Build and publish Docker image
+name: Publish Docker image
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_to_release:
+        description: 'Enter tag to release (example: v1.5.5). A tag with this name must exist in the repository.'
+        type: string
+        required: true
+
+jobs:
+  publish_on_pypi:
+    uses: MannLabs/alphashared/.github/workflows/publish_docker.yml@v1
+    secrets:
+      docker_access_token: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+      docker_username: ${{ secrets.DOCKER_USERNAME }}
+    with:
+      # see the documentation of the action for more information on the parameters
+      package_name: <Name of package, e.g. "alphadia", "peptdeep", ..>
+      tag_to_release: ${{ inputs.tag_to_release }}
+      # optional parameters:
+      # src_folder: src
+      # dockerfile_path: "./docker/Dockerfile"
+```
+2. The `DOCKER_ACCESS_TOKEN` and `DOCKER_USERNAME` must be available in the repository secrets.
 
 ## Developing the reusable release pipeline
 If you need to make changes to the reusable workflow 
