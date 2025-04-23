@@ -21,8 +21,9 @@ else
 fi
 
 LOOSE_REQUIREMENTS_FILE=${REQUIREMENTS_FILE/.txt/_loose.txt}
+FREEZE_REQUIREMENTS_FILE=${REQUIREMENTS_FILE/requirements.txt/_requirements.freeze.txt}
 
-echo using $REQUIREMENTS_FILE $LOOSE_REQUIREMENTS_FILE
+echo using $REQUIREMENTS_FILE $LOOSE_REQUIREMENTS_FILE $FREEZE_REQUIREMENTS_FILE
 
 # Add any alphaX packages that others depend on here. Use the name like it is given in the requirements file!
 for a in alphabase alphatims alpharaw peptdeep alphatims alphaviz directlfq; do
@@ -30,6 +31,9 @@ for a in alphabase alphatims alpharaw peptdeep alphatims alphaviz directlfq; do
 
   if [ -f $LOOSE_REQUIREMENTS_FILE ]; then
       sed -i "s/$a/### $a/" $LOOSE_REQUIREMENTS_FILE
+  fi
+  if [ -f $FREEZE_REQUIREMENTS_FILE ]; then
+      sed -i "s/$a/### $a/" $FREEZE_REQUIREMENTS_FILE
   fi
 done
 
