@@ -67,7 +67,7 @@ jobs:
           fi
       - name: get import_name
         id: get_import_name
-        shell: bash -l {0}
+        shell: bash -le {0}
         run: |
           if [ -z "${{ inputs.import_name }}" ]; then
             echo "import_name=${{ inputs.package_name }}" >> $GITHUB_OUTPUT
@@ -81,15 +81,10 @@ jobs:
         with:
           miniconda-version: "latest"
           auto-update-conda: true
-          activate-environment: alphax
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Conda info
         shell: bash -le {0}
-        run: |
-          conda info
-          python --version
-      - name: Setup SSH session for debugging
-        uses: mxschmitt/action-tmate@e5c7151931ca95bad1c6f4190c730ecf8c7dde48 #v3.19
+        run: conda info
       - name: Get current version
         id: get_current_version
         shell: bash -l {0}
@@ -153,11 +148,13 @@ jobs:
       - name: Check package
         # twine==6.1.0 yields "ERROR    InvalidDistribution: Invalid distribution metadata: unrecognized or malformed field 'license-file'"
         # cf. https://github.com/pypa/twine/issues/1216
+        shell: bash -le {0}
         run: |
           pip install twine==6.0.1 
           twine check --strict ${{steps.prepare_wheel.outputs.WHEEL_FILE}}
 
       - name: Check installing package
+        shell: bash -le {0}
         run: pip install ${{steps.prepare_wheel.outputs.WHEEL_FILE}}
 
       - name: Publish distribution to Test-PyPI
@@ -172,7 +169,7 @@ jobs:
           verbose: true
           # assumes wheel to reside in ./dist folder
       - name: Check Test-PyPI installation  # TODO reduce code duplication here
-        shell: bash -l {0}
+        shell: bash -le {0}
         run: |
           conda create -n pip_standard_test python=${{ env.PYTHON_VERSION }} -y
           conda activate pip_standard_test
@@ -201,7 +198,7 @@ jobs:
           conda clean --all -y
       - name: Check Test-PyPI stable installation
         if: ${{ inputs.test_stable  == 'true' }}
-        shell: bash -l {0}
+        shell: bash -le {0}
         run: |
           conda create -n pip_stable_test python=${{ env.PYTHON_VERSION }} -y
           conda activate pip_stable_test
@@ -232,7 +229,7 @@ jobs:
     steps:
       - name: get import_name
         id: get_import_name
-        shell: bash -l {0}
+        shell: bash -le {0}
         run: |
           if [ -z "${{ inputs.import_name }}" ]; then
             echo "import_name=${{ inputs.package_name }}" >> $GITHUB_OUTPUT
@@ -253,7 +250,7 @@ jobs:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
       - name: Check PyPI installation
-        shell: bash -l {0}
+        shell: bash -le {0}
         run: |
           conda create -n pip_standard python=${{ env.PYTHON_VERSION }} -y
           conda activate pip_standard
@@ -282,7 +279,7 @@ jobs:
           conda clean --all -y
       - name: Check PyPI stable installation
         if: ${{ inputs.test_stable  == 'true' }}
-        shell: bash -l {0}
+        shell: bash -le {0}
         run: |
           conda create -n pip_stable python=${{ env.PYTHON_VERSION }} -y
           conda activate pip_stable
