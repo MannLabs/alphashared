@@ -81,6 +81,7 @@ jobs:
         with:
           miniconda-version: "latest"
           auto-update-conda: true
+          activate-environment: alphax
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Conda info
         shell: bash -le {0}
