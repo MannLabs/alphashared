@@ -11,3 +11,7 @@ Shared non-production code for AlphaX packages.
 - `.github/workflows/create_release.yml`: reusable workflow for creating releases, see [README](.github/workflows/README.md)
 - `.github/workflows/publish_on_pypi.yml`: reusable workflow for publishing on PyPi, see [README](.github/workflows/README.md)
 - `.github/workflows/alphatesting.yml`: Cross-project tests for AlphaX, see [README](alphatesting/README.md)
+
+- `templates`: templates for standard tasks.
+- `templates/basic`: basic package structure
+- `templates/data_analysis`: basic data analysis project
