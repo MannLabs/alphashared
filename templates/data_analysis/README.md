@@ -51,13 +51,13 @@ Document your project and configurations in READMEs. A short sentence often suff
 
 ### Automated + linear processing
 
-:check_mark: Implement analysis scripts so that they can be run with a single command. Document utilized configuration parameters. Assure that every jupyter  notebook can be run in a single step
+- Implement analysis scripts so that they can be run with a single command. Document utilized configuration parameters. Assure that every jupyter  notebook can be run in a single step
 
-:cross_mark: Do not manipulate data manually (e.g. in excel between analysis steps) or make analysis steps non-linear (e.g. run jupyter notebook cells not in order). 
+- Do not manipulate data manually (e.g. in excel between analysis steps) or make analysis steps non-linear (e.g. run jupyter notebook cells not in order). 
 
 ### Environment management 
 
-:check_mark: Manage your environment with a suitable package manager and make it accessible for other users 
+- Manage your environment with a suitable package manager and make it accessible for other users 
 
 ```shell
 # conda 
@@ -80,19 +80,19 @@ session_info()
 
 ### (Manual) Sanity checks Look at your data
 
-:check_mark: Check intermediate results and think about whether they make sense.
+- Check intermediate results and think about whether they make sense.
 
-:cross_mark: Do not just accept the output of your pipeline
+- Do not just accept the output of your pipeline
 
 ### Project Tracking
 
-:check_mark: Track your project with git. Share it on github.
+- Track your project with git. Share it on github.
 
-:cross_mark: Avoid ambiguous or confusing file naming 
+- Avoid ambiguous or confusing file naming 
 
 ### Documentation
 
-:check_mark: Explain your analysis, document parameters, variables, and rationales (why did you do this?) to your future self and others.
+- Explain your analysis, document parameters, variables, and rationales (why did you do this?) to your future self and others.
 
 
 
