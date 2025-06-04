@@ -15,7 +15,7 @@ git clone ...
 
 3. Open the newly generated directory in your favorite code editor.
 
-4. Update licencse, `environment.yaml`, README.md, etc.
+4. Update license, `environment.yaml`, README.md, etc.
 
 
 ## Structure
