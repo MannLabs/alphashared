@@ -101,4 +101,4 @@ session_info()
 
 Created in the Mann Lab, Department of Proteomics and Signal Transduction, Max Planck Institute for Biochemistry.
 
-> MIT Licence
+> MIT License
