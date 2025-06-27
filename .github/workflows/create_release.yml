@@ -71,7 +71,10 @@ jobs:
           echo "new_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
           echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
 
-          echo Got release tag ${RELEASE_TAG} for ref ${GITHUB_SHA}
+          CURRENT_SHA=$(git rev-parse HEAD)
+          echo "current_sha=$CURRENT_SHA" >> $GITHUB_OUTPUT
+          
+          echo Got release tag ${RELEASE_TAG} for ref ${CURRENT_SHA}
 
       - name: Check if tag already exists
         run: |
@@ -85,8 +88,8 @@ jobs:
       - name: Create tag
         uses: rickstaa/action-create-tag@a1c7777fcb2fee4f19b0f283ba888afa11678b72 #v1.7.2
         with:
-          # will use GITHUB_SHA -> latest commit SHA hash that was checked out above
           tag: ${{ steps.get_release_tag.outputs.release_tag }}
+          commit_sha: ${{ steps.get_release_tag.outputs.current_sha }}
           tag_exists_error: true
 
       - name: Get supported OS

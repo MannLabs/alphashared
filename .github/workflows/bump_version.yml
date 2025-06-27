@@ -3,6 +3,8 @@
 # Otherwise, the version is bumped (first PR) and a second PR is created to prepare the next development version
 name: Bump version
 
+# TODO allow to bump on other branches than main
+
 on:
   workflow_call:
     inputs:
