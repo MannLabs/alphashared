@@ -5,7 +5,7 @@
 
 ## Install
 
-1. In your comman line interface, go to a directory of your choice.
+1. In your command line interface, go to a directory of your choice.
 
 2. Execute the following command
 
