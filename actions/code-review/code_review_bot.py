@@ -9,9 +9,17 @@ import untruncate_json
 from github import Github
 from github.PullRequest import PullRequest
 
-MODEL_NAME = "claude-3-5-sonnet-20241022"
-MAX_NUM_OUTPUT_TOKENS = 4096
+DEFAULT_MODEL_NAME = "claude-3-7-sonnet-latest"
+UPPER_MAX_TOKEN_LIMIT = 20000
+DEFAULT_NUM_MAX_TOKENS = 4096
+MIN_NUM_THINKING_TOKENS = 1024  # https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking#important-considerations-when-using-extended-thinking
 
+
+# special keys to extract from the instructions block
+MAX_TOKENS = 'max_tokens'
+MODEL = 'model'
+THINKING_TOKENS = 'thinking_tokens'
+SPECIAL_KEYS = [MODEL, THINKING_TOKENS, MAX_TOKENS]
 
 class CodeReviewBot:
     def __init__(self):
@@ -41,26 +49,79 @@ class CodeReviewBot:
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
 
-    def get_review_feedback(self, changed_files_str, patches_str: str) -> str:
+    def extract_review_instructions(self, pr_description: str) -> tuple[str | None, dict]:
+        """Extract review instructions from PR description if present."""
+        print(f"pr_description '{pr_description}'")
+        if not pr_description:
+            return "",  {}
+
+        # extract fenced code block with 'code-review' tag
+        block_match = re.search(r"```code-review\s*\n(.*?)\n```", pr_description, re.DOTALL)
+        if block_match:
+            instructions = block_match.group(1).strip()
+            return self.extract_dict_from_instructions(instructions)
+
+        return "", {}
+
+    def extract_dict_from_instructions(self, input_string: str) -> tuple[str, dict]:
+        """Extract a dictionary with special keys from the instructions."""
+        extracted_dict = {}
+        remaining_lines = []
+        for line in input_string.split('\n'):
+            found = False
+            for key in SPECIAL_KEYS:
+                if f"{key}:" in line:
+                    extracted_dict[key] = line.split(":", maxsplit=1)[1].strip()
+                    found = True
+                elif f"{key}=" in line:
+                    extracted_dict[key] = line.split("=", maxsplit=1)[1].strip()
+                    found = True
+            if not found:
+                remaining_lines.append(line)
+        return "\n".join(remaining_lines), extracted_dict
+    
+    def get_review_feedback(self, changed_files_str, patches_str, config, pr_instructions=None):
         """
         Sends the content to Claude and gets the review feedback.
+        Now includes PR instructions if provided.
         """
         try:
-            message = self.anthropic_client.messages.create(
-                model=MODEL_NAME,
-                max_tokens=MAX_NUM_OUTPUT_TOKENS,
+            if (thinking_tokens := int(config.get(THINKING_TOKENS, -1))) > 0:
+                thinking_params = {"thinking" : {
+                    "type": "enabled",
+                    "budget_tokens": max(thinking_tokens, MIN_NUM_THINKING_TOKENS)
+                }}
+                print("thinking_params", thinking_params)
+            else:
+                thinking_params = {}
+
+            max_tokens = int(config.get(MAX_TOKENS, DEFAULT_NUM_MAX_TOKENS))
+
+            messages = [
+                {"role": "user", "content": f"{self.review_prompt}"},
+            ]
+            if pr_instructions:
+                messages.append({
+                    "role": "user",
+                    "content": f"Additional instructions given by the code author:\n\n{pr_instructions}",
+                })
+            messages.extend([
+                {"role": "user", "content": f"{changed_files_str}"},
+                {"role": "user", "content": f"{patches_str}"},
+            ])
+
+            answer = self.anthropic_client.messages.create(
+                model=config.get(MODEL, DEFAULT_MODEL_NAME),
+                max_tokens=max_tokens,
                 system=self.system_message,
-                messages=[
-                    {"role": "user", "content": f"{self.review_prompt}"},
-                    {"role": "user", "content": f"{changed_files_str}"},
-                    {"role": "user", "content": f"{patches_str}"},
-                ],
+                messages=messages,
+                **thinking_params
             )
-            return message
+            return answer
 
         except Exception as e:
-            self.logger.error(f"Error getting review feedback: {str(e)}")
-            return f"Error during code review: {str(e)}"
+            msg = f"Error in get_review_feedback(): {str(e)}"
+            raise ValueError(msg)
 
     def _extract_json(self, text: str) -> str:
         """Extract the JSON string from the answer."""
@@ -80,18 +141,21 @@ class CodeReviewBot:
         return ""  # Return empty string if no brackets found
 
     def _get_valid_json(self, json_string: str) -> list[dict[str, str]]:
-        """Get valid JSON from the string."""
+        """Get valid JSON from the string.
+
+        This uses a series of heuristics to extract valid JSON from the string.
+        """
         try:
             json_string = self._extract_json(json_string)
 
             json_items = json.loads(json_string)
         except json.JSONDecodeError as e:
             print(f"Error (1) decoding JSON: {e}")
-
             self._print_json_context(e, json_string)
 
+            # Replace backticks
             json_string = (
-                json_string.replace("`", "")  # Replace backticks
+                json_string.replace("`", "")
             )
             # json could be truncated due to token limit
             json_string = untruncate_json.complete(json_string)
@@ -103,7 +167,17 @@ class CodeReviewBot:
                 print(f"Error (2) decoding JSON: {e}")
                 self._print_json_context(e, json_string)
 
-                raise e from e
+                # sometimes the list items are not properly comma-separated
+                json_string = (
+                    json_string.replace(" ]\n\n[", ",")
+                )
+                try:
+                    json_items = json.loads(json_string)
+                except json.JSONDecodeError as e:
+                    print(f"Error (3) decoding JSON: {e}")
+                    self._print_json_context(e, json_string)
+                    raise e from e
+
         return json_items
 
     def process_answer(self, json_string, pr, last_commit):
@@ -111,7 +185,7 @@ class CodeReviewBot:
         try:
             json_items = self._get_valid_json(json_string)
         except Exception as e:
-            print(f"Error (3) decoding JSON: {e}")
+            print(f"Error decoding JSON: {e}")
             return json_string
 
         unprocessed_items = []
@@ -134,7 +208,7 @@ class CodeReviewBot:
 
                     line = int(json_item["start_line"])
 
-                    # Claude is not good at providing the exact line
+                    # Claude is not good at providing the exact line so we brute force
                     done = False
                     count = 0
                     line_offsets = [0, -1, 1, -2, 2, -3, 3, -4, 4, -5, 5, -6, 6, -7, 7, -8, 8, -9, 9, -10, 10] # ruff: noqa
@@ -151,7 +225,7 @@ class CodeReviewBot:
                         except Exception:
                             count += 1
                             if count >= len(line_offsets):
-                                done = True
+                                raise ValueError("Could not create review comment for any line offset.")
                             print(
                                 f"Could not create review comment for line offset {line_offsets[count]}"
                             )
@@ -211,7 +285,6 @@ class CodeReviewBot:
         except Exception as e:
             self.logger.error(f"Error posting review comments: {str(e)}")
 
-    # async \
     def process_pull_request(
         self, changed_files_str: str, patches_str: str, repo_name: str, pr_number: int
     ):
@@ -219,33 +292,67 @@ class CodeReviewBot:
         Main method to process a pull request.
         """
         try:
+            repo = self.github_client.get_repo(repo_name)
+            pull_request = repo.get_pull(pr_number)
+
+            # Extract PR description and get review instructions if any
+            review_instructions, config = self.extract_review_instructions(pull_request.body)
+            if review_instructions:
+                print(
+                    f"Found review instructions in PR description: {review_instructions} {config=}"
+                )
+
             # Get answer from Claude
-            answer = self.get_review_feedback(changed_files_str, patches_str)
+            raw_answer = self.get_review_feedback(
+                changed_files_str, patches_str, config, review_instructions
+            )
+            print(f"{raw_answer=}")
+            with open(f"{self.github_workspace_path}/raw_answer.txt", "w") as f:
+                f.write(str(raw_answer))
+                print(f"wrote answer to file {self.github_workspace_path}/raw_answer.txt")
+
+            answer, thinking = self.parse_answer(raw_answer)
+            print(f"{answer=}")
+            print(f"{thinking=}")
 
             answer_pretty = self._replace(str(answer))
-            print(f"Answer: {answer_pretty}")
-
-            text = answer.content[0].text
-
+            print(f"{answer_pretty=}")
             with open(f"{self.github_workspace_path}/answer.txt", "w") as f:
                 f.write(answer_pretty)
                 print(f"wrote answer to file {self.github_workspace_path}/answer.txt")
 
-            repo = self.github_client.get_repo(repo_name)
-            pull_request = repo.get_pull(pr_number)
-
+            text = answer[0].text
             self.post_review_comments(pull_request, text)
 
-            input_tokens = answer.usage.input_tokens
-            output_tokens = answer.usage.output_tokens
-            general_text = f"Number of tokens: {input_tokens=} {output_tokens=} {MAX_NUM_OUTPUT_TOKENS=}"
-            if (stop_reason := answer.stop_reason) != "end_turn":
+            input_tokens = raw_answer.usage.input_tokens
+            output_tokens = raw_answer.usage.output_tokens
+            max_tokens = config.get(MAX_TOKENS, DEFAULT_NUM_MAX_TOKENS)
+            general_text = (
+                f"Number of tokens: {input_tokens=} {output_tokens=} {max_tokens=}"
+                f"\n{review_instructions=}"
+                f"\n{config=}"
+                f"\nthinking: ```\n{thinking}\n```"
+            )
+            if (stop_reason := raw_answer.stop_reason) != "end_turn":
                 general_text += f"\nPremature stop because: {stop_reason}."
             pull_request.create_issue_comment(general_text)
 
         except Exception as e:
             self.logger.error(f"Error processing pull request: {str(e)}")
             raise
+
+    def parse_answer(self, raw_answer):
+        """Parse the answer from Anthropic API, which may include thinking tokens."""
+        answer = []
+        thinking = []
+        for item in raw_answer.content:
+            if item.type == "thinking" or item.type == "redacted_thinking":
+                thinking.append(item)
+            else:
+                answer.append(item)
+
+        return answer, thinking
+
 
 
 def read_file(file_path: str) -> str:

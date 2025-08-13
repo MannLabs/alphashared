@@ -15,7 +15,7 @@ and that the following workflows are present in the repository (cf. [below](#ins
 - 'Bump version' (referencing [this workflow](https://github.com/MannLabs/alphashared/blob/main/.github/workflows/bump_version.yml))
 - 'Create Draft Release' (referencing [this workflow](https://github.com/MannLabs/alphashared/blob/main/.github/workflows/create_release.yml))
 - 'Publish on PyPi' (referencing [this workflow](https://github.com/MannLabs/alphashared/blob/main/.github/workflows/publish_on_pypi.yml))
-- 'Publish Docker Image' (referencing [this workflow](https://github.com/MannLabs/alphashared/blob/main/.github/workflows/publish_docker_image.yml))
+- 'Publish Docker Image' (referencing [this workflow](https://github.com/MannLabs/alphashared/blob/main/.github/workflows/publish_docker.yml))
 
 ## Versioning
 When a new release is prepared, the version number should be set to `X.Y.(Z+1)`, `X.(Y+1).Z`,
@@ -50,17 +50,17 @@ and merge the first resulting PR to `main`.
 This version will determine the version of the release and the corresponding tag (e.g. `vX.Y.Z`).
 2. Manually run the 'Create Draft Release' workflow in your repository
 (in GitHub UI: "Actions" -> Workflow "Create Draft Release" -> "Run Workflow")
-to create a new draft release on GitHub: this will create the draft release page and build the installers. 
+to create a new draft release on GitHub: this will tag the code, create the draft release page and build the installers. 
 When running the workflow you can specify an optional input parameter, which is
 the full commit hash or branch to release (defaults to `main`).
 3. After the workflow ran successfully, it uploads the installer packages as artifacts to the draft
 release page. You can download and test these installers manually (in addition to the tests done by the workflow).
 4. [SR only] on the GitHub page of the draft release, add release notes (all changes from the last standard release 
-to the current release).
-4. [PR only] Click "Set as a pre-release", leave the release notes blank.
-5. Publish the release. This will tag the code, which is required for all downstream workflows.
-6. Run the 'Publish on PyPi' workflow, specifying the release tag (e.g. `vX.Y.Z`) as an input parameter.
-7. [SR only] Merge the second PR created by the 'Bump version' workflow, which prepares
+to the current release) and then publish the release.
+4. [PR only] In case you want to publish this release, click "Set as a pre-release". Release notes can be given or not.
+5. Run the 'Publish on PyPi' workflow, specifying the release tag (e.g. `vX.Y.Z`) as an input parameter.
+Note that this requires the release to be published on GitHub to retrieve the wheel from the release assets.
+6. [SR only] Merge the second PR created by the 'Bump version' workflow, which prepares
 the next development version (i.e. `X.Y.(Z+1)-dev0`).
 7. [PR only] Bump the version to the next development version `X.Y.Z-dev(N+1)`
 
@@ -232,6 +232,35 @@ jobs:
       # src_folder: src      
 ```
 
+#### 'Publish Docker image' workflow
+1. Create a new github action `publish_docker.yml` in `.github/workflows` like this:
+```yaml
+# Build and publish Docker image
+name: Publish Docker image
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_to_release:
+        description: 'Enter tag to release (example: v1.5.5). A tag with this name must exist in the repository.'
+        type: string
+        required: true
+
+jobs:
+  publish_on_pypi:
+    uses: MannLabs/alphashared/.github/workflows/publish_docker.yml@v1
+    secrets:
+      docker_access_token: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+      docker_username: ${{ secrets.DOCKER_USERNAME }}
+    with:
+      # see the documentation of the action for more information on the parameters
+      package_name: <Name of package, e.g. "alphadia", "peptdeep", ..>
+      tag_to_release: ${{ inputs.tag_to_release }}
+      # optional parameters:
+      # src_folder: src
+      # dockerfile_path: "./docker/Dockerfile"
+```
+2. The `DOCKER_ACCESS_TOKEN` and `DOCKER_USERNAME` must be available in the repository secrets.
 
 ## Developing the reusable release pipeline
 If you need to make changes to the reusable workflow 
@@ -241,6 +270,7 @@ a branch. After merging to `main`, create a new `TAG`.
 Make sure to bump the major version if you introduce breaking changes that make the workflow incompatible with the previous version,
 as most of the dependent repositories only use the major tag: `uses: .../create_release.yml@v1`.
 This major tag gets updated to always point to the latest release of the workflow (cf. e.g. [here](https://github.com/actions/checkout/tags)).
+You can look up the current tags [here](https://github.com/MannLabs/alphadia/tags).
 
 To create a new release (incl. updating the tag), use
 ```bash
@@ -250,7 +280,7 @@ git tag $TAG -f ; git push origin --tags
 git push --delete origin $MAJOR_TAG; git tag $MAJOR_TAG -f ; git push origin --tags
 ```
 
-Then, you may update it in the calling repositories (-> `uses: .../create_release.yml@v1.0.0` -> `uses: .../create_release.yml@v1.1.0`)
+Then, you may update it in the calling repositories (-> `uses: .../create_release.yml@v1.0.0` -> `uses: .../create_release.yml@v1.1.0`).
 
 
 
@@ -262,3 +292,11 @@ be appended to the release tag thus making it unique.
 Don't forget to remove this variable after your tests finished.
 
 Repository variables can be set in the GiHub Repository "Settings" ->  "Secrets and Variables" ->  "Actions" -> "Variables" Tab -> "Repository variables"
+
+### Pinned vs. loose versions of third-party actions
+To adhere the [best practises](https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions#using-third-party-actions)
+regarding third party actions, we pin the versions of most actions used in the workflows to specific commit SHAs.
+This command defines the 'whitelist', i.e. the third-party actions that are allowed to use a loose version (i.e. tag):
+```bash
+grep -R "uses:" . | grep -Ev "MannLabs/alphashared|actions/checkout|actions/upload-artifact|actions/download-artifact|actions/setup-python|actions/upload-release-asset|actions/create-release|actions/cache|conda-incubator/setup-miniconda|./.github/workflows/_run_tests.yml|./.github/workflows/_create_artifact.yml|pre-commit/action"
+```

@@ -3,6 +3,8 @@
 # Otherwise, the version is bumped (first PR) and a second PR is created to prepare the next development version
 name: Bump version
 
+# TODO allow to bump on other branches than main
+
 on:
   workflow_call:
     inputs:
@@ -36,7 +38,7 @@ jobs:
         shell: bash
         run: pip install "bump-my-version==${{env.BUMP_MY_VERSION_VERSION}}"
 
-      - name: Setting up git config
+      - name: Set up git config
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -76,29 +78,40 @@ jobs:
         run: |
           previous_version=$(bump-my-version show current_version)
           echo "previous-version=$previous_version" >> $GITHUB_OUTPUT
-          
-          if [ "${{ inputs.bump_type }}" == "prerelease"  ]; then
-            bump-my-version bump pre_n --commit --no-tag -vv
-          elif [ "${{ inputs.bump_type }}" != "patch" ]; then
-            # for patch, no need to increment, we just need to bump pre_l
+
+          # semi-hacky way to check if bumpversion.toml contains pre_n (i.e. we need the pre-release flow)          
+          if [ $(grep -c \<pre_n\> .bumpversion.toml) -gt 0 ]; then
+            echo Advanced workflow..
+            if [ "${{ inputs.bump_type }}" == "prerelease"  ]; then
+              bump-my-version bump pre_n --commit --no-tag -vv
+            elif [ "${{ inputs.bump_type }}" != "patch" ]; then
+              # for patch, no need to increment, we just need to bump pre_l
+              bump-my-version bump ${{ inputs.bump_type }} --commit --no-tag -vv
+            fi
+            
+            # drop the "dev" label
+            if [ "${{ inputs.bump_type }}" != "prerelease" ]; then
+              bump-my-version bump pre_l --commit --no-tag -vv
+            fi
+            workflow_type="advanced"
+          else
+            # simple bump w/out prerelease
+            echo Simple workflow..
             bump-my-version bump ${{ inputs.bump_type }} --commit --no-tag -vv
-          fi
-          
-          # drop the "dev" label
-          if [ "${{ inputs.bump_type }}" != "prerelease" ]; then
-            bump-my-version bump pre_l --commit --no-tag -vv
+            workflow_type="simple"
           fi
           
           current_version=$(bump-my-version show current_version)
           echo "current-version=$current_version" >> $GITHUB_OUTPUT
+          echo "workflow-type=$workflow_type" >> $GITHUB_OUTPUT
           
           if [[ "$current_version" == "$previous_version" ]]; then
-            echo "Version was not bumped!"
+            echo "Version was not bumped: $current_version == $previous_version"
             exit 1
           fi
           
       - name: First Bump - Push changes to GitHub
-        uses: ad-m/github-push-action@master
+        uses: ad-m/github-push-action@d91a481090679876dfc4178fef17f286781251df #v0.8.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{steps.get_branch_name.outputs.BRANCH_NAME}}
@@ -106,7 +119,7 @@ jobs:
 
       - name: First Bump - Create a pull request
         id: create-pull-request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e #v7.0.8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           base: main
@@ -117,14 +130,14 @@ jobs:
 
       # In case we are bumping to a pre-release, we don't need to create a second PR so the rest is skipped
       - name: Second Bump - Checkout the code
-        if: ${{ inputs.bump_type  != 'prerelease' }}
+        if: ${{ inputs.bump_type  != 'prerelease' && steps.bump.outputs.workflow-type == 'advanced' }}
         uses: actions/checkout@v4
         with:
           ref: ${{steps.get_branch_name.outputs.BRANCH_NAME}}
 
       - name: Second Bump - Bump version
         id: bump2
-        if: ${{ inputs.bump_type  != 'prerelease' }}
+        if: ${{ inputs.bump_type  != 'prerelease' && steps.bump.outputs.workflow-type == 'advanced'  }}
         run: |          
           previous_version=$(bump-my-version show current_version)
           echo "previous-version2=$previous_version" >> $GITHUB_OUTPUT
@@ -135,17 +148,17 @@ jobs:
           echo "current-version2=$current_version" >> $GITHUB_OUTPUT
 
       - name: Second Bump - Push changes to GitHub
-        if: ${{ inputs.bump_type  != 'prerelease' }}
-        uses: ad-m/github-push-action@master
+        if: ${{ inputs.bump_type  != 'prerelease' && steps.bump.outputs.workflow-type == 'advanced'  }}
+        uses: ad-m/github-push-action@d91a481090679876dfc4178fef17f286781251df #v0.8.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{steps.get_branch_name.outputs.BRANCH_NAME}}-prepare-next-version
           # no force push: fail if branch already exists
 
       - name: Second Bump - Create a pull request
-        if: ${{ inputs.bump_type  != 'prerelease' }}
+        if: ${{ inputs.bump_type  != 'prerelease' && steps.bump.outputs.workflow-type == 'advanced'  }}
         id: create-pull-request2
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e #v7.0.8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           base: ${{steps.get_branch_name.outputs.BRANCH_NAME}}
@@ -159,3 +172,5 @@ jobs:
             
             Autogenerated by alphashared workflow.
           delete-branch: true
+#
+# add ignore-for-release label

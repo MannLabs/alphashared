@@ -29,7 +29,7 @@ on:
         type: boolean
         default: false
       src_folder:
-        description: "Folder that contains the __init__.py file with the __version__ attribute. If not given,  `<packagename>/` is used"
+        description: "Folder that contains the __init__.py file with the __version__ attribute. If not given, `<package_name>/` is used"
         type: string
         default: ""
       test_stable:
@@ -67,7 +67,7 @@ jobs:
           fi
       - name: get import_name
         id: get_import_name
-        shell: bash -l {0}
+        shell: bash -le {0}
         run: |
           if [ -z "${{ inputs.import_name }}" ]; then
             echo "import_name=${{ inputs.package_name }}" >> $GITHUB_OUTPUT
@@ -102,7 +102,7 @@ jobs:
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
 
       - name: Download common wheel
-        uses: robinraju/release-downloader@v1
+        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 #v1.12
         continue-on-error: true # the wheel might not exist in the release (for packages now offering build_wheel.sh)
         with:
           tag: ${{ inputs.tag_to_release }}
@@ -148,11 +148,13 @@ jobs:
       - name: Check package
         # twine==6.1.0 yields "ERROR    InvalidDistribution: Invalid distribution metadata: unrecognized or malformed field 'license-file'"
         # cf. https://github.com/pypa/twine/issues/1216
+        shell: bash -le {0}
         run: |
           pip install twine==6.0.1 
           twine check --strict ${{steps.prepare_wheel.outputs.WHEEL_FILE}}
 
       - name: Check installing package
+        shell: bash -le {0}
         run: pip install ${{steps.prepare_wheel.outputs.WHEEL_FILE}}
 
       - name: Publish distribution to Test-PyPI
@@ -162,9 +164,12 @@ jobs:
           repository-url: https://test.pypi.org/legacy/
           user: __token__
           password: ${{ secrets.test_pypi_api_token }}
+          skip-existing: true
+          print-hash: true
+          verbose: true
           # assumes wheel to reside in ./dist folder
       - name: Check Test-PyPI installation  # TODO reduce code duplication here
-        shell: bash -l {0}
+        shell: bash -le {0}
         run: |
           conda create -n pip_standard_test python=${{ env.PYTHON_VERSION }} -y
           conda activate pip_standard_test
@@ -181,6 +186,7 @@ jobs:
                   break
               else  
                   attempt=$((attempt + 1))
+                  if [ $attempt -gt $max_attempts ]; then exit 1; fi
                   failed=0
               fi
           done
@@ -192,7 +198,7 @@ jobs:
           conda clean --all -y
       - name: Check Test-PyPI stable installation
         if: ${{ inputs.test_stable  == 'true' }}
-        shell: bash -l {0}
+        shell: bash -le {0}
         run: |
           conda create -n pip_stable_test python=${{ env.PYTHON_VERSION }} -y
           conda activate pip_stable_test
@@ -209,6 +215,8 @@ jobs:
         with:
           user: __token__
           password: ${{ secrets.pypi_api_token }}
+          print-hash: true
+          verbose: true
   Test_PyPi_Release:
     name: Test_PyPi_version_on_${{ matrix.os }}
     needs: Create_PyPi_Release
@@ -221,7 +229,7 @@ jobs:
     steps:
       - name: get import_name
         id: get_import_name
-        shell: bash -l {0}
+        shell: bash -le {0}
         run: |
           if [ -z "${{ inputs.import_name }}" ]; then
             echo "import_name=${{ inputs.package_name }}" >> $GITHUB_OUTPUT
@@ -242,7 +250,7 @@ jobs:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
       - name: Check PyPI installation
-        shell: bash -l {0}
+        shell: bash -le {0}
         run: |
           conda create -n pip_standard python=${{ env.PYTHON_VERSION }} -y
           conda activate pip_standard
@@ -259,6 +267,7 @@ jobs:
                   break
               else  
                   attempt=$((attempt + 1))
+                  if [ $attempt -gt $max_attempts ]; then exit 1; fi
                   failed=0
               fi
           done
@@ -270,7 +279,7 @@ jobs:
           conda clean --all -y
       - name: Check PyPI stable installation
         if: ${{ inputs.test_stable  == 'true' }}
-        shell: bash -l {0}
+        shell: bash -le {0}
         run: |
           conda create -n pip_stable python=${{ env.PYTHON_VERSION }} -y
           conda activate pip_stable

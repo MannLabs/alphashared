@@ -4,26 +4,29 @@ on:
   workflow_dispatch:
     inputs:
       alphabase_ref:
-        description: "alphabase version: version of alphabase to use. Can be a commit hash, branch name or 'latest' for the latest release."
-        default: latest
+        description: "alphabase version: version of alphabase to use. Can be branch name, commit hash, or 'latest' for the latest release. If the default is 'skip', the project will be skipped unless a version is given."
+        default: main
       alphatims_ref:
         description: "alphatims version"
-        default: latest
+        default: main
       alpharaw_ref:
         description: "alpharaw version"
-        default: development  # TODO: change to latest once properly tagged release is out
+        default: main
       alphaviz_ref:
         description: "alphaviz version"
-        default: latest
+        default: skip
+      alphamap_ref:
+        description: "alphamap version"
+        default: skip
       alphapeptdeep_ref:
         description: "alphapeptdeep version"
-        default: latest
+        default: main
       directlfq_ref:
         description: "directlfq version"
-        default: latest
+        default: main
       alphadia_ref:
         description: "alphadia version"
-        default: latest
+        default: main
 
 jobs:
   build_image:
@@ -37,7 +40,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
 
 #    # avoid "no space left on device" error
 #    # https://github.com/actions/runner-images/issues/2840#issuecomment-790492173
@@ -49,7 +52,7 @@ jobs:
 #        sudo rm -rf "$AGENT_TOOLSDIRECTORY"
 
     - name: Build and export
-      uses: docker/build-push-action@v6
+      uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # 6.15.0
       with:
         tags: alphax:latest
         context: ./alphatesting
@@ -62,6 +65,7 @@ jobs:
           ALPHATIMS_REF=${{ inputs.alphatims_ref }}
           ALPHARAW_REF=${{ inputs.alpharaw_ref }}
           ALPHAVIZ_REF=${{ inputs.alphaviz_ref }}
+          ALPHAMAP_REF=${{ inputs.alphamap_ref }}
           ALPHAPEPTDEEP_REF=${{ inputs.alphapeptdeep_ref }}
           DIRECTLFQ_REF=${{ inputs.directlfq_ref }}
           ALPHADIA_REF=${{ inputs.alphadia_ref }}
@@ -71,6 +75,21 @@ jobs:
         name: alphax
         path: /tmp/alphax.tar
 
+    - name: get requirements
+      run: |
+        docker load --input /tmp/alphax.tar
+        TARGET_FOLDER=${{ github.workspace }}/requirements
+        mkdir -p $TARGET_FOLDER
+        docker run -v $TARGET_FOLDER:/app/data alphax bash -c "cp /app/requirements*.txt /app/data"
+        cd $TARGET_FOLDER
+        zip requirements.zip requirements*.txt
+
+    - name: upload requirements
+      uses: actions/upload-artifact@v4
+      with:
+        name: requirements.zip
+        path: ${{ github.workspace }}/requirements/requirements.zip
+        if-no-files-found: warn
 
   alphabase_tests:
     runs-on: AlphaDIA
@@ -112,9 +131,11 @@ jobs:
     - name: alpharaw tests
       id: alpharaw_tests
       run: |
+        docker run alphax bash -c "cd alpharaw/alpharaw && ls && cat ms_data_base.py || exit 0"
         docker run alphax bash -c "cd alpharaw/tests && ls && python -m download_test_data && chmod +x run_tests.sh && ./run_tests.sh"
 
   alphaviz_tests:
+    if: ${{ inputs.alphaviz_ref != 'skip' }}
     runs-on: AlphaDIA
     needs: [ build_image ]
     steps:
@@ -135,6 +156,7 @@ jobs:
       run: |
         docker run alphax bash -c "cd alphaviz/tests && ls && python -m pytest test_io.py && python -m pytest test_preprocessing.py"
 
+  # currently no tests in alphamap
 
   alphapeptdeep_tests:
     runs-on: AlphaDIA

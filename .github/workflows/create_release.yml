@@ -71,6 +71,11 @@ jobs:
           echo "new_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
           echo "release_tag=$RELEASE_TAG" >> $GITHUB_OUTPUT
 
+          CURRENT_SHA=$(git rev-parse HEAD)
+          echo "current_sha=$CURRENT_SHA" >> $GITHUB_OUTPUT
+          
+          echo Got release tag ${RELEASE_TAG} for ref ${CURRENT_SHA}
+
       - name: Check if tag already exists
         run: |
           TAG="${{ steps.get_release_tag.outputs.release_tag }}"
@@ -79,6 +84,13 @@ jobs:
             echo If you want to test or debug the release workflow, use the DEBUG_RELEASE_WORKFLOW_SUFFIX repo variable.
             exit 1
           fi
+
+      - name: Create tag
+        uses: rickstaa/action-create-tag@a1c7777fcb2fee4f19b0f283ba888afa11678b72 #v1.7.2
+        with:
+          tag: ${{ steps.get_release_tag.outputs.release_tag }}
+          commit_sha: ${{ steps.get_release_tag.outputs.current_sha }}
+          tag_exists_error: true
 
       - name: Get supported OS
         id: get_os
@@ -101,7 +113,7 @@ jobs:
 
       - name: Create release
         id: create_release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda #v2.2.1
         with:
           name: ${{ steps.get_release_tag.outputs.release_tag }}
           tag_name: ${{ steps.get_release_tag.outputs.release_tag }}
