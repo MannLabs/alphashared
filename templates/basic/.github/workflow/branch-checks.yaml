@@ -26,7 +26,6 @@ jobs:
 
     - name: Run unit tests
       run: |
-        pip install -r requirements/requirements_development.txt
-        pip install -r requirements/requirements.txt
+        pip install .
         pip freeze
         python -m pytest

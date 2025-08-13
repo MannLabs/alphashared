@@ -19,7 +19,7 @@ git init
 ```bash
 cd /path/to/new/repo
 
-curl -L https://github.com/MannLabs/alphashared/archive/add_template.zip -o template.zip
+curl -L https://github.com/MannLabs/alphashared/archive/main.zip -o template.zip
 unzip template.zip
 cp -r alphashared-add_template/templates/basic/. .
 rm -r template.zip alphashared-add_template
@@ -70,11 +70,13 @@ results/ -> output data
 ## Usage
 
 ```bash
-python my_package/hello_world.py
+pip install -e .
+python my_package/my_module.py
 ```
 or
 ```bash
-uv run my_package/hello_world.py
+uv sync
+uv run my_package/my_module.py
 ```
 
 
@@ -82,7 +84,7 @@ uv run my_package/hello_world.py
 ## Development
 ### Extra requirements for development
 ```bash
-pip install -r requirements/requirements_development.txt
+pip install -e ".[development]"
 ```
 
 ### Run tests

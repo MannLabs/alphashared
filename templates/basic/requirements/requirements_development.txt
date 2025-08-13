@@ -1,3 +1,0 @@
-# dependencies required for developing
-pytest
-pre-commit
