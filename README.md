@@ -10,6 +10,10 @@ Shared non-production code for AlphaX packages.
 - `.github/workflows/bump_version.yml`: reusable workflow for bumping versions, see [README](.github/workflows/README.md)
 - `.github/workflows/create_release.yml`: reusable workflow for creating releases, see [README](.github/workflows/README.md)
 - `.github/workflows/publish_on_pypi.yml`: reusable workflow for publishing on PyPi, see [README](.github/workflows/README.md)
+- `.github/workflows/alphatesting.yml`: Cross-project tests for AlphaX, see [README](alphatesting/README.md)
 - `.github/workflows/publish_docker.yml`: reusable workflow for publishing a Docker image, see [README](.github/workflows/README.md)
 - `.github/workflows/alphatesting.yml`: Cross-project tests for AlphaX, see [README](alphatesting/README.md)
 - `.github/workflows/update_requirements.yml`: Action to update requirements, see [README](update_requirements/README.md)
+- `templates`: templates for standard tasks
+- `templates/basic`: basic package structure
+- `templates/data_analysis`: basic data analysis project
