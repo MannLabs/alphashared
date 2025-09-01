@@ -30,6 +30,10 @@ RUN git clone https://github.com/MannLabs/alphabase.git \
 RUN --mount=type=cache,target=/root/.cache/pip \
     cd alphabase && pip install "."
 
+# removing these two for now as they require additional dependencies which are not desired here
+RUN rm alphabase/docs/tutorials/tutorial_scverse_compatibility.ipynb \
+    alphabase/docs/tutorials/tutorial_pg_reader.ipynb
+
 RUN pip freeze > /app/requirements_1_alphabase.txt
 
 ############################################################################
@@ -133,9 +137,6 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 RUN pip freeze > /app/requirements_8_final.txt
 
-## TODO remove this once https://github.com/MannLabs/alphabase/pull/288 is released
-#RUN --mount=type=cache,target=/root/.cache/pip \
-#    pip uninstall progressbar -y
 
 # build:
 # docker build -f Dockerfile  --build-arg="ALPHABASE_REF=latest" --build-arg="ALPHATIMS_REF=latest" --build-arg="ALPHARAW_REF=f8a355a" --build-arg="ALPHAPEPTDEEP_REF=latest" --build-arg="DIRECTLFQ_REF=latest" -t alphax_e2e .
