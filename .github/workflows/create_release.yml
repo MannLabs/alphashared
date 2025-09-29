@@ -225,7 +225,9 @@ jobs:
       release_tag: ${{ needs.Create_Release.outputs.release_tag }}
       release_id: ${{ needs.Create_Release.outputs.release_id }}
       os: windows
-      runner: windows-latest
+      runner: windows-2022
+      # TODO upgrade to windows-latest (=2025)
+      # will required manual installation of Inno Setup, cf. https://github.com/actions/runner-images/issues/11644
       python_version: ${{ inputs.python_version }}
       build_nodejs_ui: ${{ inputs.build_nodejs_ui }}
       test_app: ${{ inputs.test_app }}
