@@ -155,7 +155,15 @@ jobs:
 
       - name: Check installing package
         shell: bash -le {0}
-        run: pip install ${{steps.prepare_wheel.outputs.WHEEL_FILE}}
+        run: |
+          conda create -n check_env python=${{ env.PYTHON_VERSION }} -y
+          conda activate check_env
+          
+          pip install ${{steps.prepare_wheel.outputs.WHEEL_FILE}}
+          
+          conda deactivate
+          conda env remove --name check_env -y
+          conda clean --all -y
 
       - name: Publish distribution to Test-PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
