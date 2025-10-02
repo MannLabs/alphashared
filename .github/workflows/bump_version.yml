@@ -50,6 +50,8 @@ jobs:
       - name: First Bump - Checkout the code
         uses: actions/checkout@v4
         # we always bump the version on the main branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: First Bump - Get branch name
         id: get_branch_name
@@ -132,6 +134,8 @@ jobs:
       - name: Second Bump - Checkout the code
         if: ${{ inputs.bump_type  != 'prerelease' && steps.bump.outputs.workflow-type == 'advanced' }}
         uses: actions/checkout@v4
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           ref: ${{steps.get_branch_name.outputs.BRANCH_NAME}}
 
