@@ -21,8 +21,8 @@ cd /path/to/new/repo
 
 curl -L https://github.com/MannLabs/alphashared/archive/main.zip -o template.zip
 unzip template.zip
-cp -r alphashared-add_template/templates/basic/. .
-rm -r template.zip alphashared-add_template
+cp -r alphashared-main/templates/basic/. .
+rm -r template.zip alphashared-main
 ```
 
 3. Create the initial commit:
