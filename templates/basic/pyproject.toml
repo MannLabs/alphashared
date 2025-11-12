@@ -61,3 +61,6 @@ ignore = [
 "*.ipynb" = [
     "T201" # use of 'print' detected
 ]
+
+[tool.ty.rules]
+unresolved-import = "ignore"

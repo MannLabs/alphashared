@@ -17,15 +17,15 @@ jobs:
     name: Run unit tests
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-        cache: 'pip'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
 
-    - name: Run unit tests
-      run: |
-        pip install .
-        pip freeze
-        python -m pytest
+      - name: Run unit tests
+        run: |
+          pip install .
+          pip freeze
+          python -m pytest

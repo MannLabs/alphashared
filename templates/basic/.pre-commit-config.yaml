@@ -1,4 +1,3 @@
-
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
@@ -7,14 +6,14 @@ repos:
     hooks:
       - id: check-yaml # checks yaml files for parseable syntax.
       - id: end-of-file-fixer #ensures that a file is either empty, or ends with one newline.
-      - id: trailing-whitespace  #trims trailing whitespace.
+      - id: trailing-whitespace #trims trailing whitespace.
       - id: check-ast # simply checks whether the files parse as valid python.
       - id: check-json # checks json files for parseable syntax.
       - id: check-merge-conflict # checks for files that contain merge conflict strings.
       - id: check-toml # checks toml files for parseable syntax.
       - id: detect-private-key # detects the presence of private keys.
       - id: no-commit-to-branch
-        args: [ '--branch', 'main' ]
+        args: ["--branch", "main"]
   - repo: https://github.com/pre-commit/pygrep-hooks
     rev: v1.10.0
     hooks:
@@ -26,4 +25,22 @@ repos:
     hooks:
       - id: ruff-format
       - id: ruff
-        args: [ '--fix' ]
+        args: ["--fix"]
+  - repo: https://github.com/srstevenson/nb-clean
+    rev: 4.0.1
+    hooks:
+      - id: nb-clean
+        args:
+          - --preserve-cell-outputs
+          - -- # no typo, see https://github.com/srstevenson/nb-clean?tab=readme-ov-file#cleaning-pre-commit-hook
+  - repo: local
+    hooks:
+      - id: ty
+        name: ty
+        entry: uvx ty==0.0.1-alpha.25 check
+        language: system
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        exclude: '.*md|pyproject\.toml'
