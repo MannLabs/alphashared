@@ -198,10 +198,10 @@ jobs:
       fail-fast: false
       matrix:
         runner:
-          - macos-latest-xlarge
-          - macos-13
+          - macos-15
+          - macos-15-intel
         exclude:
-          - runner: ${{ inputs.skip_macos_arm64_build && 'macos-latest-xlarge' }}
+          - runner: ${{ inputs.skip_macos_arm64_build && 'macos-15' }}
     uses: ./.github/workflows/_create_artifact.yml
     with:
       package_name: ${{ inputs.package_name }}
