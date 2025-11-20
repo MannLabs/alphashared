@@ -3,8 +3,6 @@
 # Otherwise, the version is bumped (first PR) and a second PR is created to prepare the next development version
 name: Bump version
 
-# TODO allow to bump on other branches than main
-
 on:
   workflow_call:
     inputs:
@@ -13,16 +11,16 @@ on:
         required: true
         default: 'patch'
         type: string
+      #       supported options:
+      #        - patch
+      #        - minor
+      #        - major
+      #        - prerelease
       base_branch:
-         description: 'Branch to bump from and open PR against'
+         description: 'Branch to bump from and open PRs against'
          required: false
          default: 'main'
          type: string
-#        options:
-#        - patch
-#        - minor
-#        - major
-#        - prerelease
 
 
 jobs:
