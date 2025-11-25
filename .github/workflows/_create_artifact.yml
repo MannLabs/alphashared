@@ -101,6 +101,18 @@ jobs:
           exit 1
         fi
 
+    - name: Free disk space
+      if: inputs.os == 'linux'
+      # selected items from https://www.dzombak.com/blog/2024/09/freeing-disk-space-on-github-actions-runners/
+      run: |
+        echo "Disk space before cleanup:"
+        df -h
+        sudo rm -rf /usr/local/lib/android || :
+        sudo rm -rf /opt/hostedtoolcache/CodeQL || :
+        sudo rm -rf /opt/hostedtoolcache/go || :
+        echo "Disk space after cleanup:"
+        df -h
+
     - name: Install conda
       uses: conda-incubator/setup-miniconda@v3
       with:
