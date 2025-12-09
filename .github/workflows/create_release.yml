@@ -177,7 +177,7 @@ jobs:
 
   Create_Linux_Installer:
     needs: [ Create_Wheel, Create_Release]
-    if: ${{ needs.Create_Release.outputs.run_linux == 'true' }}
+    if: ${{ needs.Create_Release.outputs.run_linux == 'true' }}  # job output -> string comparison
     uses: ./.github/workflows/_create_artifact.yml
     with:
       package_name: ${{ inputs.package_name }}
@@ -193,7 +193,7 @@ jobs:
 
   Create_MacOS_Installer:
     needs: [ Create_Wheel, Create_Release]
-    if: ${{ needs.Create_Release.outputs.run_macos == 'true' }}
+    if: ${{ needs.Create_Release.outputs.run_macos == 'true' }} # job output -> string comparison
     strategy:
       fail-fast: false
       matrix:
@@ -217,7 +217,7 @@ jobs:
 
   Create_Windows_Installer:
     needs: [ Create_Wheel, Create_Release]
-    if: ${{ needs.Create_Release.outputs.run_windows == 'true' }}
+    if: ${{ needs.Create_Release.outputs.run_windows == 'true' }} # job output -> string comparison
     uses: ./.github/workflows/_create_artifact.yml
     with:
       package_name: ${{ inputs.package_name }}

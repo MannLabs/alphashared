@@ -217,7 +217,7 @@ jobs:
           conda env remove --name pip_standard_test -y
           conda clean --all -y
       - name: Check Test-PyPI stable installation
-        if: ${{ inputs.test_stable  == 'true' }}
+        if: ${{ format('{0}', inputs.test_stable) == 'true' }}
         shell: bash -le {0}
         run: |
           conda create -n pip_stable_test python=${{ env.PYTHON_VERSION }} -y
@@ -230,7 +230,7 @@ jobs:
           conda env remove --name pip_stable_test -y
           conda clean --all -y
       - name: Publish distribution to PyPI
-        if: ${{ inputs.only_testpypi_release  != 'true' }}
+        if: ${{ format('{0}', inputs.only_testpypi_release) != 'true' }}
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
@@ -240,7 +240,7 @@ jobs:
   Test_PyPi_Release:
     name: Test_PyPi_version_on_${{ matrix.os }}
     needs: Create_PyPi_Release
-    if: ${{ inputs.only_testpypi_release  != 'true' }}
+    if: ${{ format('{0}', inputs.only_testpypi_release) != 'true' }}
     strategy:
       fail-fast: false
       matrix:
@@ -298,7 +298,7 @@ jobs:
           conda env remove --name pip_standard -y
           conda clean --all -y
       - name: Check PyPI stable installation
-        if: ${{ inputs.test_stable  == 'true' }}
+        if: ${{ format('{0}', inputs.test_stable) == 'true' }}
         shell: bash -le {0}
         run: |
           conda create -n pip_stable python=${{ env.PYTHON_VERSION }} -y
