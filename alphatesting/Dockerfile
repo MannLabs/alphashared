@@ -103,6 +103,22 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 RUN pip freeze > /app/requirements_5_alphapeptdeep.txt
 
 ############################################################################
+ARG ALPHAPEPTTOOLS_REF="skip"
+RUN if [ "$ALPHAPEPTTOOLS_REF" != "skip" ]; then \
+      git clone https://github.com/MannLabs/alphapepttools.git; \
+      cd alphapepttools; \
+      git checkout $(../get_ref.sh $ALPHAPEPTTOOLS_REF); \
+      ../replace_alphax.sh; \
+      git status; \
+    fi
+
+RUN --mount=type=cache,target=/root/.cache/pip \
+    if [ "$ALPHAPEPTTOOLS_REF" != "skip" ]; then \
+    cd alphapepttools && pip install "."; \
+    pip freeze > /app/requirements_5b_alphapepttools.txt; \
+    fi
+
+############################################################################
 ARG DIRECTLFQ_REF="main"
 RUN git clone https://github.com/MannLabs/directlfq.git \
     && cd directlfq \
