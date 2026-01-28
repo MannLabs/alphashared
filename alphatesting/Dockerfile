@@ -29,6 +29,8 @@ RUN if [ "$ALPHABASE_REF" != "skip" ]; then \
       git checkout $(../get_ref.sh $ALPHABASE_REF); \
       git status; \
     fi
+# hack to get rid of a notebook that requires anndata/mudata
+RUN rm -rf alphabase/docs/tutorials/tutorial_scverse_compatibility.ipynb
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     if [ "$ALPHABASE_REF" != "skip" ]; then \
