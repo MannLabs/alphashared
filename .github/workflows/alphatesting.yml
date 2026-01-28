@@ -233,14 +233,14 @@ jobs:
     - name: Print pip freeze
       run: |
         docker run alphax bash -c "pip freeze"
-    - name: alphadia unit tests ('not slow')
+    - name: alphadia unit tests
       id: alphadia_unit_tests
       run: |
-        docker run alphax bash -c "cd alphadia/tests &&  python -m pytest -k 'not slow'"
+        docker run alphax bash -c "cd alphadia/tests &&  python -m pytest unit_tests"
     - name: alphadia unit tests ('slow')
       id: alphadia_slow_unit_tests
       run: |
-        docker run alphax bash -c "cd alphadia/tests &&  python -m pytest -k 'slow'"
+        docker run alphax bash -c "cd alphadia/tests &&  python -m pytest integration_tests"
     - name: alphadia e2e test 'basic'
       id: alphadia_e2e_tests
       run: |
