@@ -96,6 +96,7 @@ jobs:
         if-no-files-found: warn
 
   alphabase_tests:
+    if: ${{ inputs.alphabase_ref != 'skip' }}
     runs-on: AlphaDIA
     needs: [ build_image ]
     steps:
@@ -117,6 +118,7 @@ jobs:
         docker run alphax bash -c "cd alphabase/tests && chmod +x run_tests.sh && ./run_tests.sh"
 
   alpharaw_tests:
+    if: ${{ inputs.alpharaw_ref != 'skip' }}
     runs-on: AlphaDIA
     needs: [ build_image ]
     steps:
@@ -163,6 +165,7 @@ jobs:
   # currently no tests in alphamap
 
   alphapeptdeep_tests:
+    if: ${{ inputs.alphapeptdeep_ref != 'skip' }}
     runs-on: AlphaDIA
     needs: [ build_image ]
     steps:
@@ -206,6 +209,7 @@ jobs:
         docker run alphax bash -c "cd alphapepttools/tests && python -m pytest && ./run_notebook_tests.sh"
 
   alphadia_tests:
+    if: ${{ inputs.alphadia_ref != 'skip' }}
     runs-on: AlphaDIA
     needs: [ build_image ]
     steps:
