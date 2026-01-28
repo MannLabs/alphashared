@@ -22,6 +22,7 @@ RUN pip freeze > /app/requirements_0.txt
 
 ############################################################################
 ARG ALPHABASE_REF="main"
+ARG ALPHABASE_EXTRA="full"
 RUN if [ "$ALPHABASE_REF" != "skip" ]; then \
       git clone https://github.com/MannLabs/alphabase.git; \
       cd alphabase; \
@@ -31,7 +32,7 @@ RUN if [ "$ALPHABASE_REF" != "skip" ]; then \
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     if [ "$ALPHABASE_REF" != "skip" ]; then \
-    cd alphabase && pip install "."; \
+    cd alphabase && if [ -n "$ALPHABASE_EXTRA" ]; then pip install ".[$ALPHABASE_EXTRA]"; else pip install "."; fi; \
     pip freeze > /app/requirements_1_alphabase.txt; \
     fi
 
@@ -116,6 +117,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 ############################################################################
 ARG ALPHAPEPTTOOLS_REF="skip"
+ARG ALPHAPEPTTOOLS_EXTRA="full"
 RUN if [ "$ALPHAPEPTTOOLS_REF" != "skip" ]; then \
       git clone https://github.com/MannLabs/alphapepttools.git; \
       cd alphapepttools; \
@@ -126,7 +128,7 @@ RUN if [ "$ALPHAPEPTTOOLS_REF" != "skip" ]; then \
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     if [ "$ALPHAPEPTTOOLS_REF" != "skip" ]; then \
-    cd alphapepttools && pip install "."; \
+    cd alphapepttools && if [ -n "$ALPHAPEPTTOOLS_EXTRA" ]; then pip install ".[$ALPHAPEPTTOOLS_EXTRA]"; else pip install "."; fi; \
     pip freeze > /app/requirements_5b_alphapepttools.txt; \
     fi
 

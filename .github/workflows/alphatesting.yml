@@ -6,6 +6,9 @@ on:
       alphabase_ref:
         description: "alphabase version: version of alphabase to use. Can be branch name, commit hash, or 'latest' for the latest release. If the default is 'skip', the project will be skipped unless a version is given."
         default: main
+      alphabase_extra:
+        description: "alphabase installation extra (e.g. 'full' or '')"
+        default: full
       alphatims_ref:
         description: "alphatims version"
         default: main
@@ -24,6 +27,9 @@ on:
       alphapepttools_ref:
         description: "alphapepttools version"
         default: skip
+      alphapepttools_extra:
+        description: "alphapepttools installation extra (e.g. 'full' or '')"
+        default: full
       directlfq_ref:
         description: "directlfq version"
         default: main
@@ -65,12 +71,14 @@ jobs:
         no-cache: True
         build-args: |
           ALPHABASE_REF=${{ inputs.alphabase_ref }}
+          ALPHABASE_EXTRA=${{ inputs.alphabase_extra }}
           ALPHATIMS_REF=${{ inputs.alphatims_ref }}
           ALPHARAW_REF=${{ inputs.alpharaw_ref }}
           ALPHAVIZ_REF=${{ inputs.alphaviz_ref }}
           ALPHAMAP_REF=${{ inputs.alphamap_ref }}
           ALPHAPEPTDEEP_REF=${{ inputs.alphapeptdeep_ref }}
           ALPHAPEPTTOOLS_REF=${{ inputs.alphapepttools_ref }}
+          ALPHAPEPTTOOLS_EXTRA=${{ inputs.alphapepttools_extra }}
           DIRECTLFQ_REF=${{ inputs.directlfq_ref }}
           ALPHADIA_REF=${{ inputs.alphadia_ref }}
     - name: Upload artifact
