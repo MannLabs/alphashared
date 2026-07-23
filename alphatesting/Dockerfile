@@ -3,7 +3,7 @@
 # A Dockerfile for stitiching together the different AlphaX packages with a defined version.
 
 # https://github.com/michaelosthege/pythonnet-docker
-FROM --platform=linux/amd64 mosthege/pythonnet:python3.11.2-mono6.12-pythonnet3.0.1@b03d13d345c29f69557f410c8504e748226756d1f48e5abdb63cd40179b2640c
+FROM --platform=linux/amd64 mosthege/pythonnet:python3.11.2-mono6.12-pythonnet3.0.1@sha256:37c3d9c75540e1e218c7d6e462d6b0c857eca1d232c028415d9c3bf8288c37e1
 
 # Prevents Python from writing pyc files.
 ENV PYTHONDONTWRITEBYTECODE=1
