@@ -30,7 +30,7 @@ RUN if [ "$ALPHABASE_REF" != "skip" ]; then \
       git status; \
     fi
 # hack to get rid of a notebook that requires anndata/mudata
-RUN rm -rf alphabase/docs/tutorials/tutorial_scverse_compatibility.ipynb
+RUN rm -rf alphabase/docs/tutorials/tutorial_scverse_compatibility.ipynb alphabase/docs/tutorials/ttutorial_pg_reader.ipynb
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     if [ "$ALPHABASE_REF" != "skip" ]; then \
