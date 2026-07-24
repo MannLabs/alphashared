@@ -241,10 +241,10 @@ jobs:
       id: alphadia_slow_unit_tests
       run: |
         docker run alphax bash -c "cd alphadia/tests &&  python -m pytest integration_tests"
-    - name: alphadia e2e test 'synchropasef'
+    - name: alphadia e2e test 'basic'
       id: alphadia_e2e_tests
       run: |
-        TEST_CASE_NAME=synchropasef
+        TEST_CASE_NAME=basic
         docker run alphax bash -c "cd alphadia/tests/e2e_tests \
           &&  python prepare_test_data.py $TEST_CASE_NAME \
           &&  alphadia --config $TEST_CASE_NAME/config.yaml"    
