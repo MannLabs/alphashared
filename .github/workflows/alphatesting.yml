@@ -140,6 +140,8 @@ jobs:
       run: |
         docker load --input /tmp/alphax.tar
         docker image ls -a
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
     - name: Print pip freeze
       run: |
         docker run --rm alphax bash -c "pip freeze"
