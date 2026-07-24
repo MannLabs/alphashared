@@ -8,7 +8,7 @@ on:
         default: main
       alphabase_extra:
         description: "-- alphabase installation extra (e.g. 'full' or '')"
-        default: full
+        default:
       alphatims_ref:
         description: "alphatims version"
         default: SKIP
@@ -29,7 +29,7 @@ on:
         default: SKIP
       alphapepttools_extra:
         description: "-- alphapepttools installation extra (e.g. 'full' or '')"
-        default: full
+        default:
       directlfq_ref:
         description: "directlfq version"
         default: main
