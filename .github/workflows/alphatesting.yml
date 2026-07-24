@@ -46,6 +46,12 @@ jobs:
     runs-on: AlphaDIA
 
     steps:
+    - name: Remove leftover alphax containers and image
+      run: |
+        docker rm -f $(docker ps -aq --filter ancestor=alphax) 2>/dev/null || true
+        docker rmi -f alphax:latest 2>/dev/null || true
+        docker image prune -f
+
     - name: Print input parameters
       run: echo "${{ toJSON(github.event.inputs) }}"
 
