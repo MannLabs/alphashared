@@ -11,24 +11,24 @@ on:
         default: full
       alphatims_ref:
         description: "alphatims version"
-        default: main
+        default: SKIP
       alpharaw_ref:
         description: "alpharaw version"
         default: main
       alphaviz_ref:
         description: "alphaviz version"
-        default: skip
+        default: SKIP
       alphamap_ref:
         description: "alphamap version"
-        default: skip
+        default: SKIP
       alphapeptdeep_ref:
         description: "alphapeptdeep version"
         default: main
       alphapepttools_ref:
         description: "alphapepttools version"
-        default: skip
+        default: SKIP
       alphapepttools_extra:
-        description: "alphapepttools installation extra (e.g. 'full' or '')"
+        description: "-- alphapepttools installation extra (e.g. 'full' or '')"
         default: full
       directlfq_ref:
         description: "directlfq version"
