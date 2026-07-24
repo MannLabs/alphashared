@@ -36,6 +36,10 @@ on:
       alphadia_ref:
         description: "alphadia version"
         default: main
+      cleanup:
+        description: "remove the alphax image and containers from the runner after all tests finish"
+        type: boolean
+        default: true
 
 jobs:
   build_image:
@@ -92,7 +96,7 @@ jobs:
         docker load --input /tmp/alphax.tar
         TARGET_FOLDER=${{ github.workspace }}/requirements
         mkdir -p $TARGET_FOLDER
-        docker run -v $TARGET_FOLDER:/app/data alphax bash -c "cp /app/requirements*.txt /app/data"
+        docker run --rm -v $TARGET_FOLDER:/app/data alphax bash -c "cp /app/requirements*.txt /app/data"
         cd $TARGET_FOLDER
         zip requirements.zip requirements*.txt
 
@@ -119,11 +123,11 @@ jobs:
         docker image ls -a
     - name: Print pip freeze
       run: |
-        docker run alphax bash -c "pip freeze"
+        docker run --rm alphax bash -c "pip freeze"
     - name: alphabase tests
       id: alphabase_tests
       run: |
-        docker run alphax bash -c "cd alphabase/tests && chmod +x run_tests.sh && ./run_tests.sh"
+        docker run --rm alphax bash -c "cd alphabase/tests && chmod +x run_tests.sh && ./run_tests.sh"
 
   alpharaw_tests:
     if: ${{ inputs.alpharaw_ref != 'skip' }}
@@ -141,12 +145,12 @@ jobs:
         docker image ls -a
     - name: Print pip freeze
       run: |
-        docker run alphax bash -c "pip freeze"
+        docker run --rm alphax bash -c "pip freeze"
     - name: alpharaw tests
       id: alpharaw_tests
       run: |
-        docker run alphax bash -c "cd alpharaw/alpharaw && ls && cat ms_data_base.py || exit 0"
-        docker run alphax bash -c "cd alpharaw/tests && ls && python -m download_test_data && chmod +x run_tests.sh && ./run_tests.sh"
+        docker run --rm alphax bash -c "cd alpharaw/alpharaw && ls && cat ms_data_base.py || exit 0"
+        docker run --rm alphax bash -c "cd alpharaw/tests && ls && python -m download_test_data && chmod +x run_tests.sh && ./run_tests.sh"
 
   alphaviz_tests:
     if: ${{ inputs.alphaviz_ref != 'skip' }}
@@ -164,11 +168,11 @@ jobs:
         docker image ls -a
     - name: Print pip freeze
       run: |
-        docker run alphax bash -c "pip freeze"
+        docker run --rm alphax bash -c "pip freeze"
     - name: alphaviz tests
       id: alphaviz_tests
       run: |
-        docker run alphax bash -c "cd alphaviz/tests && ls && python -m pytest test_io.py && python -m pytest test_preprocessing.py"
+        docker run --rm alphax bash -c "cd alphaviz/tests && ls && python -m pytest test_io.py && python -m pytest test_preprocessing.py"
 
   # currently no tests in alphamap
 
@@ -188,11 +192,11 @@ jobs:
         docker image ls -a
     - name: Print pip freeze
       run: |
-        docker run alphax bash -c "pip freeze"
+        docker run --rm alphax bash -c "pip freeze"
     - name: alphapeptdeep tests
       id: alphapeptdeep_tests
       run: |
-        docker run alphax bash -c "cd alphapeptdeep/tests && chmod +x run_tests.sh && ./run_tests.sh"
+        docker run --rm alphax bash -c "cd alphapeptdeep/tests && chmod +x run_tests.sh && ./run_tests.sh"
 
   alphapepttools_tests:
     if: ${{ inputs.alphapepttools_ref != 'skip' }}
@@ -210,11 +214,11 @@ jobs:
         docker image ls -a
     - name: Print pip freeze
       run: |
-        docker run alphax bash -c "pip freeze"
+        docker run --rm alphax bash -c "pip freeze"
     - name: alphapepttools tests
       id: alphapepttools_tests
       run: |
-        docker run alphax bash -c "cd alphapepttools/tests && python -m pytest && ./run_notebook_tests.sh"
+        docker run --rm alphax bash -c "cd alphapepttools/tests && python -m pytest && ./run_notebook_tests.sh"
 
   alphadia_tests:
     if: ${{ inputs.alphadia_ref != 'skip' }}
@@ -232,19 +236,30 @@ jobs:
         docker image ls -a
     - name: Print pip freeze
       run: |
-        docker run alphax bash -c "pip freeze"
+        docker run --rm alphax bash -c "pip freeze"
     - name: alphadia unit tests
       id: alphadia_unit_tests
       run: |
-        docker run alphax bash -c "cd alphadia/tests &&  python -m pytest unit_tests"
+        docker run --rm alphax bash -c "cd alphadia/tests &&  python -m pytest unit_tests"
     - name: alphadia unit tests ('slow')
       id: alphadia_slow_unit_tests
       run: |
-        docker run alphax bash -c "cd alphadia/tests &&  python -m pytest integration_tests"
+        docker run --rm alphax bash -c "cd alphadia/tests &&  python -m pytest integration_tests"
     - name: alphadia e2e test 'basic'
       id: alphadia_e2e_tests
       run: |
         TEST_CASE_NAME=basic
-        docker run alphax bash -c "cd alphadia/tests/e2e_tests \
+        docker run --rm alphax bash -c "cd alphadia/tests/e2e_tests \
           &&  python prepare_test_data.py $TEST_CASE_NAME \
-          &&  alphadia --config $TEST_CASE_NAME/config.yaml"    
+          &&  alphadia --config $TEST_CASE_NAME/config.yaml"
+
+  cleanup:
+    runs-on: AlphaDIA
+    needs: [ alphabase_tests, alpharaw_tests, alphaviz_tests, alphapeptdeep_tests, alphapepttools_tests, alphadia_tests ]
+    if: ${{ always() && inputs.cleanup }}
+    steps:
+    - name: Remove alphax containers and image
+      run: |
+        docker rm -f $(docker ps -aq --filter ancestor=alphax) 2>/dev/null || true
+        docker rmi -f alphax:latest 2>/dev/null || true
+        docker image prune -f
