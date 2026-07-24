@@ -40,6 +40,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 ############################################################################
 ARG ALPHATIMS_REF="main"
+ARG ALPHATIMS_EXTRA=""
 RUN if [ "$ALPHATIMS_REF" != "skip" ]; then \
       git clone https://github.com/MannLabs/alphatims.git; \
       cd alphatims; \
@@ -49,12 +50,13 @@ RUN if [ "$ALPHATIMS_REF" != "skip" ]; then \
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     if [ "$ALPHATIMS_REF" != "skip" ]; then \
-    cd alphatims && pip install "."; \
+    cd alphatims && if [ -n "$ALPHATIMS_EXTRA" ]; then pip install ".[$ALPHATIMS_EXTRA]"; else pip install "."; fi; \
     pip freeze > /app/requirements_2_alphatims.txt; \
     fi
 
 ############################################################################
 ARG ALPHARAW_REF="main"
+ARG ALPHARAW_EXTRA="viz"
 RUN if [ "$ALPHARAW_REF" != "skip" ]; then \
       git clone https://github.com/MannLabs/alpharaw.git; \
       cd alpharaw; \
@@ -65,12 +67,13 @@ RUN if [ "$ALPHARAW_REF" != "skip" ]; then \
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     if [ "$ALPHARAW_REF" != "skip" ]; then \
-    cd alpharaw && pip install ".[viz]"; \
+    cd alpharaw && if [ -n "$ALPHARAW_EXTRA" ]; then pip install ".[$ALPHARAW_EXTRA]"; else pip install "."; fi; \
     pip freeze > /app/requirements_3_alpharaw.txt; \
     fi
 
 ############################################################################
 ARG ALPHAVIZ_REF="skip"
+ARG ALPHAVIZ_EXTRA=""
 RUN if [ "$ALPHAVIZ_REF" != "skip" ]; then \
       git clone https://github.com/MannLabs/alphaviz.git; \
       cd alphaviz; \
@@ -81,12 +84,13 @@ RUN if [ "$ALPHAVIZ_REF" != "skip" ]; then \
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     if [ "$ALPHAVIZ_REF" != "skip" ]; then  \
-    cd alphaviz && pip install "."; \
+    cd alphaviz && if [ -n "$ALPHAVIZ_EXTRA" ]; then pip install ".[$ALPHAVIZ_EXTRA]"; else pip install "."; fi; \
     pip freeze > /app/requirements_4_alphaviz.txt; \
     fi
 
 ############################################################################
 ARG ALPHAMAP_REF="skip"
+ARG ALPHAMAP_EXTRA=""
 RUN if [ "$ALPHAMAP_REF" != "skip" ]; then \
       git clone https://github.com/MannLabs/alphamap.git; \
       cd alphamap; \
@@ -97,12 +101,13 @@ RUN if [ "$ALPHAMAP_REF" != "skip" ]; then \
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     if [ "$ALPHAMAP_REF" != "skip" ]; then \
-    cd alphamap && pip install "."; \
+    cd alphamap && if [ -n "$ALPHAMAP_EXTRA" ]; then pip install ".[$ALPHAMAP_EXTRA]"; else pip install "."; fi; \
     pip freeze > /app/requirements_4b_alphamap.txt; \
     fi
 
 ############################################################################
 ARG ALPHAPEPTDEEP_REF="main"
+ARG ALPHAPEPTDEEP_EXTRA=""
 RUN if [ "$ALPHAPEPTDEEP_REF" != "skip" ]; then \
       git clone https://github.com/MannLabs/alphapeptdeep.git; \
       cd alphapeptdeep; \
@@ -113,7 +118,7 @@ RUN if [ "$ALPHAPEPTDEEP_REF" != "skip" ]; then \
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     if [ "$ALPHAPEPTDEEP_REF" != "skip" ]; then \
-    cd alphapeptdeep && pip install "."; \
+    cd alphapeptdeep && if [ -n "$ALPHAPEPTDEEP_EXTRA" ]; then pip install ".[$ALPHAPEPTDEEP_EXTRA]"; else pip install "."; fi; \
     pip freeze > /app/requirements_5_alphapeptdeep.txt; \
     fi
 
@@ -136,6 +141,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 ############################################################################
 ARG DIRECTLFQ_REF="main"
+ARG DIRECTLFQ_EXTRA=""
 RUN if [ "$DIRECTLFQ_REF" != "skip" ]; then \
       git clone https://github.com/MannLabs/directlfq.git; \
       cd directlfq; \
@@ -145,11 +151,12 @@ RUN if [ "$DIRECTLFQ_REF" != "skip" ]; then \
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     if [ "$DIRECTLFQ_REF" != "skip" ]; then \
-    cd directlfq && pip install "."; \
+    cd directlfq && if [ -n "$DIRECTLFQ_EXTRA" ]; then pip install ".[$DIRECTLFQ_EXTRA]"; else pip install "."; fi; \
     pip freeze > /app/requirements_6_directlfq.txt; \
     fi
 ############################################################################
 ARG ALPHADIA_REF="main"
+ARG ALPHADIA_EXTRA="stable"
 RUN if [ "$ALPHADIA_REF" != "skip" ]; then \
       git clone https://github.com/MannLabs/alphadia.git; \
       cd alphadia; \
@@ -160,14 +167,14 @@ RUN if [ "$ALPHADIA_REF" != "skip" ]; then \
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     if [ "$ALPHADIA_REF" != "skip" ]; then \
-    cd alphadia && pip install ".[stable]"; \
+    cd alphadia && if [ -n "$ALPHADIA_EXTRA" ]; then pip install ".[$ALPHADIA_EXTRA]"; else pip install "."; fi; \
     pip freeze > /app/requirements_7_alphadia.txt; \
     fi
 
 ############################################################################
 # additional dependencies for testing
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install pytest nbmake neptune
+    pip install pytest nbmake
 
 RUN pip freeze > /app/requirements_8_final.txt
 

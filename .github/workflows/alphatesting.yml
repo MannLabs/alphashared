@@ -7,7 +7,7 @@ on:
         description: "alphabase version: version of alphabase to use. Can be branch name, commit hash, or 'latest' for the latest release. If the default is 'skip', the project will be skipped unless a version is given."
         default: main
       alphabase_extra:
-        description: "alphabase installation extra (e.g. 'full' or '')"
+        description: "-- alphabase installation extra (e.g. 'full' or '')"
         default: full
       alphatims_ref:
         description: "alphatims version"
@@ -36,6 +36,9 @@ on:
       alphadia_ref:
         description: "alphadia version"
         default: main
+      alphadia_extra:
+        description: "-- alphadia installation extra (e.g. 'stable' or '')"
+        default: stable
       cleanup:
         description: "remove the alphax image and containers from the runner after all tests finish"
         type: boolean
@@ -83,14 +86,21 @@ jobs:
           ALPHABASE_REF=${{ inputs.alphabase_ref }}
           ALPHABASE_EXTRA=${{ inputs.alphabase_extra }}
           ALPHATIMS_REF=${{ inputs.alphatims_ref }}
+          ALPHATIMS_EXTRA=${{ inputs.alphatims_extra }}
           ALPHARAW_REF=${{ inputs.alpharaw_ref }}
+          ALPHARAW_EXTRA=${{ inputs.alpharaw_extra }}
           ALPHAVIZ_REF=${{ inputs.alphaviz_ref }}
+          ALPHAVIZ_EXTRA=${{ inputs.alphaviz_extra }}
           ALPHAMAP_REF=${{ inputs.alphamap_ref }}
+          ALPHAMAP_EXTRA=${{ inputs.alphamap_extra }}
           ALPHAPEPTDEEP_REF=${{ inputs.alphapeptdeep_ref }}
+          ALPHAPEPTDEEP_EXTRA=${{ inputs.alphapeptdeep_extra }}
           ALPHAPEPTTOOLS_REF=${{ inputs.alphapepttools_ref }}
           ALPHAPEPTTOOLS_EXTRA=${{ inputs.alphapepttools_extra }}
           DIRECTLFQ_REF=${{ inputs.directlfq_ref }}
+          DIRECTLFQ_EXTRA=${{ inputs.directlfq_extra }}
           ALPHADIA_REF=${{ inputs.alphadia_ref }}
+          ALPHADIA_EXTRA=${{ inputs.alphadia_extra }}
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
