@@ -49,6 +49,9 @@ jobs:
     runs-on: AlphaDIA
 
     steps:
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
+
     - name: Remove leftover alphax containers and image
       run: |
         docker rm -f $(docker ps -aq --filter ancestor=alphax) 2>/dev/null || true
