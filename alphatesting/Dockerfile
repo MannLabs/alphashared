@@ -16,13 +16,14 @@ WORKDIR /app
 
 COPY get_ref.sh .
 COPY replace_alphax.sh .
+COPY install_extra.sh .
 COPY pip.conf /etc/pip.conf
 
 RUN pip freeze > /app/requirements_0.txt
 
 ############################################################################
 ARG ALPHABASE_REF="main"
-ARG ALPHABASE_EXTRA="full"
+ARG ALPHABASE_EXTRA=""
 RUN if [ "$ALPHABASE_REF" != "SKIP" ]; then \
       git clone https://github.com/MannLabs/alphabase.git; \
       cd alphabase; \
@@ -34,7 +35,7 @@ RUN rm -rf alphabase/docs/tutorials/tutorial_scverse_compatibility.ipynb alphaba
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     if [ "$ALPHABASE_REF" != "SKIP" ]; then \
-    cd alphabase && if [ -n "$ALPHABASE_EXTRA" ]; then pip install ".[$ALPHABASE_EXTRA]"; else pip install "."; fi; \
+    cd alphabase && ../install_extra.sh "$ALPHABASE_EXTRA"; \
     pip freeze > /app/requirements_1_alphabase.txt; \
     fi
 
@@ -50,7 +51,7 @@ RUN if [ "$ALPHATIMS_REF" != "SKIP" ]; then \
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     if [ "$ALPHATIMS_REF" != "SKIP" ]; then \
-    cd alphatims && if [ -n "$ALPHATIMS_EXTRA" ]; then pip install ".[$ALPHATIMS_EXTRA]"; else pip install "."; fi; \
+    cd alphatims && ../install_extra.sh "$ALPHATIMS_EXTRA"; \
     pip freeze > /app/requirements_2_alphatims.txt; \
     fi
 
@@ -67,7 +68,7 @@ RUN if [ "$ALPHARAW_REF" != "SKIP" ]; then \
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     if [ "$ALPHARAW_REF" != "SKIP" ]; then \
-    cd alpharaw && if [ -n "$ALPHARAW_EXTRA" ]; then pip install ".[$ALPHARAW_EXTRA]"; else pip install "."; fi; \
+    cd alpharaw && ../install_extra.sh "$ALPHARAW_EXTRA"; \
     pip freeze > /app/requirements_3_alpharaw.txt; \
     fi
 
@@ -84,7 +85,7 @@ RUN if [ "$ALPHAVIZ_REF" != "SKIP" ]; then \
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     if [ "$ALPHAVIZ_REF" != "SKIP" ]; then  \
-    cd alphaviz && if [ -n "$ALPHAVIZ_EXTRA" ]; then pip install ".[$ALPHAVIZ_EXTRA]"; else pip install "."; fi; \
+    cd alphaviz && ../install_extra.sh "$ALPHAVIZ_EXTRA"; \
     pip freeze > /app/requirements_4_alphaviz.txt; \
     fi
 
@@ -101,7 +102,7 @@ RUN if [ "$ALPHAMAP_REF" != "SKIP" ]; then \
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     if [ "$ALPHAMAP_REF" != "SKIP" ]; then \
-    cd alphamap && if [ -n "$ALPHAMAP_EXTRA" ]; then pip install ".[$ALPHAMAP_EXTRA]"; else pip install "."; fi; \
+    cd alphamap && ../install_extra.sh "$ALPHAMAP_EXTRA"; \
     pip freeze > /app/requirements_4b_alphamap.txt; \
     fi
 
@@ -118,13 +119,13 @@ RUN if [ "$ALPHAPEPTDEEP_REF" != "SKIP" ]; then \
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     if [ "$ALPHAPEPTDEEP_REF" != "SKIP" ]; then \
-    cd alphapeptdeep && if [ -n "$ALPHAPEPTDEEP_EXTRA" ]; then pip install ".[$ALPHAPEPTDEEP_EXTRA]"; else pip install "."; fi; \
+    cd alphapeptdeep && ../install_extra.sh "$ALPHAPEPTDEEP_EXTRA"; \
     pip freeze > /app/requirements_5_alphapeptdeep.txt; \
     fi
 
 ############################################################################
 ARG ALPHAPEPTTOOLS_REF="skip"
-ARG ALPHAPEPTTOOLS_EXTRA="full"
+ARG ALPHAPEPTTOOLS_EXTRA=""
 RUN if [ "$ALPHAPEPTTOOLS_REF" != "SKIP" ]; then \
       git clone https://github.com/MannLabs/alphapepttools.git; \
       cd alphapepttools; \
@@ -135,7 +136,7 @@ RUN if [ "$ALPHAPEPTTOOLS_REF" != "SKIP" ]; then \
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     if [ "$ALPHAPEPTTOOLS_REF" != "SKIP" ]; then \
-    cd alphapepttools && if [ -n "$ALPHAPEPTTOOLS_EXTRA" ]; then pip install ".[$ALPHAPEPTTOOLS_EXTRA]"; else pip install "."; fi; \
+    cd alphapepttools && ../install_extra.sh "$ALPHAPEPTTOOLS_EXTRA"; \
     pip freeze > /app/requirements_5b_alphapepttools.txt; \
     fi
 
@@ -151,7 +152,7 @@ RUN if [ "$DIRECTLFQ_REF" != "SKIP" ]; then \
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     if [ "$DIRECTLFQ_REF" != "SKIP" ]; then \
-    cd directlfq && if [ -n "$DIRECTLFQ_EXTRA" ]; then pip install ".[$DIRECTLFQ_EXTRA]"; else pip install "."; fi; \
+    cd directlfq && ../install_extra.sh "$DIRECTLFQ_EXTRA"; \
     pip freeze > /app/requirements_6_directlfq.txt; \
     fi
 ############################################################################
@@ -167,7 +168,7 @@ RUN if [ "$ALPHADIA_REF" != "SKIP" ]; then \
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     if [ "$ALPHADIA_REF" != "SKIP" ]; then \
-    cd alphadia && if [ -n "$ALPHADIA_EXTRA" ]; then pip install ".[$ALPHADIA_EXTRA]"; else pip install "."; fi; \
+    cd alphadia && ../install_extra.sh "$ALPHADIA_EXTRA"; \
     pip freeze > /app/requirements_7_alphadia.txt; \
     fi
 

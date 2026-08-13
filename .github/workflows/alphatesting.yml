@@ -7,7 +7,7 @@ on:
         description: "alphabase version: version of alphabase to use. Can be branch name, commit hash, or 'latest' for the latest release. If the default is 'skip', the project will be skipped unless a version is given."
         default: main
       alphabase_extra:
-        description: "-- alphabase installation extra (e.g. 'full' or '')"
+        description: "-- alphabase installation extra (e.g. 'stable' or '')"
         default:
       alphatims_ref:
         description: "alphatims version"
@@ -28,7 +28,7 @@ on:
         description: "alphapepttools version"
         default: SKIP
       alphapepttools_extra:
-        description: "-- alphapepttools installation extra (e.g. 'full' or '')"
+        description: "-- alphapepttools installation extra (e.g. 'development' or '')"
         default:
       directlfq_ref:
         description: "directlfq version"
