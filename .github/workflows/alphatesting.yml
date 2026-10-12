@@ -6,6 +6,9 @@ on:
       alphabase_ref:
         description: "alphabase version: version of alphabase to use. Can be branch name, commit hash, or 'latest' for the latest release. If the default is 'skip', the project will be skipped unless a version is given."
         default: main
+      alphabase_extra:
+        description: "alphabase installation extra (e.g. 'full' or '')"
+        default: full
       alphatims_ref:
         description: "alphatims version"
         default: main
@@ -21,6 +24,12 @@ on:
       alphapeptdeep_ref:
         description: "alphapeptdeep version"
         default: main
+      alphapepttools_ref:
+        description: "alphapepttools version"
+        default: skip
+      alphapepttools_extra:
+        description: "alphapepttools installation extra (e.g. 'full' or '')"
+        default: full
       directlfq_ref:
         description: "directlfq version"
         default: main
@@ -62,11 +71,14 @@ jobs:
         no-cache: True
         build-args: |
           ALPHABASE_REF=${{ inputs.alphabase_ref }}
+          ALPHABASE_EXTRA=${{ inputs.alphabase_extra }}
           ALPHATIMS_REF=${{ inputs.alphatims_ref }}
           ALPHARAW_REF=${{ inputs.alpharaw_ref }}
           ALPHAVIZ_REF=${{ inputs.alphaviz_ref }}
           ALPHAMAP_REF=${{ inputs.alphamap_ref }}
           ALPHAPEPTDEEP_REF=${{ inputs.alphapeptdeep_ref }}
+          ALPHAPEPTTOOLS_REF=${{ inputs.alphapepttools_ref }}
+          ALPHAPEPTTOOLS_EXTRA=${{ inputs.alphapepttools_extra }}
           DIRECTLFQ_REF=${{ inputs.directlfq_ref }}
           ALPHADIA_REF=${{ inputs.alphadia_ref }}
     - name: Upload artifact
@@ -92,6 +104,7 @@ jobs:
         if-no-files-found: warn
 
   alphabase_tests:
+    if: ${{ inputs.alphabase_ref != 'skip' }}
     runs-on: AlphaDIA
     needs: [ build_image ]
     steps:
@@ -113,6 +126,7 @@ jobs:
         docker run alphax bash -c "cd alphabase/tests && chmod +x run_tests.sh && ./run_tests.sh"
 
   alpharaw_tests:
+    if: ${{ inputs.alpharaw_ref != 'skip' }}
     runs-on: AlphaDIA
     needs: [ build_image ]
     steps:
@@ -159,6 +173,7 @@ jobs:
   # currently no tests in alphamap
 
   alphapeptdeep_tests:
+    if: ${{ inputs.alphapeptdeep_ref != 'skip' }}
     runs-on: AlphaDIA
     needs: [ build_image ]
     steps:
@@ -179,7 +194,8 @@ jobs:
       run: |
         docker run alphax bash -c "cd alphapeptdeep/tests && chmod +x run_tests.sh && ./run_tests.sh"
 
-  alphadia_tests:
+  alphapepttools_tests:
+    if: ${{ inputs.alphapepttools_ref != 'skip' }}
     runs-on: AlphaDIA
     needs: [ build_image ]
     steps:
@@ -195,14 +211,36 @@ jobs:
     - name: Print pip freeze
       run: |
         docker run alphax bash -c "pip freeze"
-    - name: alphadia unit tests ('not slow')
+    - name: alphapepttools tests
+      id: alphapepttools_tests
+      run: |
+        docker run alphax bash -c "cd alphapepttools/tests && python -m pytest && ./run_notebook_tests.sh"
+
+  alphadia_tests:
+    if: ${{ inputs.alphadia_ref != 'skip' }}
+    runs-on: AlphaDIA
+    needs: [ build_image ]
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: alphax
+        path: /tmp
+    - name: Load image
+      run: |
+        docker load --input /tmp/alphax.tar
+        docker image ls -a
+    - name: Print pip freeze
+      run: |
+        docker run alphax bash -c "pip freeze"
+    - name: alphadia unit tests
       id: alphadia_unit_tests
       run: |
-        docker run alphax bash -c "cd alphadia/tests &&  python -m pytest -k 'not slow'"
+        docker run alphax bash -c "cd alphadia/tests &&  python -m pytest unit_tests"
     - name: alphadia unit tests ('slow')
       id: alphadia_slow_unit_tests
       run: |
-        docker run alphax bash -c "cd alphadia/tests &&  python -m pytest -k 'slow'"
+        docker run alphax bash -c "cd alphadia/tests &&  python -m pytest integration_tests"
     - name: alphadia e2e test 'basic'
       id: alphadia_e2e_tests
       run: |

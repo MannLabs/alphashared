@@ -22,40 +22,52 @@ RUN pip freeze > /app/requirements_0.txt
 
 ############################################################################
 ARG ALPHABASE_REF="main"
-RUN git clone https://github.com/MannLabs/alphabase.git \
-    && cd alphabase \
-    && git checkout $(../get_ref.sh $ALPHABASE_REF) \
-    && git status
+ARG ALPHABASE_EXTRA="full"
+RUN if [ "$ALPHABASE_REF" != "skip" ]; then \
+      git clone https://github.com/MannLabs/alphabase.git; \
+      cd alphabase; \
+      git checkout $(../get_ref.sh $ALPHABASE_REF); \
+      git status; \
+    fi
+# hack to get rid of a notebook that requires anndata/mudata
+RUN rm -rf alphabase/docs/tutorials/tutorial_scverse_compatibility.ipynb
 
 RUN --mount=type=cache,target=/root/.cache/pip \
-    cd alphabase && pip install "."
-
-RUN pip freeze > /app/requirements_1_alphabase.txt
+    if [ "$ALPHABASE_REF" != "skip" ]; then \
+    cd alphabase && if [ -n "$ALPHABASE_EXTRA" ]; then pip install ".[$ALPHABASE_EXTRA]"; else pip install "."; fi; \
+    pip freeze > /app/requirements_1_alphabase.txt; \
+    fi
 
 ############################################################################
 ARG ALPHATIMS_REF="main"
-RUN git clone https://github.com/MannLabs/alphatims.git \
-    && cd alphatims \
-    && git checkout $(../get_ref.sh $ALPHATIMS_REF) \
-    && git status
+RUN if [ "$ALPHATIMS_REF" != "skip" ]; then \
+      git clone https://github.com/MannLabs/alphatims.git; \
+      cd alphatims; \
+      git checkout $(../get_ref.sh $ALPHATIMS_REF); \
+      git status; \
+    fi
 
 RUN --mount=type=cache,target=/root/.cache/pip \
-    cd alphatims && pip install "."
-
-RUN pip freeze > /app/requirements_2_alphatims.txt
+    if [ "$ALPHATIMS_REF" != "skip" ]; then \
+    cd alphatims && pip install "."; \
+    pip freeze > /app/requirements_2_alphatims.txt; \
+    fi
 
 ############################################################################
 ARG ALPHARAW_REF="main"
-RUN git clone https://github.com/MannLabs/alpharaw.git \
-    && cd alpharaw \
-    && git checkout $(../get_ref.sh $ALPHARAW_REF) \
-    && ../replace_alphax.sh \
-    && git status
+RUN if [ "$ALPHARAW_REF" != "skip" ]; then \
+      git clone https://github.com/MannLabs/alpharaw.git; \
+      cd alpharaw; \
+      git checkout $(../get_ref.sh $ALPHARAW_REF); \
+      ../replace_alphax.sh; \
+      git status; \
+    fi
 
 RUN --mount=type=cache,target=/root/.cache/pip \
-    cd alpharaw && pip install ".[viz]"
-
-RUN pip freeze > /app/requirements_3_alpharaw.txt
+    if [ "$ALPHARAW_REF" != "skip" ]; then \
+    cd alpharaw && pip install ".[viz]"; \
+    pip freeze > /app/requirements_3_alpharaw.txt; \
+    fi
 
 ############################################################################
 ARG ALPHAVIZ_REF="skip"
@@ -91,40 +103,66 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 ############################################################################
 ARG ALPHAPEPTDEEP_REF="main"
-RUN git clone https://github.com/MannLabs/alphapeptdeep.git \
-    && cd alphapeptdeep \
-    && git checkout $(../get_ref.sh $ALPHAPEPTDEEP_REF) \
-    && ../replace_alphax.sh \
-    && git status
+RUN if [ "$ALPHAPEPTDEEP_REF" != "skip" ]; then \
+      git clone https://github.com/MannLabs/alphapeptdeep.git; \
+      cd alphapeptdeep; \
+      git checkout $(../get_ref.sh $ALPHAPEPTDEEP_REF); \
+      ../replace_alphax.sh; \
+      git status; \
+    fi
 
 RUN --mount=type=cache,target=/root/.cache/pip \
-    cd alphapeptdeep && pip install "."
+    if [ "$ALPHAPEPTDEEP_REF" != "skip" ]; then \
+    cd alphapeptdeep && pip install "."; \
+    pip freeze > /app/requirements_5_alphapeptdeep.txt; \
+    fi
 
-RUN pip freeze > /app/requirements_5_alphapeptdeep.txt
+############################################################################
+ARG ALPHAPEPTTOOLS_REF="skip"
+ARG ALPHAPEPTTOOLS_EXTRA="full"
+RUN if [ "$ALPHAPEPTTOOLS_REF" != "skip" ]; then \
+      git clone https://github.com/MannLabs/alphapepttools.git; \
+      cd alphapepttools; \
+      git checkout $(../get_ref.sh $ALPHAPEPTTOOLS_REF); \
+      ../replace_alphax.sh; \
+      git status; \
+    fi
+
+RUN --mount=type=cache,target=/root/.cache/pip \
+    if [ "$ALPHAPEPTTOOLS_REF" != "skip" ]; then \
+    cd alphapepttools && if [ -n "$ALPHAPEPTTOOLS_EXTRA" ]; then pip install ".[$ALPHAPEPTTOOLS_EXTRA]"; else pip install "."; fi; \
+    pip freeze > /app/requirements_5b_alphapepttools.txt; \
+    fi
 
 ############################################################################
 ARG DIRECTLFQ_REF="main"
-RUN git clone https://github.com/MannLabs/directlfq.git \
-    && cd directlfq \
-    && git checkout $(../get_ref.sh $DIRECTLFQ_REF) \
-    && git status
+RUN if [ "$DIRECTLFQ_REF" != "skip" ]; then \
+      git clone https://github.com/MannLabs/directlfq.git; \
+      cd directlfq; \
+      git checkout $(../get_ref.sh $DIRECTLFQ_REF); \
+      git status; \
+    fi
 
 RUN --mount=type=cache,target=/root/.cache/pip \
-    cd directlfq && pip install "."
-
-RUN pip freeze > /app/requirements_6_directlfq.txt
+    if [ "$DIRECTLFQ_REF" != "skip" ]; then \
+    cd directlfq && pip install "."; \
+    pip freeze > /app/requirements_6_directlfq.txt; \
+    fi
 ############################################################################
 ARG ALPHADIA_REF="main"
-RUN git clone https://github.com/MannLabs/alphadia.git \
-    && cd alphadia \
-    && git checkout $(../get_ref.sh $ALPHADIA_REF) \
-    && ../replace_alphax.sh \
-    && git status
+RUN if [ "$ALPHADIA_REF" != "skip" ]; then \
+      git clone https://github.com/MannLabs/alphadia.git; \
+      cd alphadia; \
+      git checkout $(../get_ref.sh $ALPHADIA_REF); \
+      ../replace_alphax.sh; \
+      git status; \
+    fi
 
 RUN --mount=type=cache,target=/root/.cache/pip \
-    cd alphadia && pip install ".[stable]"
-
-RUN pip freeze > /app/requirements_7_alphadia.txt
+    if [ "$ALPHADIA_REF" != "skip" ]; then \
+    cd alphadia && pip install ".[stable]"; \
+    pip freeze > /app/requirements_7_alphadia.txt; \
+    fi
 
 ############################################################################
 # additional dependencies for testing
