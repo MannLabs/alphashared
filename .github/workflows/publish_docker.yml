@@ -20,7 +20,11 @@ on:
         description: "Path to the Dockerfile. Defaults to './Dockerfile'"
         type: string
         default: "./Dockerfile"
-      
+      build_args:
+        description: "Newline-separated build arguments passed to `docker build`, e.g. 'KEY1=value1\nKEY2=value2'"
+        type: string
+        default: ""
+
     secrets:
       docker_username:
         description: 'Username for Docker Hub'
@@ -76,6 +80,7 @@ jobs:
         with:
           context: .
           file: ${{ inputs.dockerfile_path }}
+          build-args: ${{ inputs.build_args }}
           push: true
           tags: |
             ${{ secrets.docker_username }}/${{ inputs.package_name }}:latest,
