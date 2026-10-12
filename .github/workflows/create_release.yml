@@ -199,7 +199,6 @@ jobs:
       matrix:
         runner:
           - macos-15
-          - macos-15-intel
         exclude:
           - runner: ${{ inputs.skip_macos_arm64_build && 'macos-15' }}
     uses: ./.github/workflows/_create_artifact.yml
