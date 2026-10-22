@@ -259,6 +259,9 @@ jobs:
       # optional parameters:
       # src_folder: src
       # dockerfile_path: "./docker/Dockerfile"
+      # build_args: |
+      #   KEY1=value1
+      #   KEY2=value2
 ```
 2. The `DOCKER_ACCESS_TOKEN` and `DOCKER_USERNAME` must be available in the repository secrets.
 
