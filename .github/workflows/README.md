@@ -197,7 +197,15 @@ jobs:
       build_nodejs_ui: true
       test_app: true
       python_version: "3.9" # make sure there are quotes!
+      platform_wheels: false
 ```
+
+##### Platform-specific wheels
+For packages with a compiled extension (e.g. Rust via PyO3), set `platform_wheels: true`.
+Instead of building a single common wheel, [cibuildwheel](https://cibuildwheel.pypa.io) then builds one wheel per platform
+and python version (configured in the `[tool.cibuildwheel]` section of the package's `pyproject.toml`), plus the sdist,
+and uploads them to the release. The installers use the wheel matching their runner,
+and the 'Publish on PyPi' workflow publishes all of them (no extra parameter needed there).
 
 
 #### 'Publish on pypi' workflow

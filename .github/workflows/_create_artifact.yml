@@ -155,7 +155,12 @@ jobs:
         elif [ -d wheel_from_release ]; then
             echo "Using downloaded wheel"
             mkdir -p dist
-            mv wheel_from_release/*.whl dist/
+            if [ $(ls wheel_from_release/*.whl | wc -l) -gt 1 ]; then
+                # platform-specific wheels: pip picks the one matching this runner
+                pip download --no-index --no-deps --only-binary :all: --find-links wheel_from_release --dest dist ${{ inputs.package_name }}
+            else
+                mv wheel_from_release/*.whl dist/
+            fi
         else
             echo "No wheel found, assuming it will be built by the installer build step"
             pip install build

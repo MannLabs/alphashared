@@ -121,13 +121,21 @@ jobs:
           fileName: '*.whl'
           out-file-path: 'dist'
 
+      - name: Download sdist
+        uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 #v1.12
+        continue-on-error: true # only attached to releases built with `platform_wheels`
+        with:
+          tag: ${{ inputs.tag_to_release }}
+          fileName: '*.tar.gz'
+          out-file-path: 'dist'
+
       - name: Prepare wheel
         id: prepare_wheel
         shell: bash -le {0}
         run: |          
           
-          if [ -d "dist" ] && [ ! -z $(find dist -name "*.whl") ]; then
-              echo "Nothing to prepare: using downloaded wheel $(find dist -name "*.whl")"
+          if [ -d "dist" ] && [ -n "$(find dist -name "*.whl")" ]; then
+              echo "Nothing to prepare: using downloaded wheel(s) $(find dist -name "*.whl")"
           else
               echo "No wheel found, building it .."
               
@@ -149,13 +157,7 @@ jobs:
               conda clean --all -y
           fi
           
-          WHEEL_FILES=$(find dist -name "*.whl")
-          if [ $(echo $WHEEL_FILES | wc -w) -ne 1 ]; then
-              echo "More than one wheel found in dist: $WHEEL_FILES"
-              exit 1
-          fi
-          
-          echo WHEEL_FILE=$WHEEL_FILES >> $GITHUB_OUTPUT
+          ls -l dist
 
       - name: Check package
         # twine==6.1.0 yields "ERROR    InvalidDistribution: Invalid distribution metadata: unrecognized or malformed field 'license-file'"
@@ -163,7 +165,7 @@ jobs:
         shell: bash -le {0}
         run: |
           pip install twine==6.0.1 
-          twine check --strict ${{steps.prepare_wheel.outputs.WHEEL_FILE}}
+          twine check --strict dist/*
 
       - name: Check installing package
         shell: bash -le {0}
@@ -171,7 +173,8 @@ jobs:
           conda create -n check_env python=${{ env.PYTHON_VERSION }} -y
           conda activate check_env
           
-          pip install ${{steps.prepare_wheel.outputs.WHEEL_FILE}}
+          # pip picks the matching wheel if there are several (`platform_wheels`)
+          pip install --only-binary ${{ inputs.package_name }} --find-links dist "${{ inputs.package_name }}==${{ steps.get_current_version.outputs.new_version }}"
           
           conda deactivate
           conda env remove --name check_env -y

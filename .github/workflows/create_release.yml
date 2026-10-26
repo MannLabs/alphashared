@@ -32,6 +32,10 @@ on:
         description: "Folder that contains the __init__.py file with the __version__ attribute. If not given,  `<packagename>/` is used"
         type: string
         default: ""
+      platform_wheels:
+        description: 'Build one wheel per platform and python version (e.g. for compiled extensions) using cibuildwheel instead of a single common wheel, configured in the [tool.cibuildwheel] section of pyproject.toml.'
+        type: boolean
+        default: false
 # TODO prerelease checkbox?
 
 jobs:
@@ -137,6 +141,7 @@ jobs:
 
   Create_Wheel:
     needs: [ Create_Release ]
+    if: ${{ !inputs.platform_wheels }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -175,9 +180,18 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: gh release upload ${{ needs.Create_Release.outputs.release_tag }} ./${{ steps.create_wheel.outputs.WHEEL_PATH }}
 
+  Create_Platform_Wheels:
+    needs: [ Create_Release ]
+    if: ${{ inputs.platform_wheels }}
+    uses: ./.github/workflows/_build_platform_wheels.yml
+    with:
+      commitish_to_release: ${{ inputs.commitish_to_release }}
+      release_tag: ${{ needs.Create_Release.outputs.release_tag }}
+
   Create_Linux_Installer:
-    needs: [ Create_Wheel, Create_Release]
-    if: ${{ needs.Create_Release.outputs.run_linux == 'true' }}  # job output -> string comparison
+    needs: [ Create_Wheel, Create_Platform_Wheels, Create_Release]
+    # one of the wheel jobs is always skipped, which would otherwise skip this job too
+    if: ${{ !cancelled() && !failure() && needs.Create_Release.outputs.run_linux == 'true' }}  # job output -> string comparison
     uses: ./.github/workflows/_create_artifact.yml
     with:
       package_name: ${{ inputs.package_name }}
@@ -192,8 +206,9 @@ jobs:
       commitish_to_release: ${{ inputs.commitish_to_release }}
 
   Create_MacOS_Installer:
-    needs: [ Create_Wheel, Create_Release]
-    if: ${{ needs.Create_Release.outputs.run_macos == 'true' }} # job output -> string comparison
+    needs: [ Create_Wheel, Create_Platform_Wheels, Create_Release]
+    # one of the wheel jobs is always skipped, which would otherwise skip this job too
+    if: ${{ !cancelled() && !failure() && needs.Create_Release.outputs.run_macos == 'true' }} # job output -> string comparison
     strategy:
       fail-fast: false
       matrix:
@@ -215,8 +230,9 @@ jobs:
       commitish_to_release: ${{ inputs.commitish_to_release }}
 
   Create_Windows_Installer:
-    needs: [ Create_Wheel, Create_Release]
-    if: ${{ needs.Create_Release.outputs.run_windows == 'true' }} # job output -> string comparison
+    needs: [ Create_Wheel, Create_Platform_Wheels, Create_Release]
+    # one of the wheel jobs is always skipped, which would otherwise skip this job too
+    if: ${{ !cancelled() && !failure() && needs.Create_Release.outputs.run_windows == 'true' }} # job output -> string comparison
     uses: ./.github/workflows/_create_artifact.yml
     with:
       package_name: ${{ inputs.package_name }}

@@ -1,0 +1,73 @@
+# Reusable workflow to build platform-specific wheels and the sdist for a release, configured via [tool.cibuildwheel] in pyproject.toml
+name: Build platform wheels
+
+on:
+  workflow_call:
+    inputs:
+      commitish_to_release:
+        type: string
+        required: true
+      release_tag:
+        type: string
+        required: true
+        description: "The release tag to upload the wheels and the sdist to, e.g. v1.2.3"
+
+jobs:
+  build_wheels:
+    name: Wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # native runners, as emulating other architectures is slow for compiled extensions
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-15-intel, macos-15, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commitish_to_release }}
+      - uses: pypa/cibuildwheel@b9e566a2b284570af229f6c2a33673410d0389a3 # v4.3.4
+        with:
+          output-dir: dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-wheels-${{ matrix.os }}
+          path: dist/*.whl
+          if-no-files-found: error
+
+  build_sdist:
+    name: Source distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commitish_to_release }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Build sdist
+        run: |
+          pip install build
+          python -m build --sdist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-sdist
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  upload_to_release:
+    name: Upload to release
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: dist-*
+          merge-multiple: true
+          path: dist
+      - name: Upload wheels and sdist
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          ls -l dist
+          gh release upload ${{ inputs.release_tag }} dist/*
