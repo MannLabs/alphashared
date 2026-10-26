@@ -123,7 +123,7 @@ jobs:
 
       - name: Download sdist
         uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 #v1.12
-        continue-on-error: true # only uploaded to the release for packages using `platform_wheels` in create_release.yml
+        continue-on-error: true # only attached to releases built with `platform_wheels`
         with:
           tag: ${{ inputs.tag_to_release }}
           fileName: '*.tar.gz'
@@ -157,7 +157,6 @@ jobs:
               conda clean --all -y
           fi
           
-          # more than one wheel for platform-specific wheels, cf. create_release.yml:platform_wheels
           ls -l dist
 
       - name: Check package
@@ -174,7 +173,7 @@ jobs:
           conda create -n check_env python=${{ env.PYTHON_VERSION }} -y
           conda activate check_env
           
-          # lets pip pick the wheel matching this runner in case of platform-specific wheels
+          # pip picks the matching wheel if there are several (`platform_wheels`)
           pip install --only-binary ${{ inputs.package_name }} --find-links dist "${{ inputs.package_name }}==${{ steps.get_current_version.outputs.new_version }}"
           
           conda deactivate

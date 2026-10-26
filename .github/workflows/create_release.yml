@@ -190,7 +190,7 @@ jobs:
 
   Create_Linux_Installer:
     needs: [ Create_Wheel, Create_Platform_Wheels, Create_Release]
-    # either Create_Wheel or Create_Platform_Wheels is skipped, which would skip this job without the explicit status check
+    # one of the wheel jobs is always skipped, which would otherwise skip this job too
     if: ${{ !cancelled() && !failure() && needs.Create_Release.outputs.run_linux == 'true' }}  # job output -> string comparison
     uses: ./.github/workflows/_create_artifact.yml
     with:
@@ -207,7 +207,7 @@ jobs:
 
   Create_MacOS_Installer:
     needs: [ Create_Wheel, Create_Platform_Wheels, Create_Release]
-    # either Create_Wheel or Create_Platform_Wheels is skipped, which would skip this job without the explicit status check
+    # one of the wheel jobs is always skipped, which would otherwise skip this job too
     if: ${{ !cancelled() && !failure() && needs.Create_Release.outputs.run_macos == 'true' }} # job output -> string comparison
     strategy:
       fail-fast: false
@@ -231,7 +231,7 @@ jobs:
 
   Create_Windows_Installer:
     needs: [ Create_Wheel, Create_Platform_Wheels, Create_Release]
-    # either Create_Wheel or Create_Platform_Wheels is skipped, which would skip this job without the explicit status check
+    # one of the wheel jobs is always skipped, which would otherwise skip this job too
     if: ${{ !cancelled() && !failure() && needs.Create_Release.outputs.run_windows == 'true' }} # job output -> string comparison
     uses: ./.github/workflows/_create_artifact.yml
     with:

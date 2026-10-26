@@ -1,6 +1,4 @@
-# Reusable workflow to build platform-specific wheels (e.g. for packages with a compiled Rust/C extension) and the sdist,
-# and upload them to a release.
-# The wheel builds are configured in the [tool.cibuildwheel] section of the package's pyproject.toml (python versions, architectures, ...).
+# Reusable workflow to build platform-specific wheels and the sdist for a release, configured via [tool.cibuildwheel] in pyproject.toml
 name: Build platform wheels
 
 on:
@@ -21,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # native runners per architecture, as emulation (QEMU) or cross-compilation are slow or fragile for compiled extensions
+        # native runners, as emulating other architectures is slow for compiled extensions
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-15-intel, macos-15, windows-latest]
     steps:
       - uses: actions/checkout@v4
